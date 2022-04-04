@@ -348,3 +348,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+/Conectify/appsettings.Development.json
+/Conectify.Database/appsettings.Development.json
