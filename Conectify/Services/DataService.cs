@@ -1,44 +1,78 @@
 ﻿namespace Conectify.Server.Services;
-
-using AutoMapper;
 using Conectify.Database;
 using Conectify.Database.Interfaces;
-using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.ErrorHandling;
 using Database.Models.Values;
+using Newtonsoft.Json;
+using System.Data.Entity;
+using System.Reflection;
 
 public interface IDataService
 {
-    Task InsertApiValue(ApiValueModel apiValue);
+    Task InsertJsonModel(string rawJson, Guid deviceId, CancellationToken ct = default);
 }
 
 public class DataService : IDataService
 {
     private readonly ILogger<DataService> logger;
-    private readonly IMapper mapper;
     private readonly ConectifyDb database;
+    private readonly IPipelineService pipelineService;
+    private readonly IDeviceService deviceService;
+    private readonly ISensorService sensorService;
+    private readonly IActuatorService actuatorService;
+    private const string ApiPrefix = "Api";
 
-    public DataService(ILogger<DataService> logger, IMapper mapper, ConectifyDb database)
+    public DataService(ILogger<DataService> logger, ConectifyDb database, IPipelineService pipelineService, IDeviceService deviceService, ISensorService sensorService, IActuatorService actuatorService)
     {
         this.logger = logger;
-        this.mapper = mapper;
         this.database = database;
+        this.pipelineService = pipelineService;
+        this.deviceService = deviceService;
+        this.sensorService = sensorService;
+        this.actuatorService = actuatorService;
     }
 
-    public async Task InsertApiValue(ApiValueModel apiValue)
+    public async Task InsertJsonModel(string rawJson, Guid deviceId, CancellationToken ct = default)
     {
-        logger.LogInformation($"Got value: {apiValue.ToJson()}");
         try
         {
-            IBaseInputType mapedEntity = MapEntity(apiValue);
-            await SaveToDatabase(mapedEntity);
+            var mapedEntity = DeserializeJson(rawJson);
 
+            if (await ValidateAndRepairEntity(mapedEntity, deviceId, ct))
+            {
+                await SaveToDatabase(mapedEntity);
+                await pipelineService.ResendValueToSubscribers(mapedEntity);
+            }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Exception catched at input");
+            logger.LogError(ex, "Exception catched when working with devices");
             logger.LogInformation(ex.Message);
             logger.LogDebug(ex.StackTrace);
         }
+    }
+
+    private async Task<bool> ValidateAndRepairEntity(IBaseInputType mapedEntity, Guid deviceId, CancellationToken ct = default)
+    {
+        //TODO validations will have place here
+
+        // repairs of unknown references
+        if(mapedEntity is Value or Action)
+        {
+             await sensorService.AddUnknownSensor(mapedEntity.SourceId, deviceId);
+        }
+
+        if (mapedEntity is Command or CommandResponse)
+        {
+            await deviceService.AddUnknownDevice(mapedEntity.SourceId);
+        }
+
+        if (mapedEntity is ActionResponse)
+        {
+            await actuatorService.AddUnknownActuator(mapedEntity.SourceId, deviceId);
+        }
+
+        return true;
     }
 
     private async Task SaveToDatabase(IBaseInputType mapedEntity)
@@ -47,18 +81,25 @@ public class DataService : IDataService
         await database.SaveChangesAsync();
     }
 
-    private IBaseInputType MapEntity(ApiValueModel apiValue)
+    private IBaseInputType DeserializeJson(string rawJson)
     {
-        switch (apiValue.Type)
-        {
-            case nameof(Command): return mapper.Map<Command>(apiValue);
-            case nameof(Action): return mapper.Map<Action>(apiValue);
-            case nameof(Value): return mapper.Map<Value>(apiValue);
-            case nameof(ActionResponse): return mapper.Map<ActionResponse>(apiValue);
-            case nameof(CommandResponse): return mapper.Map<CommandResponse>(apiValue);
+        var type = JsonConvert.DeserializeAnonymousType(rawJson, new { Type = string.Empty });
 
-            default: return null;
+        Assembly asm = typeof(Command).Assembly;
+        Type? t = asm.GetType(ApiPrefix + (type != null ? type.Type : string.Empty));
+
+        if (t is null)
+        {
+            throw new ConectifyException($"Does not recognize type {(type != null ? type.Type : string.Empty)}");
         }
 
+        var deserialized = JsonConvert.DeserializeObject(rawJson, t) as IBaseInputType;
+
+        if(deserialized is null)
+        {
+            throw new ConectifyException($"Could not serialize {rawJson} to type {t.Name}");
+        }
+
+        return deserialized;
     }
 }

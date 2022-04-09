@@ -1,45 +1,55 @@
 ﻿namespace Conectify.Server.Services;
 
-using Conectify.Shared.Library.Models;
-using Newtonsoft.Json;
+using Conectify.Server.Caches;
+using Conectify.Shared.Library.Models.Values;
 using System.Net.WebSockets;
 using System.Text;
 
 public interface IWebSocketService
 {
-    Task<bool> ConnectAsync(Guid thingId, WebSocket webSocket);
-    Task<bool> SendToThingAsync(Guid thingId, ApiValueModel returnValue, CancellationToken cancelationToken = default);
+    Task<bool> ConnectAsync(Guid thingId, WebSocket webSocket, CancellationToken ct = default);
+    Task<bool> SendToThingAsync(Guid thingId, IApiBaseModel returnValue, CancellationToken cancelationToken = default);
 }
 
 public class WebSocketService : IWebSocketService
 {
 
     private readonly ILogger<WebSocketService> logger;
-    private readonly IDataService dataService;
+    private readonly ISubscribersCache cache;
+    private readonly IServiceProvider serviceProvider;
     private Dictionary<Guid, WebSocket> sockets = new Dictionary<Guid, WebSocket>();
 
-    public WebSocketService(ILogger<WebSocketService> logger, IDataService dataService)
+    public WebSocketService(ILogger<WebSocketService> logger, ISubscribersCache cache, IServiceProvider serviceProvider)
     {
         this.logger = logger;
-        this.dataService = dataService;
+        this.cache = cache;
+        this.serviceProvider = serviceProvider;
     }
 
-    public async Task<bool> ConnectAsync(Guid thingId, WebSocket webSocket)
+    public async Task<bool> ConnectAsync(Guid deviceId, WebSocket webSocket, CancellationToken ct = default)
     {
-        if (sockets.ContainsKey(thingId))
+        if (sockets.ContainsKey(deviceId))
         {
-            sockets[thingId] = webSocket;
+            sockets[deviceId] = webSocket;
         }
         else
         {
-            sockets.Add(thingId, webSocket);
+            sockets.Add(deviceId, webSocket);
         }
 
-        await HandleInput(webSocket);
+        var deviceService = serviceProvider.GetRequiredService<IDeviceService>();
+
+        await deviceService.AddUnknownDevice(deviceId, ct);
+        await cache.AddSubscriber(deviceId, ct);
+        await HandleInput(webSocket, deviceId, ct);
+
+        logger.LogWarning($"Connection with device {deviceId} has ended.");
+        sockets.Remove(deviceId);
+        cache.RemoveSubscriber(deviceId);
         return true;
     }
 
-    private async Task HandleInput(WebSocket webSocket)
+    private async Task HandleInput(WebSocket webSocket, Guid deviceId, CancellationToken ct)
     {
         do
         {
@@ -54,15 +64,14 @@ public class WebSocketService : IWebSocketService
             {
                 var incomingJson = Encoding.UTF8.GetString(buffer);
                 logger.LogInformation(incomingJson);
-
-                var inputValue = JsonConvert.DeserializeObject<ApiValueModel>(incomingJson);
-                await dataService.InsertApiValue(inputValue);
+                var dataService = serviceProvider.GetRequiredService<IDataService>();
+                await dataService.InsertJsonModel(incomingJson, deviceId, ct);
             }
 
         } while (true);
     }
 
-    public async Task<bool> SendToThingAsync(Guid thingId, ApiValueModel returnValue, CancellationToken cancelationToken = default)
+    public async Task<bool> SendToThingAsync(Guid thingId, IApiBaseModel returnValue, CancellationToken cancelationToken = default)
     {
         var msg = Encoding.UTF8.GetBytes(returnValue.ToJson());
 
@@ -73,6 +82,8 @@ public class WebSocketService : IWebSocketService
         }
         else
         {
+            cache.RemoveSubscriber(thingId);
+            sockets.Remove(thingId);
             logger.LogError($"Cannot send message to {thingId}");
             return false;
         }

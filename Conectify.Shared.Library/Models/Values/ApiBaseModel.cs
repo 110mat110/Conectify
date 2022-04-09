@@ -1,12 +1,12 @@
-﻿namespace Conectify.Database.Interfaces;
+﻿namespace Conectify.Shared.Library.Models.Values;
 
 using Conectify.Shared.Library.Classes;
 using System;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
-public interface IBaseInputType : IEntity
+public interface IApiBaseModel : ISerializable
 {
+    Guid Id { get; set; }
+    string Type { get; set; }
     Guid SourceId { get; set; }
     string Name { get; set; }
     string Unit { get; set; }
@@ -15,17 +15,14 @@ public interface IBaseInputType : IEntity
     long TimeCreated { get; set; }
 }
 
-public record BaseInputType : IBaseInputType
+public class ApiBaseModel : Serializable, IApiBaseModel
 {
-    [Key]
-    [JsonIgnore]
-    [field: NonSerialized]
     public Guid Id { get; set; }
+    public string Type { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Unit { get; set; } = string.Empty;
     public string StringValue { get; set; } = string.Empty;
     public float? NumericValue { get; set; }
     public long TimeCreated { get; set; }
-
     public Guid SourceId { get; set; }
 }

@@ -3,7 +3,7 @@
 using Conectify.Database.Interfaces;
 using System;
 
-public class Action : BaseInputType
+public record Action : BaseInputType
 {
     public Guid? DestinationId { get; set; }
     public virtual Sensor Source { get; set; } = null!;
