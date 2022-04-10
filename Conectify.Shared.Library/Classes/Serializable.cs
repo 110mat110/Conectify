@@ -12,8 +12,10 @@ public class Serializable : ISerializable
 {
     public string ToJson()
     {
-        var serializerSettings = new JsonSerializerSettings();
-        serializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+        var serializerSettings = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver()
+        };
         return JsonConvert.SerializeObject(this, serializerSettings).Replace(@"\", "");
     }
 

@@ -59,17 +59,17 @@ public class DataService : IDataService
         // repairs of unknown references
         if(mapedEntity is Value or Action)
         {
-             await sensorService.AddUnknownSensor(mapedEntity.SourceId, deviceId);
+             await sensorService.TryAddUnknownDevice(mapedEntity.SourceId, deviceId);
         }
 
         if (mapedEntity is Command or CommandResponse)
         {
-            await deviceService.AddUnknownDevice(mapedEntity.SourceId);
+            await deviceService.TryAddUnknownDevice(mapedEntity.SourceId, mapedEntity.SourceId);
         }
 
         if (mapedEntity is ActionResponse)
         {
-            await actuatorService.AddUnknownActuator(mapedEntity.SourceId, deviceId);
+            await actuatorService.TryAddUnknownDevice(mapedEntity.SourceId, deviceId);
         }
 
         return true;

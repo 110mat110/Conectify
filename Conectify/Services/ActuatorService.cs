@@ -7,45 +7,37 @@ using Conectify.Database.Models;
 using Conectify.Shared.Library.Models;
 using Microsoft.EntityFrameworkCore;
 
-public interface IActuatorService
+public interface IActuatorService : IUniversalDeviceService<ApiActuator>
 {
-    Task<bool> AddKnownActuator(ApiActuator apiActuator, CancellationToken ct = default);
-    Task<bool> AddUnknownActuator(Guid ActuatorId, Guid deviceId, CancellationToken ct = default);
     Task<IEnumerable<ApiActuator>> GetAllActuatorsPerDevice(Guid deviceId, CancellationToken ct = default);
-    Task<ApiActuator?> GetActuator(Guid id, CancellationToken ct = default);
 }
 
-public class ActuatorService : IActuatorService
+public class ActuatorService : UniversalDeviceService<Actuator, ApiActuator>, IActuatorService
 {
     private readonly ConectifyDb database;
     private readonly IMapper mapper;
     private readonly IDeviceService deviceService;
 
-    public ActuatorService(ConectifyDb database, IMapper mapper, IDeviceService deviceService)
+    public ActuatorService(ConectifyDb database, IMapper mapper, IDeviceService deviceService, ILogger<ActuatorService> logger) : base(database, mapper, logger)
     {
         this.database = database;
         this.mapper = mapper;
         this.deviceService = deviceService;
     }
 
-    public async Task<bool> AddKnownActuator(ApiActuator apiActuator, CancellationToken ct = default)
+    public override async Task<bool> TryAddUnknownDevice(Guid actuatorId, Guid deviceId, CancellationToken ct = default)
     {
-        var device = mapper.Map<Actuator>(apiActuator);
-        device.IsKnown = true;
+        if(deviceId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(deviceId));
+        }
 
-        await database.AddOrUpdateAsync(device);
-        await database.SaveChangesAsync(ct);
-        return true;
-    }
-
-    public async Task<bool> AddUnknownActuator(Guid actuatorId, Guid deviceId, CancellationToken ct = default)
-    {
         if (await database.Actuators.AsNoTracking().AnyAsync(x => x.Id == actuatorId, ct))
         {
             return false;
         }
 
-        await deviceService.AddUnknownDevice(deviceId, ct);
+        await deviceService.TryAddUnknownDevice(deviceId, deviceId, ct);
 
         var actuator = new Actuator()
         {
@@ -58,16 +50,6 @@ public class ActuatorService : IActuatorService
         await database.AddAsync(actuator);
         await database.SaveChangesAsync(ct);
         return true;
-    }
-
-    public async Task<ApiActuator?> GetActuator(Guid id, CancellationToken ct = default)
-    {
-        var dbsModel = await database.Actuators.AsNoTracking().Include(i => i.Metadata).FirstOrDefaultAsync(x => x.Id == id, ct);
-
-        if (dbsModel == null)
-            return null;
-
-        return mapper.Map<ApiActuator>(dbsModel);
     }
 
     public async Task<IEnumerable<ApiActuator>> GetAllActuatorsPerDevice(Guid deviceId, CancellationToken ct = default)

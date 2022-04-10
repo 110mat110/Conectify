@@ -6,47 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ActuatorsController : ControllerBase
+public class ActuatorsController : DeviceControllerBase<ApiActuator>
 {
-    private readonly IActuatorService ActuatorService;
-    private readonly ILogger<DeviceController> logger;
+    private readonly IActuatorService service;
+    private readonly ILogger<ActuatorsController> logger;
 
-    public ActuatorsController(IActuatorService deviceService, ILogger<DeviceController> logger)
+    public ActuatorsController(IActuatorService service, ILogger<ActuatorsController> logger) : base(logger, service)
     {
-        this.ActuatorService = deviceService;
+        this.service = service;
         this.logger = logger;
-    }
-
-
-    [HttpPost()]
-    public async Task<IActionResult> AddNewDevice(ApiActuator apiDevice, CancellationToken ct)
-    {
-        try
-        {
-            return (await ActuatorService.AddKnownActuator(apiDevice, ct)) ? Ok() : BadRequest();
-
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex.Message);
-            return this.Problem("Cannot upload device");
-        }
-    }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetSpecificDevice(Guid id, CancellationToken ct = default)
-    {
-        try
-        {
-            var result = await ActuatorService.GetActuator(id, ct);
-            return result != null ? new ObjectResult(result) : NotFound();
-
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex.Message);
-            return this.Problem("Cannot download device");
-        }
     }
 
     [HttpGet("by-device/{id}")]
@@ -54,7 +22,7 @@ public class ActuatorsController : ControllerBase
     {
         try
         {
-            return new ObjectResult(await ActuatorService.GetAllActuatorsPerDevice(id, ct));
+            return new ObjectResult(await service.GetAllActuatorsPerDevice(id, ct));
 
         }
         catch (Exception ex)

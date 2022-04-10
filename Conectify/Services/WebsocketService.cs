@@ -9,6 +9,7 @@ public interface IWebSocketService
 {
     Task<bool> ConnectAsync(Guid thingId, WebSocket webSocket, CancellationToken ct = default);
     Task<bool> SendToThingAsync(Guid thingId, IApiBaseModel returnValue, CancellationToken cancelationToken = default);
+    Task<bool> SendToThingAsync(Guid thingId, string rawString, CancellationToken cancelationToken = default);
 }
 
 public class WebSocketService : IWebSocketService
@@ -39,7 +40,7 @@ public class WebSocketService : IWebSocketService
 
         var deviceService = serviceProvider.GetRequiredService<IDeviceService>();
 
-        await deviceService.AddUnknownDevice(deviceId, ct);
+        await deviceService.TryAddUnknownDevice(deviceId, ct: ct); ;
         await cache.AddSubscriber(deviceId, ct);
         await HandleInput(webSocket, deviceId, ct);
 
@@ -73,7 +74,12 @@ public class WebSocketService : IWebSocketService
 
     public async Task<bool> SendToThingAsync(Guid thingId, IApiBaseModel returnValue, CancellationToken cancelationToken = default)
     {
-        var msg = Encoding.UTF8.GetBytes(returnValue.ToJson());
+        return await SendToThingAsync(thingId, returnValue.ToJson(), cancelationToken);
+    }
+
+    public async Task<bool> SendToThingAsync(Guid thingId, string rawString, CancellationToken cancelationToken = default)
+    {
+        var msg = Encoding.UTF8.GetBytes(rawString);
 
         if (sockets.ContainsKey(thingId) && sockets[thingId].State == WebSocketState.Open)
         {

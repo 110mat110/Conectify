@@ -1,8 +1,10 @@
 ﻿namespace Conectify.Shared.Library.Models;
+
+using Conectify.Shared.Library.Interfaces;
 using System;
 using System.Collections.Generic;
 
-public record ApiSensor
+public record ApiSensor : IApiModel
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;

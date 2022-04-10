@@ -6,47 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
 [ApiController]
-public class SensorsController : ControllerBase
+public class SensorsController : DeviceControllerBase<ApiSensor>
 {
     private readonly ISensorService sensorService;
-    private readonly ILogger<DeviceController> logger;
+    private readonly ILogger<SensorsController> logger;
 
-    public SensorsController(ISensorService deviceService, ILogger<DeviceController> logger)
+    public SensorsController(ISensorService deviceService, ILogger<SensorsController> logger) : base(logger, deviceService)
     {
         this.sensorService = deviceService;
         this.logger = logger;
-    }
-
-
-    [HttpPost()]
-    public async Task<IActionResult> AddNewDevice(ApiSensor apiDevice, CancellationToken ct)
-    {
-        try
-        {
-            return (await sensorService.AddKnownSensor(apiDevice, ct)) ? Ok() : BadRequest();
-
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex.Message);
-            return this.Problem("Cannot upload device");
-        }
-    }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetSpecificDevice(Guid id, CancellationToken ct = default)
-    {
-        try
-        {
-            var result = await sensorService.GetSensor(id, ct);
-            return result != null ? new ObjectResult(result) : NotFound();
-
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex.Message);
-            return this.Problem("Cannot download device");
-        }
     }
 
     [HttpGet("by-device/{id}")]

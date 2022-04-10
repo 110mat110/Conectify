@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-public class Device : Serializable, IEntity, IMetadatable
+public class Device : Serializable, IEntity, IMetadatable<Device>, IDevice
 {
     [Key]
     public Guid Id { get; set; }
@@ -19,7 +19,7 @@ public class Device : Serializable, IEntity, IMetadatable
     public Guid? PositionId { get; set; }
 
     public virtual Position Position { get; set; } = null!;
-    public virtual List<Metadata> Metadata { get; set; } = new List<Metadata>();
+    public virtual IEnumerable<MetadataConnector<Device>> Metadata { get; set; } = new List<MetadataConnector<Device>>();
     public virtual IEnumerable<Sensor> Sensors { get; set; } = null!;
     public virtual IEnumerable<Actuator> Actuators { get; set; } = null!;
 

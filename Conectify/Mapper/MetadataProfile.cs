@@ -12,12 +12,22 @@ public class MetadataProfile : Profile
         CreateMap<Metadata, ApiMetadata>();
 
         CreateMap<ApiMetadata, Metadata>()
-            .ForMember(x => x.Id, opt => opt.Ignore())
-            .ForMember(x => x.Actuator, opt => opt.Ignore())
-            .ForMember(x => x.Sensor, opt => opt.Ignore())
-            .ForMember(x => x.Device, opt => opt.Ignore())
-            .ForMember(x => x.SensorId, opt => opt.Ignore())
-            .ForMember(x => x.ActuatorId, opt => opt.Ignore())
-            .ForMember(x => x.DeviceId, opt => opt.Ignore());
+            .ForMember(x => x.Id, opt => opt.Ignore());
+
+        CreateMap<ApiMetadataConnector, MetadataConnector<Device>>()
+            .ForMember(x => x.Metadata, opt => opt.Ignore())
+            .ForMember(x => x.Device, opt => opt.Ignore());
+
+        CreateMap<ApiMetadataConnector, MetadataConnector<Actuator>>()
+            .ForMember(x => x.Metadata, opt => opt.Ignore())
+            .ForMember(x => x.Device, opt => opt.Ignore());
+
+        CreateMap<ApiMetadataConnector, MetadataConnector<Sensor>>()
+            .ForMember(x => x.Metadata, opt => opt.Ignore())
+            .ForMember(x => x.Device, opt => opt.Ignore());
+
+        CreateMap<MetadataConnector<Device>, ApiMetadataConnector>();
+        CreateMap<MetadataConnector<Sensor>, ApiMetadataConnector>();
+        CreateMap<MetadataConnector<Actuator>, ApiMetadataConnector>();
     }
 }

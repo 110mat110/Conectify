@@ -24,7 +24,13 @@ public class ConectifyDb : DbContext
     public DbSet<Device> Devices { get; set; } = null!;
     public DbSet<Sensor> Sensors { get; set; } = null!;
     public DbSet<Actuator> Actuators { get; set; } = null!;
-    public DbSet<Metadata> UniversalMetadatas { get; set; } = null!;
+
+    //Metadata
+    public DbSet<Metadata> Metadatas { get; set; } = null!;
+    public DbSet<MetadataConnector<Actuator>> ActuatorMetadatas { get; set; } = null!;
+    public DbSet<MetadataConnector<Device>> DeviceMetadata { get; set; } = null!;
+    public DbSet<MetadataConnector<Sensor>> SensorMetadata { get; set; } = null!;
+
 
     public async Task<T> AddOrUpdateAsync<T>(T entity, CancellationToken ct = default) where T : class, IEntity
     {
@@ -41,4 +47,26 @@ public class ConectifyDb : DbContext
 
         return entity;
     }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<MetadataConnector<Actuator>>().HasKey(u => new
+        {
+            u.DeviceId,
+            u.MetadataId
+        });
+
+        modelBuilder.Entity<MetadataConnector<Sensor>>().HasKey(u => new
+        {
+            u.DeviceId,
+            u.MetadataId
+        });
+
+        modelBuilder.Entity<MetadataConnector<Device>>().HasKey(u => new
+        {
+            u.DeviceId,
+            u.MetadataId
+        });
+    }
+
 }

@@ -3,7 +3,7 @@
 using Conectify.Database.Models;
 using System.Collections.Generic;
 
-public interface IMetadatable : IEntity
+public interface IMetadatable<T> : IEntity
 {
-    List<Metadata> Metadata { get; set; }
+    IEnumerable<MetadataConnector<T>> Metadata { get; set; }
 }

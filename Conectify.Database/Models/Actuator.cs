@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-public class Actuator : Serializable, IMetadatable, IEntity
+public class Actuator : Serializable, IMetadatable<Actuator>, IEntity, IDevice
 {
     [Key]
     public Guid Id { get; set; }
@@ -20,6 +20,5 @@ public class Actuator : Serializable, IMetadatable, IEntity
 
     public virtual Device SourceDevice { get; set; } = null!;
     public virtual Sensor Sensor { get; set; } = null!;
-    public virtual List<Metadata> Metadata { get; set; } = new List<Metadata>();
-
+    public virtual IEnumerable<MetadataConnector<Actuator>> Metadata { get; set; } = new List<MetadataConnector<Actuator>>();
 }
