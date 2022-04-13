@@ -18,13 +18,15 @@ public class WebSocketService : IWebSocketService
     private readonly ILogger<WebSocketService> logger;
     private readonly ISubscribersCache cache;
     private readonly IServiceProvider serviceProvider;
+    private readonly IDeviceService deviceService;
     private Dictionary<Guid, WebSocket> sockets = new Dictionary<Guid, WebSocket>();
 
-    public WebSocketService(ILogger<WebSocketService> logger, ISubscribersCache cache, IServiceProvider serviceProvider)
+    public WebSocketService(ILogger<WebSocketService> logger, ISubscribersCache cache, IServiceProvider serviceProvider, IDeviceService deviceService)
     {
         this.logger = logger;
         this.cache = cache;
         this.serviceProvider = serviceProvider;
+        this.deviceService = deviceService;
     }
 
     public async Task<bool> ConnectAsync(Guid deviceId, WebSocket webSocket, CancellationToken ct = default)
@@ -37,9 +39,6 @@ public class WebSocketService : IWebSocketService
         {
             sockets.Add(deviceId, webSocket);
         }
-
-        var deviceService = serviceProvider.GetRequiredService<IDeviceService>();
-
         await deviceService.TryAddUnknownDevice(deviceId, ct: ct); ;
         await cache.AddSubscriber(deviceId, ct);
         await HandleInput(webSocket, deviceId, ct);

@@ -7,7 +7,7 @@ public static class DependencyInjectionExtensions
 {
     public static void AddConectifyServices(this IServiceCollection services)
     {
-        services.AddSingleton<IWebSocketService, WebSocketService>();
+        services.AddScoped<IWebSocketService, WebSocketService>();
         services.AddTransient<IActuatorService, ActuatorService>();
         services.AddTransient<ISensorService, SensorService>();
         services.AddTransient<IDataService, DataService>();

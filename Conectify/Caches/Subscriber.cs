@@ -3,4 +3,11 @@ using System;
 using System.Collections.Generic;
 using Conectify.Database.Models;
 
-public record Subscriber(Guid DeviceId, IEnumerable<Preference> Preferences, bool IsSubedToAll, IEnumerable<Guid> Actuators, IEnumerable<Guid> Sensors);
+public record Subscriber()
+{
+    public Guid DeviceId { get; set; }
+    public IEnumerable<Preference> Preferences { get; set; } = new List<Preference>();
+    public bool IsSubedToAll { get; set; }
+    public IEnumerable<Guid> Actuators { get; set; } = Enumerable.Empty<Guid>();
+    public IEnumerable<Guid> Sensors { get; set; } = Enumerable.Empty<Guid>();
+}

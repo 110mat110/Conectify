@@ -59,7 +59,8 @@ public class SubscribersCache : ISubscribersCache
 
     public async Task<Subscriber?> UpdateSubscriber(Guid deviceId, CancellationToken ct = default)
     {
-        await using var db = serviceProvider.GetRequiredService<ConectifyDb>();
+        using var scope = serviceProvider.CreateScope();
+        await using var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
 
         var device = await db.Devices.AsNoTracking().Include(x => x.Preferences).Include(x => x.Sensors).Include(x => x.Actuators).FirstOrDefaultAsync(x => x.Id == deviceId, ct);
 

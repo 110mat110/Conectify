@@ -34,7 +34,7 @@ const String DTSourceThingId = "sourceThingId";
 const String DTSourceId = "sourceId";
 const String DTSensorId = "sensorId";
 
-const String httpPrefix = "https://";
+const String httpPrefix = "http://";
 const String inputThingSuffix = "/api/device";
 const String inputSensorSuffix = "/api/sensors";
 const String inputActuatorSuffix = "/api/actuators";

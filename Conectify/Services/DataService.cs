@@ -84,9 +84,9 @@ public class DataService : IDataService
     private IBaseInputType DeserializeJson(string rawJson)
     {
         var type = JsonConvert.DeserializeAnonymousType(rawJson, new { Type = string.Empty });
-
-        Assembly asm = typeof(Command).Assembly;
-        Type? t = asm.GetType(ApiPrefix + (type != null ? type.Type : string.Empty));
+        var expectedTypeName = (type != null ? type.Type : string.Empty);
+        Assembly asm = typeof(Value).Assembly;
+        Type? t = asm.GetTypes().FirstOrDefault(x => x.Name.ToLower() == expectedTypeName.ToLower());
 
         if (t is null)
         {

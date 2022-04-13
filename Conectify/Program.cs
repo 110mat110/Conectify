@@ -30,5 +30,5 @@ app.UseWebSockets();
 app.UseAuthorization();
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.MapControllers();
-
+app.Urls.Add("http://*:5000");
 app.Run();
