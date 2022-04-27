@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 public interface IUniversalDeviceService<TApi>
 {
-    Task<bool> AddKnownDevice(TApi apiDevice, CancellationToken ct = default);
+    Task<Guid> AddKnownDevice(TApi apiDevice, CancellationToken ct = default);
     Task<bool> TryAddUnknownDevice(Guid deviceId, Guid parentId = default, CancellationToken ct = default);
     Task<IEnumerable<TApi>> GetAllDevices(CancellationToken ct = default);
     Task<TApi?> GetSpecificDevice(Guid id, CancellationToken ct = default);
@@ -31,14 +31,14 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
         this.logger = logger;
     }
 
-    public async Task<bool> AddKnownDevice(TApi apiDevice, CancellationToken ct = default)
+    public async Task<Guid> AddKnownDevice(TApi apiDevice, CancellationToken ct = default)
     {
         var device = mapper.Map<TDbs>(apiDevice);
         device.IsKnown = true;
 
         await database.AddOrUpdateAsync(device);
         await database.SaveChangesAsync(ct);
-        return true;
+        return device.Id;
     }
 
     public abstract Task<bool> TryAddUnknownDevice(Guid deviceId, Guid parentId = default, CancellationToken ct = default);

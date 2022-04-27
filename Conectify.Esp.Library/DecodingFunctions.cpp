@@ -8,6 +8,9 @@
 #include "ESP8266WiFi.h"
 #include "ConstantsDeclarations.h"
 #include "Thing.h"
+#include <ArduinoWebsockets.h>
+
+using namespace websockets;
 
 String GetServer(BaseThing &baseThing){
   return String(baseThing.serverUrl)+":"+String(baseThing.port);
@@ -27,7 +30,7 @@ void DecodeRegisteredThingValue(String response, BaseThing &baseThing){
 		return;
 	}
   String id = root[DTentity][DTid].as<String>();
-  DebugMessage("ID of incoming thing is:" + id);
+  DebugMessage("ID of incoming device is:" + id);
   id.toCharArray(baseThing.id, IdStringLength, 0);
   root.clear();
 }
@@ -193,11 +196,11 @@ void decodeIncomingJson(String incomingJson,
     byte actuatorsLength
 ) {
   StaticJsonDocument<64> filter;
-  filter[entities][0][type] = true;
-  filter[entities][0][DTvalueName] = true;
-  filter[entities][0][DTstringValue] = true;
-  filter[entities][0][DTnumericValue] = true;
-  filter[entities][0][DTdestinationId] = true;
+  filter[type] = true;
+  filter[DTvalueName] = true;
+  filter[DTstringValue] = true;
+  filter[DTnumericValue] = true;
+  filter[DTdestinationId] = true;
 
   DynamicJsonDocument root(1024);
   auto error = deserializeJson(root, incomingJson);
@@ -207,21 +210,7 @@ void decodeIncomingJson(String incomingJson,
 		DebugMessage("deserializeJson() failed: ");
 		return;
 	}
-  JsonArray array = root[entities];
-  int arrayLength = array.size();
-  for(int i=0; i<arrayLength; i++){
-    DecodeObject(array[i], handleFunc, dateTime, actuators, actuatorsLength);
-  }
-    filter.clear();
-  root.clear();
-}
-void DecodeObject(JsonObject root,
-    void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
-    Time dateTime,
-    Actuator* actuators,
-    byte actuatorsLength
-){
-  DebugMessage("decoding object");
+   DebugMessage("decoding object");
   if (root[type] == CommandType) {
 		String commandText = root[DTvalueName];
 		float commandValue = root[DTnumericValue];
@@ -230,7 +219,8 @@ void DecodeObject(JsonObject root,
 		DebugMessage("got command: " + commandText + " with num value: " + commandValue + " and text value: " + commandTextparameter);
 
 		(*handleFunc)(commandText, commandValue, commandTextparameter);
-    root.clear();
+  filter.clear();
+  root.clear();
 		return;
 	}
 
@@ -264,13 +254,15 @@ void DecodeObject(JsonObject root,
 		String time = root[timeCreated];
 		DebugMessage(time);
    //TODO update system time
-        root.clear();
+  filter.clear();
+  root.clear();
 		return;
 	}
 
 
 	String type = root[type];
 	DebugMessage("Type is " + type);
+  filter.clear();
   root.clear();
 }
 

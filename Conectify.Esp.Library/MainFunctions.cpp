@@ -25,7 +25,7 @@ bool onLine = false; //wifi status
 USBComm usb;
 bool requestAcc = true;
 bool sendSensors = true;
-WebsocketsClient client;
+WebsocketsClient websocketClient;
 WiFiManager wm;
 char str[6];
 
@@ -115,9 +115,9 @@ void InitializeNetwork(Thing insertedThing){
       DebugMessage("Requsting time");
       AskServerForTime();
       DebugMessage("Starting web socket");
-      client.onMessage(onMessageCallback);
-      client.connect(GetGlobalVariables()->baseThing.serverUrl, String(GetGlobalVariables()->baseThing.port).toInt(), inputWebSocketSuffix+String(GetGlobalVariables()->baseThing.id));
-      client.ping();
+      websocketClient.onMessage(onMessageCallback);
+      websocketClient.connect(GetGlobalVariables()->baseThing.serverUrl, String(GetGlobalVariables()->baseThing.port).toInt(), inputWebSocketSuffix+String(GetGlobalVariables()->baseThing.id));
+      websocketClient.ping();
       wm.startWebPortal();
     }
   }
@@ -178,11 +178,8 @@ void SendAllSensorsToServerIfNeeded(){
         GetGlobalVariables()->sensorsArr[i].MarkAsRead();
         SendSensorValuesToServer(
           GetGlobalVariables()->sensorsArr[i],
-          GetGlobalVariables()->baseThing, 
           GetGlobalVariables()->dateTime,
-          HandleCommand,
-          GetGlobalVariables()->actuatorsArr,
-          GetGlobalVariables()->actuatorArrSize
+          websocketClient
         );
         requestAcc = false;
       }
@@ -345,8 +342,16 @@ void RegisterAllEntities(Thing thing){
 }
 
 void onMessageCallback(WebsocketsMessage message) {
-    Serial.print("Got Message: ");
-    Serial.println(message.data());
+    DebugMessage("Got Message: ");
+    DebugMessage(message.data());
+/*
+    decodeIncomingJson(
+      message.data(), 
+      HandleCommand, 
+      GetGlobalVariables()->dateTime, 
+      GetGlobalVariables()->actuatorsArr, 
+      GetGlobalVariables()->actuatorArrSize);
+      */
 }
 
 void RequestActuatorValues(){

@@ -350,3 +350,5 @@ MigrationBackup/
 .ionide/
 /Conectify/appsettings.Development.json
 /Conectify.Database/appsettings.Development.json
+/ArduinoOutput
+/Conectify.Esp.Library/.vscode

@@ -48,7 +48,6 @@ void DeclareSensors(){
 void UserLoopRoutines(){
   if(GetGlobalVariables()->SensoricTimer.IsTriggered()){
     GetGlobalVariables()->SensoricTimer.ResetTimer();
-    RequestActuatorValues();
     SendSensoricValues();
   }
 }

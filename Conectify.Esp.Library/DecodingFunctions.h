@@ -8,8 +8,11 @@
 #include "ESP8266WiFi.h"
 #include "ConstantsDeclarations.h"
 #include "Thing.h"
+#include <ArduinoWebsockets.h>
 
-void DecodeRegisteredThingValue(String response, BaseThing &baseThing);
+using namespace websockets;
+
+void DecodeRegisteredDeviceValue(String response, BaseThing &baseThing);
 void RegisterBaseThing(BaseThing &baseThing, ESP8266WiFiClass WiFi, Thing thing);
 String serializeThing(BaseThing &baseThing, ESP8266WiFiClass WiFi, Thing thing);
 
@@ -18,11 +21,7 @@ void DecodeRegisteredSensorValue(String payload,Sensor &sensor);
 void RegisterActuator(Actuator &sensor, BaseThing &baseThing);
 void DecodeRegisteredActuatorValue(String payload,Actuator &actuator);
 
-void SendSensorValuesToServer(Sensor sensor, BaseThing baseThing, Time dateTime,     
-    void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
-    Actuator* actuators,
-    byte actuatorsLength
-);
+void SendSensorValuesToServer(Sensor sensor, Time dateTime, WebsocketsClient websocketClient);
 
 void decodeIncomingJson(String incomingJson,   
     void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
@@ -30,20 +29,6 @@ void decodeIncomingJson(String incomingJson,
     Actuator* actuators,
     byte actuatorsLength
 );
-void DecodeObject(JsonObject root,
-    void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
-    Time dateTime,
-    Actuator* actuators,
-    byte actuatorsLength
-);
-
-void GetValues(
-    BaseThing thing,  
-    void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
-    Time dateTime,
-    Actuator* actuators,
-    byte actuatorsLength
-  );
 
 String RequestTime(BaseThing baseThing);
 #endif

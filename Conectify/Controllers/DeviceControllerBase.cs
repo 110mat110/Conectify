@@ -23,7 +23,7 @@ public class DeviceControllerBase<TApi> : ControllerBase where TApi : IApiModel
     {
         try
         {
-            return (await service.AddKnownDevice(apiDevice, ct)) ? Ok() : BadRequest();
+            return new ObjectResult(await service.AddKnownDevice(apiDevice, ct));
 
         }
         catch (Exception ex)

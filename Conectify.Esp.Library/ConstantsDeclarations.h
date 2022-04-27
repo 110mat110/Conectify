@@ -4,7 +4,7 @@
 #include "Arduino.h"
 
 const String type = "type";
-const String IoTThingType = "IoTThing";
+const String IoTThingType = "Device";
 const String SensorType = "Sensor";
 const String CommandType = "Command";
 const String ActionType = "Action";
