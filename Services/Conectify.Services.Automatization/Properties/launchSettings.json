@@ -4,19 +4,19 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:15366",
-      "sslPort": 44322
+      "applicationUrl": "http://localhost:57952",
+      "sslPort": 44387
     }
   },
   "profiles": {
-    "Conectify": {
+    "Conectify.Services.Automatization": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://192.168.2.195:5000",
+      "applicationUrl": "https://localhost:7264;http://localhost:5264",
       "dotnetRunMessages": true
     },
     "IIS Express": {
