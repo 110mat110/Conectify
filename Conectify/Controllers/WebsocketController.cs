@@ -32,6 +32,23 @@ public class WebsocketController : ControllerBase
         }
     }
 
+    [HttpGet("{id}/test")]
+    public async Task<IActionResult> WebsocketTest(string id)
+    {
+        if (HttpContext.WebSockets.IsWebSocketRequest)
+        {
+            var ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
+
+            await webSocketService.TestConnectionAsync(id, ws);
+
+            return Ok();
+        }
+        else
+        {
+            return BadRequest();
+        }
+    }
+
     [HttpPost("{id}/direct")]
     public async Task<IActionResult> DirectWriteToSocket(Guid id, string message)
     {

@@ -8,6 +8,7 @@ using System.Text;
 public interface IWebSocketService
 {
     Task<bool> ConnectAsync(Guid thingId, WebSocket webSocket, CancellationToken ct = default);
+    Task<bool> TestConnectionAsync(string testMessage, WebSocket webSocket, CancellationToken ct = default);
     Task<bool> SendToThingAsync(Guid thingId, IApiBaseModel returnValue, CancellationToken cancelationToken = default);
     Task<bool> SendToThingAsync(Guid thingId, string rawString, CancellationToken cancelationToken = default);
 }
@@ -83,5 +84,20 @@ public class WebSocketService : IWebSocketService
         websocketCache.Remove(thingId);
         logger.LogError($"Cannot send message to {thingId}");
         return false;
+    }
+
+    public async Task<bool> TestConnectionAsync(string testMessage, WebSocket webSocket, CancellationToken ct = default)
+    {
+        int i = 0;
+        Console.WriteLine("Test connection opened!");
+        do
+        {
+            var msg = Encoding.UTF8.GetBytes(i++.ToString() + " " + testMessage);
+            await webSocket.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, ct);
+
+        } while (webSocket.State == WebSocketState.Open);
+
+        Console.WriteLine("Test connection closed!");
+        return true;
     }
 }

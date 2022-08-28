@@ -35,7 +35,7 @@ public class SensorService : UniversalDeviceService<Sensor, ApiSensor>, ISensorS
             throw new ArgumentNullException(nameof(deviceId));
         }
 
-        if (await database.Sensors.AsNoTracking().AnyAsync(x => x.Id == sensorId, ct))
+        if (await database.Sensors.AnyAsync(x => x.Id == sensorId, ct))
         {
             return false;
         }

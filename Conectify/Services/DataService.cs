@@ -1,11 +1,8 @@
 ﻿namespace Conectify.Server.Services;
 using Conectify.Database;
 using Conectify.Database.Interfaces;
-using Conectify.Shared.Library.ErrorHandling;
+using Conectify.Shared.Services.Data;
 using Database.Models.Values;
-using Newtonsoft.Json;
-using System.Data.Entity;
-using System.Reflection;
 
 public interface IDataService
 {
@@ -36,7 +33,7 @@ public class DataService : IDataService
     {
         try
         {
-            var mapedEntity = DeserializeJson(rawJson);
+            var (mapedEntity,_) = SharedDataService.DeserializeJson(rawJson);
 
             if (await ValidateAndRepairEntity(mapedEntity, deviceId, ct))
             {
@@ -79,27 +76,5 @@ public class DataService : IDataService
     {
         await database.AddAsync(mapedEntity);
         await database.SaveChangesAsync();
-    }
-
-    private IBaseInputType DeserializeJson(string rawJson)
-    {
-        var type = JsonConvert.DeserializeAnonymousType(rawJson, new { Type = string.Empty });
-        var expectedTypeName = (type != null ? type.Type : string.Empty);
-        Assembly asm = typeof(Value).Assembly;
-        Type? t = asm.GetTypes().FirstOrDefault(x => x.Name.ToLower() == expectedTypeName.ToLower());
-
-        if (t is null)
-        {
-            throw new ConectifyException($"Does not recognize type {(type != null ? type.Type : string.Empty)}");
-        }
-
-        var deserialized = JsonConvert.DeserializeObject(rawJson, t) as IBaseInputType;
-
-        if(deserialized is null)
-        {
-            throw new ConectifyException($"Could not serialize {rawJson} to type {t.Name}");
-        }
-
-        return deserialized;
     }
 }

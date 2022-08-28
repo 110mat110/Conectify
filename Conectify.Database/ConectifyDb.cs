@@ -2,6 +2,7 @@
 
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
+using Conectify.Database.Models.ActivityService;
 using Conectify.Database.Models.Values;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,6 +32,9 @@ public class ConectifyDb : DbContext
     public DbSet<MetadataConnector<Device>> DeviceMetadata { get; set; } = null!;
     public DbSet<MetadataConnector<Sensor>> SensorMetadata { get; set; } = null!;
 
+
+    //Rules
+    public DbSet<Rule> Rules { get; set; } = null!;
 
     public async Task<T> AddOrUpdateAsync<T>(T entity, CancellationToken ct = default) where T : class, IEntity
     {
@@ -67,6 +71,21 @@ public class ConectifyDb : DbContext
             u.DeviceId,
             u.MetadataId
         });
+
+        modelBuilder.Entity<RuleConnector>().HasKey(u => new
+        {
+            u.PreviousRuleId,
+            u.ContinuingRuleId,
+        });
+
+        modelBuilder.Entity<RuleConnector>()
+            .HasOne(bc => bc.ContinuingRule)
+            .WithMany(b => b.ContinuingRules)
+            .HasForeignKey(bc => bc.ContinuingRuleId);
+        modelBuilder.Entity<RuleConnector>()
+            .HasOne(bc => bc.PreviousRule)
+            .WithMany(c => c.PreviousRules)
+            .HasForeignKey(bc => bc.PreviousRuleId);
     }
 
 }
