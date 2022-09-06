@@ -24,6 +24,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Conectify.Database\Conectify.Database.csproj" />
+    <ProjectReference Include="..\Conectify.Shared.Maps\Conectify.Shared.Maps.csproj" />
+    <ProjectReference Include="..\Conectify.Shared.Services\Conectify.Shared.Services.csproj" />
   </ItemGroup>
 
 </Project>

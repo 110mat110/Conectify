@@ -1,6 +1,4 @@
 ﻿namespace Conectify.Server.Controllers;
-
-using Conectify.Database.Interfaces;
 using Conectify.Server.Services;
 using Conectify.Shared.Library.Interfaces;
 using Conectify.Shared.Library.Models;
@@ -67,11 +65,11 @@ public class DeviceControllerBase<TApi> : ControllerBase where TApi : IApiModel
     [HttpPost("metadata")]
     public async Task<IActionResult> AddMetadata(ApiMetadataConnector metadata, CancellationToken ct = default)
     {
-       if(await service.AddMetadata(metadata, ct))
+        if (await service.AddMetadata(metadata, ct))
         {
             return Ok();
         }
-       return BadRequest();
+        return BadRequest();
     }
 
     [HttpGet("{id}/metadata")]
@@ -86,6 +84,6 @@ public class DeviceControllerBase<TApi> : ControllerBase where TApi : IApiModel
         {
             logger.LogError(ex.Message);
             return this.Problem("Cannot download device");
-}
+        }
     }
 }

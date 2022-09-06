@@ -3,6 +3,7 @@ using System;
 
 public class ConectifyException : Exception
 {
-    public ConectifyException(string message) : base(message) { 
+    public ConectifyException(string message) : base(message)
+    {
     }
 }

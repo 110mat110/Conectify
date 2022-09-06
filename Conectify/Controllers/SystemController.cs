@@ -1,4 +1,4 @@
-﻿namespace Conectify.Controllers;
+﻿namespace Conectify.Server.Controllers;
 
 using Conectify.Database;
 using Microsoft.AspNetCore.Mvc;

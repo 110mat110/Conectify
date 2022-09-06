@@ -2,6 +2,7 @@
 
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
+using Conectify.Database.Models.ActivityService;
 using Conectify.Database.Models.Values;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,11 +33,12 @@ public class ConectifyDb : DbContext
     public DbSet<MetadataConnector<Sensor>> SensorMetadata { get; set; } = null!;
 
 
+    //Rules
+    public DbSet<Rule> Rules { get; set; } = null!;
+
     public async Task<T> AddOrUpdateAsync<T>(T entity, CancellationToken ct = default) where T : class, IEntity
     {
-        var dbEntity = this.Set<T>().AsNoTracking().FirstOrDefault(d => d.Id == entity.Id);
-
-        if (dbEntity is null)
+        if (await this.Set<T>().AnyAsync(d => d.Id == entity.Id, ct))
         {
             await this.AddAsync(entity, ct);
         }
@@ -67,6 +69,21 @@ public class ConectifyDb : DbContext
             u.DeviceId,
             u.MetadataId
         });
+
+        modelBuilder.Entity<RuleConnector>().HasKey(u => new
+        {
+            u.PreviousRuleId,
+            u.ContinuingRuleId,
+        });
+
+        modelBuilder.Entity<RuleConnector>()
+            .HasOne(bc => bc.ContinuingRule)
+            .WithMany(b => b.ContinuingRules)
+            .HasForeignKey(bc => bc.ContinuingRuleId);
+        modelBuilder.Entity<RuleConnector>()
+            .HasOne(bc => bc.PreviousRule)
+            .WithMany(c => c.PreviousRules)
+            .HasForeignKey(bc => bc.PreviousRuleId);
     }
 
 }

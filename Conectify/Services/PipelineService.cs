@@ -5,7 +5,8 @@ using Conectify.Database;
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models.Values;
 using Conectify.Server.Caches;
-using Conectify.Shared.Library.Models.Values;
+using Conectify.Shared.Library.Interfaces;
+using Conectify.Shared.Library.Models.Websocket;
 using System.Linq;
 
 public interface IPipelineService
@@ -30,31 +31,31 @@ public class PipelineService : IPipelineService
 
     public async Task ResendValueToSubscribers(IBaseInputType entity)
     {
-        IApiBaseModel? apiModel = null;
+        IWebsocketModel? apiModel = null;
         IEnumerable<Guid> targetingSubscribers = new List<Guid>();
         if (entity is Value v)
         {
-            apiModel = mapper.Map<ApiValue>(entity);
+            apiModel = mapper.Map<WebsocketValue>(entity);
             targetingSubscribers = ValueTargetingSubscribers(v.SourceId);
         }
 
         if (entity is Command command)
         {
-            apiModel = mapper.Map<ApiCommand>(entity);
+            apiModel = mapper.Map<WebsocketCommand>(entity);
             targetingSubscribers = targetingSubscribers.Concat(CommandTargetingSubscribers(command.DestinationId, command.SourceId));
         }
 
         if (entity is Action action)
         {
-            apiModel = mapper.Map<ApiAction>(entity);
+            apiModel = mapper.Map<WebsocketAction>(entity);
             targetingSubscribers = ActionTargetingSubscribers(action.SourceId, action.DestinationId);
         }
 
         if (entity is CommandResponse cr)
         {
             var commandSourceId = conectifyDb.Commands.FirstOrDefault(x => x.Id == cr.CommandId)?.SourceId;
-           
-            apiModel = mapper.Map<ApiCommandResponse>(entity);
+
+            apiModel = mapper.Map<WebsocketCommandResponse>(entity);
             targetingSubscribers = CommandResponseTargetingSubscribers(cr.SourceId, commandSourceId);
         }
 
@@ -63,7 +64,7 @@ public class PipelineService : IPipelineService
             var actionSourceId = conectifyDb.Actions.FirstOrDefault(x => x.Id == ar.ActionId)?.SourceId;
 
 
-            apiModel = mapper.Map<ApiActionResponse>(entity);
+            apiModel = mapper.Map<WebsocketActionResponse>(entity);
             targetingSubscribers = ActionResponseTargetingSubscribers(ar.SourceId, actionSourceId);
         }
 
