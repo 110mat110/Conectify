@@ -17,7 +17,7 @@ builder.Services.AddDbContext<ConectifyDb>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DatabaseString")));
 builder.Services.AddAutoMapper(typeof(RuleProfile).Assembly);
-builder.Services.UseConectifyWebsocket<AutomatizationConfiguration>();
+builder.Services.UseConectifyWebsocket<AutomatizationConfiguration,DeviceData>();
 builder.Services.AddSingleton<AutomatizationCache>();
 builder.Services.AddSingleton<IAutomatizationService, AutomatizationService>();
 builder.Services.AddTransient<RuleService>();

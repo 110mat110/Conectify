@@ -46,7 +46,7 @@ namespace Conectify.Services.Automatization.Services
 
             foreach (var rule in dtos)
             {
-                cache.TryAdd(rule.Id, rule);  
+                cache.TryAdd(rule.Id, rule);
             }
             var selectedKeys = dtos.Select(x => x.Id);
             return cache.Where(x => selectedKeys.Contains(x.Key)).Select(x => x.Value);

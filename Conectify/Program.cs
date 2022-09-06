@@ -1,6 +1,7 @@
 using Conectify.Database;
 using Conectify.Server;
 using Conectify.Server.Mapper;
+using Conectify.Shared.Maps;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +16,7 @@ builder.Services.AddConectifyServices();
 builder.Services.AddDbContext<ConectifyDb>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DatabaseString")));
-builder.Services.AddAutoMapper(typeof(DeviceProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(DeviceProfile).Assembly, typeof(SubscriberProfile).Assembly);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

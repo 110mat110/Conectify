@@ -6,7 +6,7 @@ public record Preference : IEntity
 {
     public Guid Id { get; set; }
     public Guid SubscriberId { get; set; }
-    
+
     public Guid? ActuatorId { get; set; }
     public Guid? SensorId { get; set; }
     public Guid? DeviceId { get; set; }

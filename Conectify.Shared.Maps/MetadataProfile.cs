@@ -1,4 +1,4 @@
-﻿namespace Conectify.Server.Mapper;
+﻿namespace Conectify.Shared.Maps;
 
 using AutoMapper;
 using Conectify.Database.Models;

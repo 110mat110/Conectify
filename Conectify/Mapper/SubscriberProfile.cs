@@ -12,7 +12,7 @@ public class SubscriberProfile : Profile
             .ForMember(x => x.IsSubedToAll, opt => opt.MapFrom(x => x.SubscibeToAll))
             .ForMember(x => x.Actuators, opt => opt.MapFrom(x => x.Actuators.Select(x => x.Id)))
             .ForMember(x => x.Sensors, opt => opt.MapFrom(x => x.Sensors.Select(x => x.Id)))
-            .ForMember(x => x.DeviceId,opt => opt.MapFrom(x => x.Id))
+            .ForMember(x => x.DeviceId, opt => opt.MapFrom(x => x.Id))
             .ForMember(x => x.Preferences, opt => opt.MapFrom(x => x.Preferences));
     }
 }

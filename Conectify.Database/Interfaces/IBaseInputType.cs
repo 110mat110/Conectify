@@ -1,6 +1,4 @@
 ﻿namespace Conectify.Database.Interfaces;
-
-using Conectify.Shared.Library.Classes;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;

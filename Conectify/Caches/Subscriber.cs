@@ -1,7 +1,7 @@
 ﻿namespace Conectify.Server.Caches;
+using Conectify.Database.Models;
 using System;
 using System.Collections.Generic;
-using Conectify.Database.Models;
 
 public record Subscriber()
 {

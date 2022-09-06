@@ -13,7 +13,7 @@ public static class DependencyInjectionExtensions
         services.AddTransient<IDataService, DataService>();
         services.AddTransient<IDeviceService, DeviceService>();
         services.AddTransient<IPipelineService, PipelineService>();
-        services.AddSingleton<ISubscribersCache,SubscribersCache>();
+        services.AddSingleton<ISubscribersCache, SubscribersCache>();
         services.AddSingleton<IWebsocketCache, WebsocketCache>();
     }
 }

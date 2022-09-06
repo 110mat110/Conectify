@@ -13,5 +13,10 @@ namespace Conectify.Services.Library
 
             Config.Bind(this);
         }
+
+        public string WebsocketUrl { get; set; } = string.Empty;
+        public string ServerUrl { get; set; } = string.Empty;
+
+        public Guid DeviceId { get; set; } = Guid.NewGuid();
     }
 }

@@ -1,9 +1,9 @@
 ﻿namespace Conectify.Database;
 
-using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using System.IO;
 
 public class DesignTimeContextFactory : IDesignTimeDbContextFactory<ConectifyDb>
 {
@@ -11,7 +11,7 @@ public class DesignTimeContextFactory : IDesignTimeDbContextFactory<ConectifyDb>
     {
         var configuration = new ConfigurationBuilder()
            .SetBasePath(Directory.GetCurrentDirectory())
-           .AddJsonFile("appsettings.Development.json")
+           .AddJsonFile("appsettingsDbs.Development.json")
            .Build();
 
         var options = new DbContextOptionsBuilder<ConectifyDb>();

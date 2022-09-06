@@ -1,5 +1,4 @@
-﻿using Conectify.Database;
-using Conectify.Services.Automatization.Models.ApiModels;
+﻿using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Services;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,5 +1,7 @@
-﻿using Conectify.Database.Interfaces;
+﻿using AutoMapper;
+using Conectify.Database.Interfaces;
 using Conectify.Database.Models.Values;
+using Conectify.Shared.Library.Interfaces;
 using Conectify.Shared.Services.Data;
 using Newtonsoft.Json;
 using System.Net.WebSockets;
@@ -15,13 +17,19 @@ namespace Conectify.Services.Library
         event IncomingCommandResponseDelegate OnIncomingCommandResponse;
         event IncomingValueDelegate OnIncomingValue;
 
+        Task ConnectAsync();
         Task ConnectAsync(string url);
         Task DisconnectAsync();
-        Task<bool> SendMessageAsync<RequestType>(RequestType message, CancellationToken cancellationToken = default) where RequestType : IBaseInputType;
+        Task<bool> SendMessageAsync<TRequest>(TRequest message, CancellationToken cancellationToken = default) where TRequest : IWebsocketModel;
     }
 
-    public class ServicesWebsocketClient : IDisposable, IServicesWebsocketClient
+    public class ServicesWebsocketClient : IServicesWebsocketClient
     {
+        public ServicesWebsocketClient(Configuration configuration, IMapper mapper)
+        {
+            this.configuration = configuration;
+            this.mapper = mapper;
+        }
 
         public int ReceiveBufferSize { get; set; } = 8192;
 
@@ -30,6 +38,12 @@ namespace Conectify.Services.Library
         public event IncomingCommandDelegate OnIncomingCommand;
         public event IncomingActionResponseDelegate OnIncomingActionResponse;
         public event IncomingCommandResponseDelegate OnIncomingCommandResponse;
+
+        public async Task ConnectAsync()
+        {
+            //await ConnectAsync(($"{configuration.WebsocketUrl}/api/Websocket/test/test"));
+            await ConnectAsync(($"{configuration.WebsocketUrl}/api/Websocket/{configuration.DeviceId}"));
+        }
 
         public async Task ConnectAsync(string url)
         {
@@ -42,6 +56,7 @@ namespace Conectify.Services.Library
             if (CTS != null) CTS.Dispose();
             CTS = new CancellationTokenSource();
             await WS.ConnectAsync(new Uri(url), CTS.Token);
+            //await ReceiveLoop();
             await Task.Factory.StartNew(ReceiveLoop, CTS.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
@@ -84,14 +99,19 @@ namespace Conectify.Services.Library
                     ResponseReceived(outputStream);
                 }
             }
-            catch (TaskCanceledException) { }
+            catch (Exception ex)
+            {
+                Console.WriteLine("WS failed!");
+                Console.WriteLine(ex.Message);
+            }
             finally
             {
+                Console.WriteLine("Closing ws");
                 outputStream?.Dispose();
             }
         }
 
-        public async Task<bool> SendMessageAsync<RequestType>(RequestType message, CancellationToken cancellationToken = default) where RequestType : IBaseInputType
+        public async Task<bool> SendMessageAsync<RequestType>(RequestType message, CancellationToken cancellationToken = default) where RequestType : IWebsocketModel
         {
             var msg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
             await WS.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, cancellationToken);
@@ -104,15 +124,15 @@ namespace Conectify.Services.Library
             string x = stream.ReadToEnd();
             stream.Dispose();
 
-            Console.WriteLine(x);
-            var (entity, type) = SharedDataService.DeserializeJson(x);
+            var (entity, type) = SharedDataService.DeserializeJson(x, this.mapper);
             NotifyAboutIncomingMessage(entity, type);
         }
 
-        public void Dispose() => DisconnectAsync().Wait();
 
         private ClientWebSocket WS;
         private CancellationTokenSource CTS;
+        private readonly Configuration configuration;
+        private readonly IMapper mapper;
 
         private void NotifyAboutIncomingMessage(IBaseInputType inputEntity, Type entitytype)
         {

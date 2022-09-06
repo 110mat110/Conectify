@@ -38,9 +38,7 @@ public class ConectifyDb : DbContext
 
     public async Task<T> AddOrUpdateAsync<T>(T entity, CancellationToken ct = default) where T : class, IEntity
     {
-        var dbEntity = this.Set<T>().AsNoTracking().FirstOrDefault(d => d.Id == entity.Id);
-
-        if (dbEntity is null)
+        if (await this.Set<T>().AnyAsync(d => d.Id == entity.Id, ct))
         {
             await this.AddAsync(entity, ct);
         }

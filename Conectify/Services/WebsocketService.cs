@@ -1,7 +1,7 @@
 ﻿namespace Conectify.Server.Services;
 
 using Conectify.Server.Caches;
-using Conectify.Shared.Library.Models.Values;
+using Conectify.Shared.Library.Interfaces;
 using System.Net.WebSockets;
 using System.Text;
 
@@ -9,7 +9,7 @@ public interface IWebSocketService
 {
     Task<bool> ConnectAsync(Guid thingId, WebSocket webSocket, CancellationToken ct = default);
     Task<bool> TestConnectionAsync(string testMessage, WebSocket webSocket, CancellationToken ct = default);
-    Task<bool> SendToThingAsync(Guid thingId, IApiBaseModel returnValue, CancellationToken cancelationToken = default);
+    Task<bool> SendToThingAsync(Guid thingId, IWebsocketModel returnValue, CancellationToken cancelationToken = default);
     Task<bool> SendToThingAsync(Guid thingId, string rawString, CancellationToken cancelationToken = default);
 }
 
@@ -66,7 +66,7 @@ public class WebSocketService : IWebSocketService
         } while (true);
     }
 
-    public async Task<bool> SendToThingAsync(Guid thingId, IApiBaseModel returnValue, CancellationToken cancelationToken = default)
+    public async Task<bool> SendToThingAsync(Guid thingId, IWebsocketModel returnValue, CancellationToken cancelationToken = default)
     {
         return await SendToThingAsync(thingId, returnValue.ToJson(), cancelationToken);
     }

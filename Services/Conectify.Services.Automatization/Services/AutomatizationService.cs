@@ -2,7 +2,7 @@
 using Conectify.Services.Automatization.Models;
 using Conectify.Services.Automatization.Rules;
 using Conectify.Services.Library;
-using System.Diagnostics;
+using Conectify.Shared.Library.Models.Websocket;
 
 namespace Conectify.Services.Automatization.Services
 {
@@ -36,7 +36,7 @@ namespace Conectify.Services.Automatization.Services
         public void StartServiceAsync()
         {
             websocketClient.OnIncomingValue += WebsocketClient_OnIncomingValue;
-            websocketClient.ConnectAsync(configuration.TargetIp);
+            websocketClient.ConnectAsync();
             HandleTimerAsync();
         }
 
@@ -76,7 +76,7 @@ namespace Conectify.Services.Automatization.Services
         {
             if (ruleDTO.DestinationActuatorId != null)
             {
-                var command = new Command()
+                var command = new WebsocketAction()
                 {
                     DestinationId = ruleDTO.DestinationActuatorId.Value,
                     Name = automatisationValue.Name,
@@ -84,7 +84,7 @@ namespace Conectify.Services.Automatization.Services
                     StringValue = automatisationValue.StringValue,
                     TimeCreated = automatisationValue.TimeCreated,
                     Unit = automatisationValue.Unit,
-                    SourceId = Guid.Parse(configuration.CurrentInstanceId),
+                    SourceId = configuration.SensorId,
                 };
 
                 websocketClient.SendMessageAsync(command);

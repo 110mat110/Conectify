@@ -16,7 +16,7 @@ namespace Conectify.Services.Automatization.Rules
                 TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 SourceId = masterRule.Id
             };
-            
+
         }
 
         public Guid GetId()

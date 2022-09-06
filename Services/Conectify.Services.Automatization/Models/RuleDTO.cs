@@ -1,5 +1,4 @@
 ﻿using Conectify.Database.Models.Values;
-using Conectify.Services.Automatization.Services;
 
 namespace Conectify.Services.Automatization.Models
 {
@@ -38,7 +37,7 @@ namespace Conectify.Services.Automatization.Models
             };
 
             InsertValue(automationValue);
-        } 
+        }
 
         public void InsertValue(AutomatisationValue value)
         {

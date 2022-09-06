@@ -27,7 +27,7 @@ public class ActuatorService : UniversalDeviceService<Actuator, ApiActuator>, IA
 
     public override async Task<bool> TryAddUnknownDevice(Guid actuatorId, Guid deviceId, CancellationToken ct = default)
     {
-        if(deviceId == Guid.Empty)
+        if (deviceId == Guid.Empty)
         {
             throw new ArgumentNullException(nameof(deviceId));
         }

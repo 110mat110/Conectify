@@ -30,7 +30,7 @@ public class SensorService : UniversalDeviceService<Sensor, ApiSensor>, ISensorS
 
     public override async Task<bool> TryAddUnknownDevice(Guid sensorId, Guid deviceId, CancellationToken ct = default)
     {
-        if(deviceId == Guid.Empty)
+        if (deviceId == Guid.Empty)
         {
             throw new ArgumentNullException(nameof(deviceId));
         }
