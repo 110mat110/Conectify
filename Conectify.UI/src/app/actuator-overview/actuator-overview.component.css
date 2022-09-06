@@ -1,0 +1,7 @@
+mat-grid-tile {
+    background: var(--cubes);
+    border: solid;
+    border-radius: 10px;
+    border-color: var(--cubeborders);
+    border-width: 2px;
+  }

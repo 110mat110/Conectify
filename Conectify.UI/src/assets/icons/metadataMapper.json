@@ -1,0 +1,38 @@
+[
+    {
+        "name":"ValueType",
+        "stringValue":"Light",
+        "pic":"assets/icons/Icon1.png"
+    },
+    {
+        "name":"ValueType",
+        "stringValue":"Humidity",
+        "pic":"assets/icons/HumIcon.png"
+    },
+    {
+        "name":"ValueType",
+        "stringValue":"Rain",
+        "pic":"assets/icons/RainIcon.png"
+    },
+    {
+        "name":"ValueType",
+        "stringValue":"Temperature",
+        "pic":"assets/icons/TempIcon.png"
+    },
+    {
+        "name":"ValueType",
+        "stringValue":"AirPressure",
+        "pic":"assets/icons/AirPressureIcon.png"
+    },
+    {
+        "name":"ValueType",
+        "stringValue":"SoilHumidity",
+        "pic":"assets/icons/SoilHumIcon.png"
+    },
+    {
+        "name":"Room",
+        "stringValue":"LivingRoom",
+        "pic":"assets/icons/Icon4.png"
+    }
+       
+]

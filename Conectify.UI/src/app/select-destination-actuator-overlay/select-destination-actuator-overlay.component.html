@@ -1,0 +1,11 @@
+<div *ngIf="actuators" class="overlayDiv">
+    <div #theContainer>
+  <mat-grid-list cols="{{columnNum}}" rowHeight="100px" gutterSize="6px">
+      <mat-grid-tile *ngFor="let actuator of actuators">
+        <div (click)="selectedActuator(actuator.id)" class="cube">
+            {{actuator.name}} @ {{actuator.sourceThing.thingName}}
+        </div>
+      </mat-grid-tile>
+    </mat-grid-list>
+  </div>
+</div>

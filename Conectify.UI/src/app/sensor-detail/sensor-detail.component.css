@@ -1,0 +1,17 @@
+.detailBackground {
+    width: 100% !important;
+    border: solid 1px aliceblue;
+    border-radius: 5px;
+    background: black;
+    text-align: center;
+    padding: 10px;
+    margin: 0;
+  }
+
+  p{
+      color: aliceblue;
+  }
+
+.cube-chart{
+    width: 500px;
+}

@@ -1,0 +1,18 @@
+.cube{
+    width: 100% !important;
+    padding: 10px;
+    border: (solid, black, 2px);
+};
+.cube-chart{
+    margin: 10, 10, 10, 10;
+    width: auto;
+};
+.hiddenTable{
+    table-layout: fixed;
+width: 100%;
+    border-color: green;
+    border-width: 2px;
+    border:"solid";
+}
+
+

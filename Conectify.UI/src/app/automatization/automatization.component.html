@@ -1,0 +1,39 @@
+<h1> Automatization betatest</h1>
+<p>there is long way until it will be working properly</p>
+
+<mat-form-field appearance="fill">
+    <mat-label>Select new rule</mat-label>
+    <select matNativeControl [(ngModel)]="selectedRule" name="rules">
+        <option value="" selected></option>
+        <option *ngFor="let rule of supportedRules" [value]="rule.value">
+          {{rule.viewValue}}
+        </option>
+      </select>
+</mat-form-field>
+
+<button (click)="createRule()">Click to add rule</button>
+<br/>
+<div class="example-boundary">
+  <svg style="position: relative; width:1000px; height:1000px;">
+    <line *ngFor="let item of polylines" 
+    [attr.x1]="item.x1"
+    [attr.x2]="item.x2"
+    [attr.y1]="item.y1"
+    [attr.y2]="item.y2"
+      [attr.stroke]="item.stroke"
+      stroke-width="5"
+    />
+  </svg>
+    <p>Here are automats</p>
+    <br/>
+    <div *ngFor="let rule of ruleService.Rules" 
+    [style.left.px]="rule.initialPos?.x"
+    [style.top.px]="rule.initialPos?.y"
+    class="example-box" 
+    cdkDragBoundary=".example-boundary" 
+    cdkDrag 
+    (cdkDragEnded)="dragEnd($event, rule)"
+    >
+        <app-automatization-component [Component]='rule' [ComponentCage]='this'></app-automatization-component>
+    </div>
+</div>

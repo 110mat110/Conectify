@@ -1,0 +1,11 @@
+<div class="componentCube">
+    <button *ngIf="isSource" class="SourceButton" (click)="SourceClick()" > S </button>
+    <button *ngIf="isDestination" class="Dest" (click)="DestinationClick()"> D </button>
+    <app-aut-value-input *ngIf="ValueInitComponent" [SourceRule] = "ValueInitComponent"></app-aut-value-input>
+    <app-aut-change-destination *ngIf="ChangeDestinationRule" [Rule] = "ChangeDestinationRule"></app-aut-change-destination>
+
+    {{Component?.dragPosition?.x}}<br/>
+    {{Component?.dragPosition?.y}}
+</div>
+
+
