@@ -23,9 +23,7 @@ builder.Services.AddSingleton<IAutomatizationService, AutomatizationService>();
 builder.Services.AddTransient<RuleService>();
 
 var app = builder.Build();
-
-var automatizationService = app.Services.GetRequiredService<IAutomatizationService>();
-automatizationService.StartServiceAsync();
+await app.Services.ConnectToConectifyServer();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
