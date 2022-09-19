@@ -1,4 +1,5 @@
 ﻿using Conectify.Services.Library;
+using Conectify.Shared.Library.Models.Values;
 using Conectify.Shared.Library.Models.Websocket;
 
 namespace Conectify.Services.ShellyConnector.Services
@@ -28,9 +29,9 @@ namespace Conectify.Services.ShellyConnector.Services
             var value = new WebsocketValue()
             {
                 Name = "Light",
-                NumericValue = isOn ? 1 : 100,
+                NumericValue = isOn ? 100 : 0,
                 SourceId = configuration.SensorId,
-                TimeCreated = DateTime.UtcNow.Ticks,
+                TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 Unit = "%",
                 Type = "Value",
             };
@@ -69,6 +70,18 @@ namespace Conectify.Services.ShellyConnector.Services
                 }
             }
 
+            await websocketClient.SendMessageAsync(new WebsocketActionResponse()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Shelly light",
+                NumericValue = websocketAction.NumericValue > 0 ? 100 : 0,
+                SourceId = configuration.ActuatorId,
+                TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                Type = "ActionResult",
+                Unit = "%",
+                ActionId = websocketAction.Id,
+                StringValue = string.Empty
+            });
             return true;
         }
     }

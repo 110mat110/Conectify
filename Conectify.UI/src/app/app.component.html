@@ -1,0 +1,14 @@
+<div class="toolbar">
+  <h1>Conectify</h1>
+  <span class="buttonBar">
+    <button class="navbar-button" routerLink="/sensors">Sensors</button>
+    <button class="navbar-button" routerLink="/actuators">Actuators</button>
+    <button class="navbar-button" routerLink="/automatization">Automatization</button>
+  </span>
+</div>
+<div>
+  <router-outlet></router-outlet>
+  <app-debug-messages></app-debug-messages>
+    <input hidden="true" type="text" name="fingerprintIdTextBox"  #fingerprintIdTextBoxRef/>
+    <button hidden="true" name="triggerWs" (click)="onChange()"></button>
+</div>

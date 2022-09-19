@@ -1,4 +1,6 @@
 ﻿namespace Conectify.Services.ShellyConnector;
+
+using Conectify.Database.Models;
 using Conectify.Services.Library;
 using Conectify.Shared.Library.Models;
 
@@ -11,7 +13,7 @@ public class DeviceData : IDeviceData
         this.configuration = configuration;
     }
 
-    public ApiDevice ApiDevice => new ApiDevice()
+    public ApiDevice Device => new ApiDevice()
     {
         Id = configuration.DeviceId,
         IPAdress = "192.168.1.1",
@@ -19,7 +21,7 @@ public class DeviceData : IDeviceData
         Name = "Shelly server"
     };
 
-    public IEnumerable<ApiSensor> ApiSensors => new List<ApiSensor>()
+    public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
         {
             new ApiSensor()
             {
@@ -29,7 +31,7 @@ public class DeviceData : IDeviceData
             }
         };
 
-    public IEnumerable<ApiActuator> ApiActuators => new List<ApiActuator>()
+    public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>()
         {
             new ApiActuator()
             {
@@ -39,4 +41,6 @@ public class DeviceData : IDeviceData
                 SensorId = configuration.SensorId
             }
         };
+
+    public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>();
 }

@@ -10,18 +10,17 @@
 #include "GlobalVariables.h"
 
 #define NAME                        "Testing"
-#define NoSensors                   6
-#define NoActuators                 0
+#define NoSensors                   1
+#define NoActuators                 1
 #define THING_POSITION_DESCRIPTION  "x"
 #define THING_LAT                   0
 #define THING_LONG                  0
-#define NoSensors 1
-#define NoActuators 1
 
 int led = 0;
 
 void UserSetupRoutines(){
   pinMode(led, OUTPUT);
+  GetGlobalVariables()->SetSensoricTimerInSeconds(60);
 }
 
 void ActuatorNumericRoutine(float value, String unit){
@@ -48,6 +47,7 @@ void DeclareSensors(){
 void UserLoopRoutines(){
   if(GetGlobalVariables()->SensoricTimer.IsTriggered()){
     GetGlobalVariables()->SensoricTimer.ResetTimer();
+    GetGlobalVariables()->sensorsArr[0].SetNumericValue(random(500));
     SendSensoricValues();
   }
 }

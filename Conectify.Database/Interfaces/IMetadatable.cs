@@ -5,5 +5,5 @@ using System.Collections.Generic;
 
 public interface IMetadatable<T> : IEntity
 {
-    IEnumerable<MetadataConnector<T>> Metadata { get; set; }
+    ICollection<MetadataConnector<T>> Metadata { get; set; }
 }

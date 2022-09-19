@@ -352,3 +352,6 @@ MigrationBackup/
 /Conectify.Database/appsettings.Development.json
 /ArduinoOutput
 /Conectify.Esp.Library/.vscode
+/Conectify/.config/dotnet-tools.json
+*Development.json
+/Services/Conectify.Services.ShellyConnector/.config/dotnet-tools.json

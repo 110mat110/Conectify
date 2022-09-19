@@ -1,0 +1,13 @@
+<div *ngIf="sensor"  class="detailBackground">
+<p>Details of sensor</p>
+{{sensor.name}}
+<div *ngIf="latestVal">
+    {{latestVal.name}}  <br/>
+    {{latestVal.numericValue}} {{latestVal.unit}}<br/>
+    <div *ngIf="latestVal.stringValue">
+        {{latestVal.stringValue}} {{latestVal.unit}}<br/>
+    </div>
+    {{latestVal.timeCreated}}
+</div>
+<div echarts [autoResize]="true" [options]="chartOption" class="cube-chart" ></div>
+</div>

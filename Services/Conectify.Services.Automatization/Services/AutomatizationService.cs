@@ -61,8 +61,12 @@ namespace Conectify.Services.Automatization.Services
 
         public async Task ExecuteRule(RuleDTO ruleDTO)
         {
-            IRuleBehaviour rule = BehaviourFactory.GetRuleBehaviorByTypeId(ruleDTO.RuleTypeId);
-            var result = rule.Execute(ruleDTO.Values, ruleDTO);
+            IRuleBehaviour? rule = BehaviourFactory.GetRuleBehaviorByTypeId(ruleDTO.RuleTypeId);
+            var result = rule?.Execute(ruleDTO.Values, ruleDTO);
+            if(result is null)
+            {
+                return;
+            }
 
             SendToActuator(ruleDTO, result);
 

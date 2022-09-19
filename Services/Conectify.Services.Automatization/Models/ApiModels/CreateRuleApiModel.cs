@@ -2,7 +2,6 @@
 {
     public record CreateRuleApiModel
     {
-
         public List<Guid> DestinationRules { get; set; } = new List<Guid>();
 
         public string Name { get; set; }

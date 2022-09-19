@@ -9,9 +9,11 @@ public interface ISubscribersCache
     Subscriber? GetSubscriber(Guid deviceId);
 
     bool RemoveSubscriber(Guid deviceId);
-    Task<bool> AddSubscriber(Guid deviceId, CancellationToken ct = default);
 
     IEnumerable<Subscriber> AllSubscribers();
+
+    Task<Subscriber?> UpdateSubscriber(Guid deviceId, CancellationToken ct = default);
+
 }
 
 public class SubscribersCache : ISubscribersCache
@@ -24,21 +26,6 @@ public class SubscribersCache : ISubscribersCache
     {
         this.serviceProvider = serviceProvider;
         this.mapper = mapper;
-    }
-
-    public async Task<bool> AddSubscriber(Guid deviceId, CancellationToken ct = default)
-    {
-        if (!subscribers.ContainsKey(deviceId))
-        {
-            var subscriber = await UpdateSubscriber(deviceId, ct);
-            if (subscriber is not null)
-            {
-                subscribers.Add(deviceId, subscriber);
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public IEnumerable<Subscriber> AllSubscribers() => subscribers.Select(x => x.Value);
@@ -66,7 +53,16 @@ public class SubscribersCache : ISubscribersCache
 
         if (device is not null)
         {
-            return mapper.Map<Subscriber>(device);
+            var sub = mapper.Map<Subscriber>(device);
+            if (subscribers.ContainsKey(deviceId))
+            {
+                subscribers[deviceId] = sub;
+            }
+            else
+            {
+                subscribers.Add(deviceId, sub);
+            }
+            return subscribers[deviceId];
         }
 
         return null;

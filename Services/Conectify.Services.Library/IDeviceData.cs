@@ -4,10 +4,12 @@ namespace Conectify.Services.Library
 {
     public interface IDeviceData
     {
-        ApiDevice ApiDevice { get; }
+        ApiDevice Device { get; }
 
-        IEnumerable<ApiSensor> ApiSensors { get; }
+        IEnumerable<ApiSensor> Sensors { get; }
 
-        IEnumerable<ApiActuator> ApiActuators { get; }
+        IEnumerable<ApiActuator> Actuators { get; }
+
+        IEnumerable<ApiPreference> Preferences { get;}
     }
 }
