@@ -45,7 +45,7 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
 
     public async Task<TApi?> GetSpecificDevice(Guid id, CancellationToken ct = default)
     {
-        var dbsModel = await database.Devices.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
+        var dbsModel = await database.Set<TDbs>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
 
         if (dbsModel == null)
             return default;
@@ -55,7 +55,7 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
 
     public async Task<IEnumerable<TApi>> GetAllDevices(CancellationToken ct = default)
     {
-        return await database.Devices.AsNoTracking().ProjectTo<TApi>(mapper.ConfigurationProvider).ToListAsync(ct);
+        return await database.Set<TDbs>().AsNoTracking().ProjectTo<TApi>(mapper.ConfigurationProvider).ToListAsync(ct);
     }
 
     public async Task<bool> AddMetadata(ApiMetadataConnector apiModel, CancellationToken ct = default)

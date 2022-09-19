@@ -2,7 +2,7 @@
   <div #theContainer>
 <mat-grid-list cols="{{columnNum}}" rowHeight="250px" gutterSize="6px">
     <mat-grid-tile *ngFor="let sensor of sensors">
-      <app-sensor-cube [sensor]="sensor"></app-sensor-cube>
+      <app-sensor-cube [sensorId]="sensor"></app-sensor-cube>
     </mat-grid-tile>
   </mat-grid-list>
 </div>

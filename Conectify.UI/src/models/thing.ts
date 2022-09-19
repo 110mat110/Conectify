@@ -1,13 +1,10 @@
-import { Metadata } from "./metadata";
-
-export interface Thing {
+export interface Device {
     id: string;
     iPAdress: string;
     macAdress: string;
-    thingName: string;
+    name: string;
     positionId: string | null;
-    position: Position;
-    metadata: Metadata[];
+    position: Position | null;
 }
 
 export interface Position {

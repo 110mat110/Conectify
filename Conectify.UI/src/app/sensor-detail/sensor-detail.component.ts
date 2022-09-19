@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { BaseInputType } from 'src/models/extendedValue';
 import { Sensor } from 'src/models/sensor';
+import { Device } from 'src/models/thing';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 
@@ -12,6 +13,7 @@ import { MessagesService } from '../messages.service';
 export class SensorDetailComponent implements OnInit {
 
   @Input() sensor?: Sensor;
+  @Input() device?: Device;
   chartOption: any;
   values: BaseInputType[] = [];
   xAxis: string[] = [];
@@ -23,19 +25,15 @@ export class SensorDetailComponent implements OnInit {
   ngOnInit(): void {
     if(this.sensor){
     this.be.getSensorValues(this.sensor.id).subscribe(
-      x =>{ this.values = x.entities;
+      x =>{ this.values = x;
         if(this.values.length > 0){
           this.mapedValues = this.values.map(v => v.numericValue);
-          this.xAxis = this.values.map(x => this.trimTimeString(x.timeCreated));
+          this.xAxis = this.values.map(x => new Date(x.timeCreated).toLocaleTimeString());
           this.setOptions();
         }
     });
-    this.be.getLatestSensorValue(this.sensor.id).subscribe(x => this.latestVal = x.entity);
+    this.latestVal = this.values[this.values.length-1];
   }
-  }
-
-  trimTimeString(timeString: string): string{
-    return timeString.split("T")[1].split(".")[0];
   }
 
   setOptions() {

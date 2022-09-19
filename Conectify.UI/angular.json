@@ -71,9 +71,11 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
+              "proxyConfig": "src/proxy.conf.json",
               "browserTarget": "IoTHomeUI:build:production"
             },
             "development": {
+              "proxyConfig": "src/proxy.conf.json",
               "browserTarget": "IoTHomeUI:build:development"
             }
           },

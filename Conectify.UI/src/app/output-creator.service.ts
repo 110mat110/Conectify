@@ -1,27 +1,27 @@
 import { Injectable } from '@angular/core';
-import { InputBareType } from 'src/models/InputBareValue';
+import { WebsocketAction } from 'src/models/InputBareValue';
 import { Sensor } from 'src/models/sensor';
+import { Device } from 'src/models/thing';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OutputCreatorService {
 
-  //sourceId: string = "3dc216b6-ac02-4bfe-abb7-e37c6df90af0";
-  private thingId : string ="4d374247-49be-4d3c-aa07-f757490c5f31";
-  private sensorId : string="c4680416-0267-4ae4-b78a-2bad5212a9e9";
+  private deviceId : string ="";
+  private sensorId : string="";
   constructor() { }
 
 
 
-  createBaseAction(targetId: string, number: number | null, stringValue: string, unit: string) : InputBareType{
+  createBaseAction(targetId: string, number: number | null, stringValue: string, unit: string) : WebsocketAction{
     let dateTime = new Date()
 
     return {
       sourceId : this.sensorId,
       type : "Action",
       destinationId : targetId,
-      timeCreated : dateTime.toJSON(),
+      timeCreated : dateTime.getTime(),
       numericValue : number,
       stringValue : stringValue,
       unit : unit,
@@ -29,26 +29,25 @@ export class OutputCreatorService {
     }
   }
 
-  createSensor(): Sensor{
+  createDevice(id: string): Device{
+    this.deviceId = id;
+    return{
+      id: this.deviceId,
+      macAdress: "xxx",
+      iPAdress: "xxx",
+      name: "Angular web",
+      positionId: null,
+      position: null,
+    }
+  }
+
+  createSensor(id: string): Sensor{
+    this.sensorId = id;
     return {
       id: this.sensorId,
-      sensorName: "Angular web input",
+      name: "Angular web input",
       metadata: [],
-      sourceThingId:"",
-      sourceThing: {
-        id:this.thingId,
-        iPAdress: "192.168.2.128",
-        metadata:[],
-        positionId:"",
-        thingName:"Angular web app",
-        macAdress:"xx",
-        position:{
-          description:"Web in cloud",
-          lat:0,
-          long:0,
-        }
-      }
-      
+      sourceDeviceId: this.deviceId,
     }
   
   }

@@ -35,7 +35,8 @@ public class WebSocketService : IWebSocketService
     {
         websocketCache.AddNewWebsocket(deviceId, webSocket);
         await deviceService.TryAddUnknownDevice(deviceId, ct: ct); ;
-        await cache.AddSubscriber(deviceId, ct);
+        await cache.UpdateSubscriber(deviceId, ct);
+        logger.LogWarning($"Connection with device {deviceId} has started.");
         await HandleInput(webSocket, deviceId, ct);
 
         logger.LogWarning($"Connection with device {deviceId} has ended.");

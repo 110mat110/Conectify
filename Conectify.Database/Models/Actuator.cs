@@ -20,5 +20,5 @@ public class Actuator : Serializable, IMetadatable<Actuator>, IEntity, IDevice
 
     public virtual Device SourceDevice { get; set; } = null!;
     public virtual Sensor Sensor { get; set; } = null!;
-    public virtual IEnumerable<MetadataConnector<Actuator>> Metadata { get; set; } = new List<MetadataConnector<Actuator>>();
+    public virtual ICollection<MetadataConnector<Actuator>> Metadata { get; set; } = new HashSet<MetadataConnector<Actuator>>();
 }

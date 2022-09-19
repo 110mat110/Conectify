@@ -1,8 +1,8 @@
-export interface InputBareType {
+export interface WebsocketAction {
     type: string;
     destinationId: string | null;
     sourceId: string;
-    timeCreated: string;
+    timeCreated: number;
     name: string;
     stringValue: string;
     numericValue: number | null;

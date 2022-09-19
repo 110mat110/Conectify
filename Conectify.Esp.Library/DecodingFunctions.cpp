@@ -19,20 +19,8 @@ String GetServer(BaseThing &baseThing){
 #pragma region Thing
 
 void DecodeRegisteredThingValue(String response, BaseThing &baseThing){
-  StaticJsonDocument<64> filter;
-  filter[DTentity][DTid] = true;
-
-  DynamicJsonDocument root(128);
-  auto error = deserializeJson(root, response, DeserializationOption::Filter(filter));
-
-	if(error) {
-		DebugMessage("deserializeJson() failed: "+ String(error.c_str()));
-		return;
-	}
-  String id = root[DTentity][DTid].as<String>();
-  DebugMessage("ID of incoming device is:" + id);
-  id.toCharArray(baseThing.id, IdStringLength, 0);
-  root.clear();
+  response.toCharArray(baseThing.id, IdStringLength, 1);
+  DebugMessage("Base device id set to :" + String(baseThing.id));
 }
 
 void RegisterBaseThing(BaseThing &baseThing, ESP8266WiFiClass WiFi, Thing thing){
@@ -77,6 +65,7 @@ String serializeThing(BaseThing &baseThing, ESP8266WiFiClass WiFi, Thing thing){
 void RegisterSensor(Sensor &sensor, BaseThing &baseThing){
 
   DebugMessage("-------------Registering sensor-------------------");
+  DebugMessage(baseThing.id);
   HTTPClient http; 
   String url = httpPrefix + GetServer(baseThing)+ inputSensorSuffix;
   DebugMessage("Payload:"+ sensor.SerializeSensor(baseThing.id));
@@ -94,6 +83,8 @@ void RegisterSensor(Sensor &sensor, BaseThing &baseThing){
   DebugMessage("---------------END Reg. SENSOR-------------------");
 }
 
+/*
+//TODO check wth is that?
 void SendSensorValuesToServer(Sensor sensor, BaseThing baseThing, Time dateTime,     
     void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
     Actuator* actuators,
@@ -125,25 +116,16 @@ void SendSensorValuesToServer(Sensor sensor, BaseThing baseThing, Time dateTime,
   }
   http.end();  //Close connection
 }
+*/
 
+void SendSensorValuesToServer(Sensor &sensor, Time &dateTime, WebsocketsClient websocketClient){
+  DebugMessage("Here I shall send sensor value to WS");
+}
 void DecodeRegisteredSensorValue(String payload,Sensor &sensor){
-  StaticJsonDocument<64> filter;
-  filter[DTentity][DTid] = true;
-
-  DynamicJsonDocument root(128);
-  auto error = deserializeJson(root, payload, DeserializationOption::Filter(filter));
-
-	if(error) {
-    DebugMessage(payload);
-		DebugMessage("deserializeJson() failed: ");
-		return;
-	}
-  String Id = root[DTentity][DTid].as<String>();
-  DebugMessage("Retrieved ID is: " + Id);
-  Id.toCharArray(sensor.id, IdStringLength, 0);
+  DebugMessage("Retrieved ID is: " + payload);
+  payload.toCharArray(sensor.id, IdStringLength, 1);
   sensor.isInitialized = true;
-  filter.clear();
-  root.clear();
+  DebugMessage("Actuator has saved ID: " + String(sensor.id));
 }
 
 void RegisterActuator(Actuator &actuator, BaseThing &baseThing){
@@ -167,24 +149,10 @@ void RegisterActuator(Actuator &actuator, BaseThing &baseThing){
 }
 
 void DecodeRegisteredActuatorValue(String payload,Actuator &actuator){
-  StaticJsonDocument<64> filter;
-  filter[DTentity][DTid] = true;
-
-  DynamicJsonDocument root(128);
-  auto error = deserializeJson(root, payload, DeserializationOption::Filter(filter));
-
-	if(error) {
-    DebugMessage(payload);
-		DebugMessage("deserializeJson() failed: ");
-		return;
-	}
-  String Id = root[DTentity][DTid].as<String>();
-  DebugMessage("Retrieved ID is: " + Id);
-  Id.toCharArray(actuator.id, IdStringLength, 0);
+  DebugMessage("Retrieved ID is: " + payload);
+  payload.toCharArray(actuator.id, IdStringLength, 1);
   actuator.isInitialized = true;
   DebugMessage("Actuator has saved ID: " + String(actuator.id));
-  filter.clear();
-  root.clear();
 }
 #pragma endregion
 
@@ -272,7 +240,7 @@ String RequestTime(BaseThing baseThing){
   HTTPClient http; 
   String url = httpPrefix + GetServer(baseThing)+timeSuffix;
 
-  DebugMessage("Sending thing to: " + url);
+  DebugMessage("Requesting time at: " + url);
   http.begin(url);      //Specify request destination
 
   int httpCode = http.GET();   //Send the request

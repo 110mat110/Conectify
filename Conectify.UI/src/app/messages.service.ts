@@ -6,7 +6,7 @@ import { Injectable } from '@angular/core';
 export class MessagesService {
   public allMessages: string[] = [];
 
-  constructor() { }
+  constructor() { this.allMessages.push("ctor of messenger!"); }
 
   addMessage(message: string): void{
     this.allMessages.push(message);

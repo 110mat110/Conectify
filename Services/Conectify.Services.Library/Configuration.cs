@@ -7,7 +7,9 @@ namespace Conectify.Services.Library
         public IConfigurationRoot Config { get; set; }
         public Configuration()
         {
-            var builder = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            const string devSettings = "appsettings.Developement.json";
+            const string prodSettings = "appsettings.json";
+            var builder = new ConfigurationBuilder().AddJsonFile(File.Exists(devSettings) ? devSettings : prodSettings, optional: true, reloadOnChange: true);
 
             Config = builder.Build();
 

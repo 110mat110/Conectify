@@ -1,40 +1,42 @@
 <div class="cube" (click)="cubeClick()">
   <div *ngIf="actuator">
-    <b>{{actuator.name}} @ {{actuator.sourceThing.thingName}}</b>
+    <div *ngIf="device">
+      <b>{{actuator.name}} @ {{device.name}}</b>
     </div>
-    <div *ngIf="metadatas">
-      <app-metadata-icons [metadatas] = "metadatas"></app-metadata-icons>
-    </div>
+  </div>
+  <div *ngIf="metadatas">
+    <app-metadata-icons [metadatas]="metadatas"></app-metadata-icons>
+  </div>
   <div *ngIf="latestVal">
-    {{latestVal.name}} 
+    {{latestVal.name}}
     <div *ngIf="latestVal.numericValue">
-    {{latestVal.numericValue}} {{latestVal.unit}}
+      {{latestVal.numericValue}} {{latestVal.unit}}
     </div>
     <div *ngIf="latestVal.stringValue">
-    {{latestVal.stringValue}} {{latestVal.unit}}
+      {{latestVal.stringValue}} {{latestVal.unit}}
     </div>
-</div>
-<div *ngIf=" !iotype || iotype === 0" >
-  <table>
-    <td>
-    <mat-form-field class="string-input">
-        <mat-label>String value</mat-label>
-        <input matInput placeholder="String value" value={{stringvalue}} #stringInput>
-      </mat-form-field>
-      <br/>
-      <mat-form-field class="string-input">
-        <mat-label>Numeric value</mat-label>
-        <input matInput type="number" placeholder="0" value={{numericvalue}} #numericInput>
-      </mat-form-field>
-    </td>
-<td>
-      <button (click)="send(stringInput.value, numericInput.value)" > SEND</button>
+  </div>
+  <div *ngIf=" !iotype || iotype === 0">
+    <table>
+      <td>
+        <mat-form-field class="string-input">
+          <mat-label>String value</mat-label>
+          <input matInput placeholder="String value" value={{stringvalue}} #stringInput>
+        </mat-form-field>
+        <br />
+        <mat-form-field class="string-input">
+          <mat-label>Numeric value</mat-label>
+          <input matInput type="number" placeholder="0" value={{numericvalue}} #numericInput>
+        </mat-form-field>
+      </td>
+      <td>
+        <button (click)="send(stringInput.value, numericInput.value)"> SEND</button>
       </td>
     </table>
-</div>
+  </div>
 
-<div *ngIf="iotype===1">
+  <div *ngIf="iotype===1">
     <button class="onButton" (click)="onbuttonClick()">ON</button>
-    <button class="offButton" (click)="offbuttonClick()">OFF</button> 
-</div>
+    <button class="offButton" (click)="offbuttonClick()">OFF</button>
+  </div>
 </div>

@@ -1,10 +1,8 @@
 import { Metadata } from "./metadata";
-import { Thing } from "./thing";
 
 export interface Sensor{
     id: string,
-    sensorName: string,
+    name: string,
     metadata: Metadata[],
-    sourceThingId: string,
-    sourceThing: Thing,
+    sourceDeviceId: string,
 }

@@ -4,5 +4,5 @@ using System;
 
 public class WebsocketActionResponse : WebsocketBaseModel
 {
-    public Guid ActionId { get; }
+    public Guid ActionId { get; set; }
 }

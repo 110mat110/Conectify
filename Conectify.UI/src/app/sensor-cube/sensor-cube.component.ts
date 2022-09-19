@@ -5,6 +5,7 @@ import { connect } from 'echarts';
 import { BaseInputType } from 'src/models/extendedValue';
 import { Metadata } from 'src/models/metadata';
 import { Sensor } from 'src/models/sensor';
+import { Device } from 'src/models/thing';
 import { AutValueInputComponent } from '../aut-value-input/aut-value-input.component';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
@@ -17,44 +18,54 @@ import { SensorDetailComponent } from '../sensor-detail/sensor-detail.component'
 })
 export class SensorCubeComponent implements OnInit {
 
-  @Input() sensor?: Sensor;
+  @Input() sensorId?: string;
+  public sensor?: Sensor;
+  public device?: Device;
   public values: BaseInputType[] = [];
   public latestVal?: BaseInputType;
-  public mapedValues: number[] =[];
+  public mapedValues: number[] = [];
   public metadatas: Metadata[] = [];
   public valsReady: boolean = false;
   chartOption: any;
 
-  constructor(public messenger: MessagesService, private be: BEFetcherService,  public overlay: Overlay, public viewContainerRef: ViewContainerRef) { 
+  constructor(public messenger: MessagesService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef) {
     this.setOptions();
-   }
+  }
 
-  onDetailsClick() : void{
+  onDetailsClick(): void {
   }
 
   ngOnInit(): void {
-    if(this.sensor){
-      this.metadatas = this.sensor.metadata;
-      if(this.sensor.sourceThing)
-       this.metadatas = this.metadatas.concat(this.sensor.sourceThing.metadata);
-      this.be.getSensorValues(this.sensor.id).subscribe(
-        x =>{ this.values = x.entities;
-          this.valsReady =this.values.length > 0;
-          if(this.valsReady){
-            this.mapedValues = this.getChart();
-            this.setOptions();
-          }
+    if (this.sensorId) {
+      this.be.getSensorDetail(this.sensorId).subscribe(x => {
+        this.sensor = x
+
+        if (this.sensor) {
+          this.be.getDevice(this.sensor.sourceDeviceId).subscribe(x => this.device = x);
+          this.metadatas = this.sensor.metadata;
+          // if(this.sensor.sourceThing)
+          //  this.metadatas = this.metadatas.concat(this.sensor.sourceThing.metadata);
+          this.be.getSensorValues(this.sensor.id).subscribe(
+            x => {
+              this.values = x;
+              this.valsReady = this.values.length > 0;
+              if (this.valsReady) {
+                this.mapedValues = this.getChart();
+                this.setOptions();
+              }
+            });
+          this.be.getLatestSensorValue(this.sensor.id).subscribe(x => this.latestVal = x);
+        }
       });
-      this.be.getLatestSensorValue(this.sensor.id).subscribe(x => this.latestVal = x.entity);
     }
   }
 
-  public klikaj(){
+  public klikaj() {
     this.messenger.addMessage("Clicked to div in cube");
     this.openOverlay();
   }
 
-  getChart(): number[]{
+  getChart(): number[] {
     return this.values.map(x => x.numericValue);
   }
 
@@ -76,11 +87,11 @@ export class SensorCubeComponent implements OnInit {
     }
   }
 
-  openOverlay(){
+  openOverlay() {
     let config = new OverlayConfig();
 
     config.positionStrategy = this.overlay.position()
-        .global().centerHorizontally().centerVertically();
+      .global().centerHorizontally().centerVertically();
 
     config.hasBackdrop = true;
     config.width = "500px";
@@ -89,7 +100,7 @@ export class SensorCubeComponent implements OnInit {
     overlayRef.backdropClick().subscribe(() => {
       overlayRef.dispose();
     });
-  
+
     let ref = overlayRef.attach(new ComponentPortal(SensorDetailComponent, this.viewContainerRef));
     ref.instance.sensor = this.sensor;
   }

@@ -55,7 +55,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("SourceSensorId");
 
-                    b.ToTable("Rules");
+                    b.ToTable("Rules", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.ActivityService.RuleConnector", b =>
@@ -70,7 +70,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("ContinuingRuleId");
 
-                    b.ToTable("RuleConnector");
+                    b.ToTable("RuleConnector", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>
@@ -98,7 +98,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("SourceDeviceId");
 
-                    b.ToTable("Actuators");
+                    b.ToTable("Actuators", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Device", b =>
@@ -125,14 +125,14 @@ namespace Conectify.Database.Migrations
                     b.Property<Guid?>("PositionId")
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("SubscibeToAll")
+                    b.Property<bool>("SubscribeToAll")
                         .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PositionId");
 
-                    b.ToTable("Devices");
+                    b.ToTable("Devices", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Metadata", b =>
@@ -147,7 +147,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Metadatas");
+                    b.ToTable("Metadatas", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.MetadataConnector<Conectify.Database.Models.Actuator>", b =>
@@ -182,7 +182,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("MetadataId");
 
-                    b.ToTable("ActuatorMetadatas");
+                    b.ToTable("ActuatorMetadatas", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.MetadataConnector<Conectify.Database.Models.Device>", b =>
@@ -217,7 +217,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("MetadataId");
 
-                    b.ToTable("DeviceMetadata");
+                    b.ToTable("DeviceMetadata", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.MetadataConnector<Conectify.Database.Models.Sensor>", b =>
@@ -252,7 +252,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("MetadataId");
 
-                    b.ToTable("SensorMetadata");
+                    b.ToTable("SensorMetadata", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Position", b =>
@@ -273,7 +273,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Position");
+                    b.ToTable("Position", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Preference", b =>
@@ -317,7 +317,9 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("SensorId");
 
-                    b.ToTable("Preference");
+                    b.HasIndex("SubscriberId");
+
+                    b.ToTable("Preference", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Sensor", b =>
@@ -340,7 +342,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("SourceDeviceId");
 
-                    b.ToTable("Sensors");
+                    b.ToTable("Sensors", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Values.Action", b =>
@@ -379,7 +381,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("SourceId");
 
-                    b.ToTable("Actions");
+                    b.ToTable("Actions", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Values.ActionResponse", b =>
@@ -418,7 +420,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("SourceId");
 
-                    b.ToTable("ActionResponses");
+                    b.ToTable("ActionResponses", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Values.Command", b =>
@@ -457,7 +459,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("SourceId");
 
-                    b.ToTable("Commands");
+                    b.ToTable("Commands", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Values.CommandResponse", b =>
@@ -496,7 +498,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("SourceId");
 
-                    b.ToTable("CommandResponses");
+                    b.ToTable("CommandResponses", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Values.Value", b =>
@@ -530,7 +532,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasIndex("SourceId");
 
-                    b.ToTable("Values");
+                    b.ToTable("Values", (string)null);
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.ActivityService.Rule", b =>
@@ -659,18 +661,26 @@ namespace Conectify.Database.Migrations
                         .HasForeignKey("ActuatorId");
 
                     b.HasOne("Conectify.Database.Models.Device", "Device")
-                        .WithMany("Preferences")
+                        .WithMany()
                         .HasForeignKey("DeviceId");
 
                     b.HasOne("Conectify.Database.Models.Sensor", "Sensor")
                         .WithMany()
                         .HasForeignKey("SensorId");
 
+                    b.HasOne("Conectify.Database.Models.Device", "Subscriber")
+                        .WithMany("Preferences")
+                        .HasForeignKey("SubscriberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Actuator");
 
                     b.Navigation("Device");
 
                     b.Navigation("Sensor");
+
+                    b.Navigation("Subscriber");
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Sensor", b =>

@@ -1,5 +1,7 @@
-﻿using Conectify.Shared.Maps;
+﻿using Conectify.Shared.Library.Models;
+using Conectify.Shared.Maps;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Conectify.Services.Library
 {
@@ -17,12 +19,12 @@ namespace Conectify.Services.Library
             return services;
         }
 
-        public static async Task ConnectToConectifyServer(this IServiceProvider serviceProvider)
+        public static async Task ConnectToConectifyServer(this IServiceProvider serviceProvider, CancellationToken ct = default)
         {
             var connector = serviceProvider.GetRequiredService<IConnectorService>();
             var deviceData = serviceProvider.GetRequiredService<IDeviceData>();
-            await connector.RegisterDevice(deviceData.ApiDevice, deviceData.ApiSensors, deviceData.ApiActuators);
-
+            await connector.RegisterDevice(deviceData.Device, deviceData.Sensors, deviceData.Actuators, ct);
+            await connector.SetPreferences(deviceData.Device.Id, deviceData.Preferences, ct);
             var ws = serviceProvider.GetRequiredService<IServicesWebsocketClient>();
             await ws.ConnectAsync();
         }

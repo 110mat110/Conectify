@@ -12,12 +12,12 @@ export class ActuatorOverviewComponent implements OnInit {
   columnNum: number = 4;
   tileSize: number = 400;
   @ViewChild('theContainer') theContainer: any;
-  public actuators: Actuator[]= [];
+  public actuatorIds: string[]= [];
   constructor(private be: BEFetcherService, private messanger: MessagesService) { }
 
   ngOnInit(): void {
-    this.be.getActuators().subscribe(x => {
-      this.actuators = x.entities;
+    this.be.getActiveActuatorsIds().subscribe(x => {
+      this.actuatorIds = x;
       this.setColNum();
     }, (err) => {
       this.messanger.addMessage("Error!");

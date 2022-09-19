@@ -1,4 +1,3 @@
-import { stringify } from '@angular/compiler/src/util';
 import { Injectable } from '@angular/core';
 
 @Injectable({
@@ -6,33 +5,58 @@ import { Injectable } from '@angular/core';
 })
 export class AdressesService {
 
-  private baseURL: string = "http://localhost:5000/api/"
-  private automatizationURL: string = "http://localhost:5010/api/"
+  private serverURL: string = "http://server.home:5000/api/"
+  private automatizationURL: string = "http://server.home:5010/api/"
+  private historyURL: string = "http://server.home:5020/api/"
 
   constructor() { }
 
-  getActuatorsDetails(): string{
-    return this.baseURL+ "actuators/all"
+  getActiveSensorIds(): string {
+    return this.historyURL + "device/sensors"
   }
 
-  getSensorsDetails(): string{
-    return this.baseURL + "sensors/all"
+  getSensorDetail(id: string): string {
+    return this.serverURL + "sensors/" + id;
+  }
+
+  postSensor():string{
+    return this.serverURL + "sensors";
+  }
+
+  getDeviceDetail(id: string): string {
+    return this.serverURL + "device/" + id;
+  }
+
+  postDevice():string{
+    return this.serverURL + "device";
+  }
+
+  getActiveActuatorsIds(): string {
+    return this.historyURL + "device/actuators"
+  }
+
+  getAllActuatorsDetails(): string{
+    return this.serverURL+ "actuators/all";
+  }
+
+  getActuatorDetail(id: string): string{
+    return this.serverURL+ "actuators/" + id;
+  }
+
+  getAllSensorsDetails(): string{
+    return this.serverURL + "sensors/all"
   }
 
   getSensorValues(id: string): string{
-    return this.baseURL + "output/sensor/" + id;
+    return this.historyURL + "data/" + id + "/values";
   }
 
   getLatestSensorValue(id: string): string{
-    return this.baseURL + "output/sensor/latest/" + id;
+    return this.historyURL + "data/" + id + "/latest";
   }
 
   getInputBareValue(){
-    return this.baseURL + "input/bareValue";
-  }
-
-  getInputSensor(){
-    return this.baseURL + "input/sensor";
+    return this.serverURL + "input/bareValue";
   }
 
   InputRule() : string{

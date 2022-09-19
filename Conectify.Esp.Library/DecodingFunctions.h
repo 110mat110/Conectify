@@ -21,7 +21,7 @@ void DecodeRegisteredSensorValue(String payload,Sensor &sensor);
 void RegisterActuator(Actuator &sensor, BaseThing &baseThing);
 void DecodeRegisteredActuatorValue(String payload,Actuator &actuator);
 
-void SendSensorValuesToServer(Sensor sensor, Time dateTime, WebsocketsClient websocketClient);
+void SendSensorValuesToServer(Sensor &sensor, Time &dateTime, WebsocketsClient websocketClient);
 
 void decodeIncomingJson(String incomingJson,   
     void (*handleFunc)(String commandText, float commandValue, String commandTextParam),

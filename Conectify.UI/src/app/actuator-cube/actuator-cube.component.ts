@@ -4,9 +4,11 @@ import { Actuator } from 'src/models/actuator';
 import { BaseInputType } from 'src/models/extendedValue';
 import { IOType } from 'src/models/IOType';
 import { Metadata } from 'src/models/metadata';
+import { Device } from 'src/models/thing';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 import { OutputCreatorService } from '../output-creator.service';
+import { WebsocketService } from '../websocket.service';
 
 @Component({
   selector: 'app-actuator-cube',
@@ -15,7 +17,9 @@ import { OutputCreatorService } from '../output-creator.service';
 })
 export class ActuatorCubeComponent implements OnInit {
 
-  @Input() actuator?: Actuator;
+  @Input() actuatorId?: string;
+  public actuator?: Actuator;
+  public device?: Device;
   public latestVal?: BaseInputType;
   iotype: IOType = IOType.Linear;
   stringvalue: string = "";
@@ -24,7 +28,7 @@ export class ActuatorCubeComponent implements OnInit {
   maxValue: number = 0;
   minValue: number = 0;
 
-  constructor(public messenger: MessagesService, private be: BEFetcherService,  public overlay: Overlay, public viewContainerRef: ViewContainerRef, private output: OutputCreatorService) { }
+  constructor(public messenger: MessagesService, private websocketService: WebsocketService, private be: BEFetcherService,  public overlay: Overlay, public viewContainerRef: ViewContainerRef, private output: OutputCreatorService) { }
 
   ngOnInit(): void {
     this.refreshActualStatus();
@@ -32,11 +36,18 @@ export class ActuatorCubeComponent implements OnInit {
   }
 
   refreshActualStatus(){
+    if(this.actuatorId){
+      this.be.getActuatorDetail(this.actuatorId).subscribe(x => this.actuator = x);
+    }
+
     if(this.actuator){
-      this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.latestVal = x.entity);
+      this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.latestVal = x);
       this.metadatas = this.actuator.metadata;
-      if(this.actuator.sourceThing)
-        this.metadatas.concat(this.actuator.sourceThing.metadata);
+      if(this.actuator.sourceDeviceId){
+        this.be.getDevice(this.actuator.sourceDeviceId);
+      }
+        
+//        this.metadatas.concat(this.actuator.sourceThing.metadata);
       if(this.latestVal)
         this.stringvalue = this.latestVal?.stringValue;
         this.numericvalue = this.latestVal?.numericValue;
@@ -69,9 +80,8 @@ export class ActuatorCubeComponent implements OnInit {
 
   sendn(stringValue: string, numericValue: number): void{
     if(this.actuator){
-      var output = this.output.createBaseAction(this.actuator?.id, numericValue, stringValue, "");
-      this.messenger.addMessage("Wanna send " + JSON.stringify(output));
-      this.be.postNewValue(output);
+      let action =  this.output.createBaseAction(this.actuator?.id, numericValue, stringValue, "");
+      this.websocketService.messages?.next(action);
       }
   }
 

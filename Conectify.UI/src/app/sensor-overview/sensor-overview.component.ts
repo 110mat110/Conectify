@@ -1,5 +1,4 @@
 import { Component, HostListener, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
-import { Sensor } from 'src/models/sensor';
 import { AutValueInputComponent } from '../aut-value-input/aut-value-input.component';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
@@ -10,7 +9,7 @@ import { MessagesService } from '../messages.service';
   styleUrls: ['./sensor-overview.component.css']
 })
 export class SensorOverviewComponent implements OnInit {
-  public sensors: Sensor[] = [];
+  public sensors: string[] = [];
   columnNum: number = 4;
   tileSize: number = 400;
   @ViewChild('theContainer') theContainer: any;
@@ -19,9 +18,9 @@ export class SensorOverviewComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.be.getSensors().subscribe(x => {
+    this.be.getActiveSensors().subscribe(x => {
       this.messanger.addMessage("Subscribe was called");
-      this.sensors = x.entities;
+      this.sensors = x;
       this.setColNum();
     }, (err) => {
       this.messanger.addMessage("Error!");

@@ -20,4 +20,6 @@ public record Preference : IEntity
     public virtual Sensor? Sensor { get; set; }
     public virtual Actuator? Actuator { get; set; }
     public virtual Device? Device { get; set; }
+
+    public virtual Device Subscriber { get; set; } = null!;
 }

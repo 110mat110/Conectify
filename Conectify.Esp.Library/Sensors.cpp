@@ -18,14 +18,12 @@ Sensor:: Sensor(){
     DebugMessage("Dummy contructor");
 };
 String Sensor::SerializeSensor(char thingId[IdStringLength]){
-    DebugMessage("Serializing sensor");
     DynamicJsonDocument doc(256);
     if(isInitialized)
         doc[DTid] = id;
     doc[type] = SensorType;
     doc[DTSensorName] = sensorName;
     doc[DTSourceThingId] = thingId;
-    DebugMessage("Serializing");
     String json;
     serializeJson(doc, json);
     doc.clear();

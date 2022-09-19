@@ -40,11 +40,11 @@ public class ConectifyDb : DbContext
     {
         if (await this.Set<T>().AnyAsync(d => d.Id == entity.Id, ct))
         {
-            await this.AddAsync(entity, ct);
+            this.Update(entity);
         }
         else
         {
-            this.Update(entity);
+            await this.AddAsync(entity, ct);
         }
 
         return entity;
@@ -84,6 +84,11 @@ public class ConectifyDb : DbContext
             .HasOne(bc => bc.PreviousRule)
             .WithMany(c => c.PreviousRules)
             .HasForeignKey(bc => bc.PreviousRuleId);
+
+        modelBuilder.Entity<Preference>()
+            .HasOne(bc => bc.Subscriber)
+            .WithMany(b => b.Preferences)
+            .HasForeignKey(bc => bc.SubscriberId);
     }
 
 }

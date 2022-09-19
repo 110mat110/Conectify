@@ -22,7 +22,7 @@ import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { MetadataIconsComponent } from './metadata-icons/metadata-icons.component';
 import { AutomatizationComponent } from './automatization/automatization.component';
 import { AutValueInputComponent } from './aut-value-input/aut-value-input.component';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AutomatizationComponentComponent } from './automatization-component/automatization-component.component';
 import { SelectInputSensorOverlayComponent } from './select-input-sensor-overlay/select-input-sensor-overlay.component';
 import {DragDropModule} from '@angular/cdk/drag-drop';
@@ -54,6 +54,7 @@ import { SelectDestinationActuatorOverlayComponent } from './select-destination-
     MatGridListModule,
     AppRoutingModule,
     HttpClientModule,
+    ReactiveFormsModule,
     BrowserAnimationsModule,
     NgxEchartsModule.forRoot({
       echarts

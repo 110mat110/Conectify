@@ -3,15 +3,23 @@
 using AutoMapper;
 using Conectify.Database;
 using Conectify.Database.Interfaces;
+using Conectify.Database.Models;
 using Conectify.Database.Models.Values;
 using Conectify.Server.Caches;
 using Conectify.Shared.Library.Interfaces;
+using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Websocket;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 public interface IPipelineService
 {
     Task ResendValueToSubscribers(IBaseInputType entity);
+
+    Task SetPreference(Guid deviceId, IEnumerable<ApiPreference> apiPreferences, CancellationToken ct = default);
+
+    Task SetSubscribeToAll(Guid deviceId, bool sub, CancellationToken ct = default);
+
 }
 
 public class PipelineService : IPipelineService
@@ -79,6 +87,48 @@ public class PipelineService : IPipelineService
         }
     }
 
+    public async Task SetPreference(Guid deviceId, IEnumerable<ApiPreference> apiPreferences, CancellationToken ct = default)
+    {
+        var device = await conectifyDb
+            .Set<Device>()
+            .Include(i => i.Preferences)
+            .FirstOrDefaultAsync(x => x.Id == deviceId && x.IsKnown, ct);
+
+        if (device is null) return;
+
+        var preferences = mapper.Map<IEnumerable<Preference>>(apiPreferences);
+        foreach(var preference in preferences)
+        {
+            preference.SubscriberId = deviceId;
+        };
+
+        var preferencesToRemove = device.Preferences
+            .Where(x => preferences.Any(p =>
+                p.ActuatorId == x.ActuatorId &&
+                p.SensorId == x.SensorId &&
+                p.DeviceId == x.DeviceId
+                ));
+        device.Preferences = device.Preferences.Except(preferencesToRemove).ToHashSet();
+        device.Preferences.Concat(preferences);
+        device.SubscribeToAll = device.Preferences.Any(IsSubbedToAll);
+        await conectifyDb.AddRangeAsync(preferences);
+        conectifyDb.Update(device);
+        await conectifyDb.SaveChangesAsync(ct);
+
+        await subscribersCache.UpdateSubscriber(deviceId, ct);
+    }
+
+    public async Task SetSubscribeToAll(Guid deviceId, bool sub, CancellationToken ct = default)
+    {
+        var device = await conectifyDb.Set<Device>().FirstOrDefaultAsync(x => x.Id == deviceId && x.IsKnown, cancellationToken: ct);
+
+        if (device is null) return;
+
+        device.SubscribeToAll = sub;
+
+        await conectifyDb.SaveChangesAsync(ct);
+    }
+
     public IEnumerable<Subscriber> GetAllSubscribers() => subscribersCache.AllSubscribers();
 
     private IEnumerable<Guid> ActionResponseTargetingSubscribers(Guid sourceId, Guid? actionSourceId) =>
@@ -103,7 +153,7 @@ public class PipelineService : IPipelineService
                     preference.DeviceId == sourceId)))
         .Select(s => s.DeviceId);
 
-    public IEnumerable<Guid> ValueTargetingSubscribers(Guid sourceId) =>
+    private IEnumerable<Guid> ValueTargetingSubscribers(Guid sourceId) =>
         GetAllSubscribers()
         .Where(x =>
             x.IsSubedToAll ||
@@ -113,7 +163,7 @@ public class PipelineService : IPipelineService
                     preference.SensorId == sourceId)))
         .Select(s => s.DeviceId);
 
-    public IEnumerable<Guid> CommandTargetingSubscribers(Guid targetId, Guid sourceId) =>
+    private IEnumerable<Guid> CommandTargetingSubscribers(Guid targetId, Guid sourceId) =>
          GetAllSubscribers()
         .Where(x => x.IsSubedToAll || x.DeviceId == targetId || x.Preferences.Any(preference =>
                 preference.SubToCommands &&
@@ -121,11 +171,22 @@ public class PipelineService : IPipelineService
                     preference.SensorId == sourceId)))
         .Select(x => x.DeviceId);
 
-    public IEnumerable<Guid> ActionTargetingSubscribers(Guid sourceId, Guid? destinationId) =>
+    private IEnumerable<Guid> ActionTargetingSubscribers(Guid sourceId, Guid? destinationId) =>
         GetAllSubscribers()
         .Where(x => x.IsSubedToAll || (destinationId != null && x.Actuators.Contains(destinationId.Value)) || x.Preferences.Any(preference =>
                 preference.SubToActions &&
                     (preference.SensorId is null ||
                     preference.SensorId == sourceId)))
         .Select(x => x.DeviceId);
+
+    private readonly Func<Preference, bool> IsSubbedToAll = x =>
+        x.SensorId is null &&
+        x.DeviceId is null &&
+        x.SensorId is null &&
+        x.SubToValues &&
+        x.SubToCommands &&
+        x.SubToActions &&
+        x.SubToActionResponse &&
+        x.SubToCommandResponse;
+
 }

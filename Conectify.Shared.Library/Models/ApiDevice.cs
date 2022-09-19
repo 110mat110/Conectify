@@ -11,4 +11,5 @@ public record ApiDevice : IApiModel
     public string MacAdress { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public Guid? PositionId { get; set; }
+    public ApiPosition Position { get; set; } = new ApiPosition();
 }

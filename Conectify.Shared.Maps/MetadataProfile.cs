@@ -29,5 +29,9 @@ public class MetadataProfile : Profile
         CreateMap<MetadataConnector<Device>, ApiMetadataConnector>();
         CreateMap<MetadataConnector<Sensor>, ApiMetadataConnector>();
         CreateMap<MetadataConnector<Actuator>, ApiMetadataConnector>();
+
+        CreateMap<MetadataConnector<Actuator>, ApiMetadata>();
+        CreateMap<MetadataConnector<Sensor>, ApiMetadata>();
+        CreateMap<MetadataConnector<Device>, ApiMetadata>();
     }
 }

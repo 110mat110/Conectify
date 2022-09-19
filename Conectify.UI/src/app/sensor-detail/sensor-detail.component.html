@@ -1,6 +1,6 @@
 <div *ngIf="sensor"  class="detailBackground">
 <p>Details of sensor</p>
-{{sensor.sensorName}} in {{sensor.sourceThing.thingName}}
+{{sensor.name}}
 <div *ngIf="latestVal">
     {{latestVal.name}}  <br/>
     {{latestVal.numericValue}} {{latestVal.unit}}<br/>

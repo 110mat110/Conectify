@@ -37,7 +37,7 @@ public class DeviceService : UniversalDeviceService<Device, ApiDevice>, IDeviceS
             MacAdress = string.Empty,
             IPAdress = string.Empty,
             Name = "unknown device",
-            SubscibeToAll = false,
+            SubscribeToAll = false,
         };
 
         await database.AddAsync(device);

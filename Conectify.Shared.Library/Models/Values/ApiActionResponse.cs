@@ -3,5 +3,5 @@ using System;
 
 public class ApiActionResponse : ApiBaseModel
 {
-    public Guid ActionId { get; }
+    public Guid ActionId { get; set; }
 }

@@ -3,11 +3,11 @@
 <table class="hiddenTable" >   
 <tr>
 <td style="background-color: transparent !important; vertical-align: centre;">
-    <h4><b>{{sensor.sensorName}}</b></h4>
+    <h4><b>{{sensor.name}}</b></h4>
     <div *ngIf="metadatas">
         <app-metadata-icons [metadatas] = "metadatas"></app-metadata-icons>
       </div>
-    <div><b>{{sensor.sourceThing.thingName}}</b></div>
+    <!-- <div><b>{{sensor.sourceThing.thingName}}</b></div> -->
 <div *ngIf="latestVal">
     {{latestVal.name}} 
     <div *ngIf="latestVal.numericValue">

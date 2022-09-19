@@ -10,7 +10,7 @@ public class DeviceProfile : Profile
     {
         this.CreateMap<ApiDevice, Device>()
             .ForMember(x => x.IsKnown, opt => opt.MapFrom(x => false))
-            .ForMember(x => x.SubscibeToAll, opt => opt.MapFrom(x => false))
+            .ForMember(x => x.SubscribeToAll, opt => opt.MapFrom(x => false))
             .ForMember(x => x.Position, opt => opt.Ignore())
             .ForMember(x => x.Metadata, opt => opt.Ignore())
             .ForMember(x => x.Sensors, opt => opt.Ignore())

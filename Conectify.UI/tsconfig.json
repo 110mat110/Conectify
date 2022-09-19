@@ -5,6 +5,7 @@
     "resolveJsonModule": true, 
     "esModuleInterop": true,
     "baseUrl": "./",
+    "allowJs": true,
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
