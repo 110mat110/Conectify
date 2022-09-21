@@ -16,7 +16,7 @@ export class AppComponent {
   title = 'IoTHomeUI';
   received: string[] = [];
   @ViewChild("fingerprintIdTextBoxRef") myNameElem?: ElementRef;
-
+  wsStatus: any;
   constructor(private websocketService: WebsocketService, private befetcher: BEFetcherService ) {
   }
 

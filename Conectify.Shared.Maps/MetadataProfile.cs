@@ -30,8 +30,14 @@ public class MetadataProfile : Profile
         CreateMap<MetadataConnector<Sensor>, ApiMetadataConnector>();
         CreateMap<MetadataConnector<Actuator>, ApiMetadataConnector>();
 
-        CreateMap<MetadataConnector<Actuator>, ApiMetadata>();
-        CreateMap<MetadataConnector<Sensor>, ApiMetadata>();
-        CreateMap<MetadataConnector<Device>, ApiMetadata>();
+        CreateMap<MetadataConnector<Actuator>, ApiMetadata>()
+            .ForMember(x => x.Name, opt => opt.MapFrom(x => x.Metadata.Name));
+        CreateMap<MetadataConnector<Sensor>, ApiMetadata>()
+            .ForMember(x => x.Name, opt => opt.MapFrom(x => x.Metadata.Name));
+        CreateMap<MetadataConnector<Device>, ApiMetadata>()
+            .ForMember(x => x.Name, opt => opt.MapFrom(x => x.Metadata.Name));
+
+        CreateMap<ApiBasicMetadata, Metadata>();
+        CreateMap<Metadata, ApiBasicMetadata>();
     }
 }

@@ -29,7 +29,7 @@
               "src/assets"
             ],
             "styles": [
-              "./node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css",
+              "C:/Users/kvetk/source/repos/Conectify/Conectify.UI/node_modules/@angular/material/prebuilt-themes/purple-green.css",
               "src/styles.css"
             ],
             "scripts": []
@@ -99,7 +99,7 @@
               "src/assets"
             ],
             "styles": [
-              "./node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css",
+              "C:/Users/kvetk/source/repos/Conectify/Conectify.UI/node_modules/@angular/material/prebuilt-themes/purple-green.css",
               "src/styles.css"
             ],
             "scripts": []
@@ -108,5 +108,5 @@
       }
     }
   },
-  "defaultProject": "IoTHomeUI"
+  "defaultProject": "Conectify.UI"
 }

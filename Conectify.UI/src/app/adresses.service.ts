@@ -23,6 +23,14 @@ export class AdressesService {
     return this.serverURL + "sensors";
   }
 
+  postSensorMetadata():string{
+    return this.serverURL + "sensors/metadata";
+  }
+
+  postActuatorMetadata():string{
+    return this.serverURL + "actuators/metadata";
+  }
+
   getDeviceDetail(id: string): string {
     return this.serverURL + "device/" + id;
   }
@@ -43,6 +51,14 @@ export class AdressesService {
     return this.serverURL+ "actuators/" + id;
   }
 
+  getActuatorMetdatas(id: string):string{
+    return this.serverURL + "actuators/" + id + "/metadata";
+  }
+
+  getSensorMetdatas(id: string):string{
+    return this.serverURL + "sensors/" + id + "/metadata";
+  }
+
   getAllSensorsDetails(): string{
     return this.serverURL + "sensors/all"
   }
@@ -55,8 +71,12 @@ export class AdressesService {
     return this.historyURL + "data/" + id + "/latest";
   }
 
-  getInputBareValue(){
-    return this.serverURL + "input/bareValue";
+  getAllMetadata(){
+    return this.serverURL + "metadata/all"
+  }
+
+  postMetadata(){
+    return this.serverURL + "metadata"
   }
 
   InputRule() : string{
@@ -66,4 +86,6 @@ export class AdressesService {
   saveChangeDestRule() : string{
     return this.automatizationURL + "input/changeDestRule"
   }
+
+
 }

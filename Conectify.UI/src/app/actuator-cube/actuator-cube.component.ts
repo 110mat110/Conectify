@@ -17,7 +17,7 @@ import { WebsocketService } from '../websocket.service';
 })
 export class ActuatorCubeComponent implements OnInit {
 
-  @Input() actuatorId?: string;
+  @Input() actuatorId?: {id: string, visible: boolean};
   public actuator?: Actuator;
   public device?: Device;
   public latestVal?: BaseInputType;
@@ -28,64 +28,67 @@ export class ActuatorCubeComponent implements OnInit {
   maxValue: number = 0;
   minValue: number = 0;
 
-  constructor(public messenger: MessagesService, private websocketService: WebsocketService, private be: BEFetcherService,  public overlay: Overlay, public viewContainerRef: ViewContainerRef, private output: OutputCreatorService) { }
+  constructor(public messenger: MessagesService, private websocketService: WebsocketService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef, private output: OutputCreatorService) { }
 
   ngOnInit(): void {
     this.refreshActualStatus();
     this.determineType();
   }
 
-  refreshActualStatus(){
-    if(this.actuatorId){
-      this.be.getActuatorDetail(this.actuatorId).subscribe(x => this.actuator = x);
-    }
-
-    if(this.actuator){
-      this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.latestVal = x);
-      this.metadatas = this.actuator.metadata;
-      if(this.actuator.sourceDeviceId){
-        this.be.getDevice(this.actuator.sourceDeviceId);
-      }
-        
-//        this.metadatas.concat(this.actuator.sourceThing.metadata);
-      if(this.latestVal)
+  refreshActualStatus() {
+    if (this.actuatorId) {
+      this.be.getActuatorDetail(this.actuatorId.id).subscribe(x => {
+        this.actuator = x;
+        this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.latestVal = x);
+        this.be.getActuatorMetadatas(this.actuator.id).subscribe(x => {
+          this.metadatas = x;
+          var typeMetadata = this.metadatas.find(x => x.name === "IOType");
+          if (typeMetadata) {
+            this.iotype = IOType[typeMetadata.stringValue as keyof typeof IOType];
+            this.minValue = typeMetadata.minVal;
+            this.maxValue = typeMetadata.maxVal;
+          }
+          var visibilityMetadata = this.metadatas.find(x => x.name === "Visible");
+          if(visibilityMetadata && this.actuatorId){
+            this.actuatorId.visible = visibilityMetadata.numericValue > 0;
+          }
+        });
+        if (this.actuator.sourceDeviceId) {
+          this.be.getDevice(this.actuator.sourceDeviceId);
+        }
+      });
+      if (this.latestVal)
         this.stringvalue = this.latestVal?.stringValue;
-        this.numericvalue = this.latestVal?.numericValue;
+      this.numericvalue = this.latestVal?.numericValue;
     }
   }
 
   determineType(): void {
-    if(this.actuator){
-      this.messenger.addMessage("Determining type");
-      var typeMetadata = this.actuator.metadata.find(x => x.name === "IOType");
-      if(typeMetadata){
-        this.iotype = IOType[typeMetadata.stringValue as keyof typeof IOType];
-        this.minValue = typeMetadata.minVal;
-        this.maxValue = typeMetadata.maxVal;
-      }
+    if (this.metadatas) {
+
     }
   }
 
-  cubeClick(){
+  cubeClick() {
     this.refreshActualStatus();
   }
 
-  onbuttonClick(){
+  onbuttonClick() {
     this.sendn("", this.maxValue);
   }
 
-  offbuttonClick(){
+  offbuttonClick() {
     this.sendn("", this.minValue);
   }
 
-  sendn(stringValue: string, numericValue: number): void{
-    if(this.actuator){
-      let action =  this.output.createBaseAction(this.actuator?.id, numericValue, stringValue, "");
+  sendn(stringValue: string, numericValue: number): void {
+    if (this.actuator) {
+      let action = this.output.createBaseAction(this.actuator?.id, numericValue, stringValue, "");
       this.websocketService.messages?.next(action);
-      }
+    }
   }
 
-  send(stringvalue: string, numericValue: string): void{
+  send(stringvalue: string, numericValue: string): void {
     var number = Number(numericValue);
     this.sendn(stringvalue, number);
   }

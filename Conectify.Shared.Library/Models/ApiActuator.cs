@@ -10,5 +10,4 @@ public record ApiActuator : IApiModel
     public string Name { get; set; } = string.Empty;
     public Guid SourceDeviceId { get; set; }
     public Guid SensorId { get; set; }
-    public IEnumerable<ApiMetadata> Metadata { get; set; } = new List<ApiMetadata>();
 }

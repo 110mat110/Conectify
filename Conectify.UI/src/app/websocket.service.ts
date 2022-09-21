@@ -17,7 +17,6 @@ export interface Message {
 export class WebsocketService {
     private subject?: AnonymousSubject<MessageEvent>;
     public messages?: Subject<any>;
-
     constructor() {
 
     }

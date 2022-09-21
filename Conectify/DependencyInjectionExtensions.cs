@@ -15,5 +15,6 @@ public static class DependencyInjectionExtensions
         services.AddTransient<IPipelineService, PipelineService>();
         services.AddSingleton<ISubscribersCache, SubscribersCache>();
         services.AddSingleton<IWebsocketCache, WebsocketCache>();
+        services.AddTransient<IMetadataService, MetadataService>();
     }
 }

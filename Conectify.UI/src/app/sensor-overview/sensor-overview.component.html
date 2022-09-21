@@ -1,9 +1,11 @@
 <div *ngIf="sensors">
   <div #theContainer>
 <mat-grid-list cols="{{columnNum}}" rowHeight="250px" gutterSize="6px">
-    <mat-grid-tile *ngFor="let sensor of sensors">
-      <app-sensor-cube [sensorId]="sensor"></app-sensor-cube>
+    <div *ngFor="let sensor of sensors">
+    <mat-grid-tile *ngIf = "sensor.visible">
+      <app-sensor-cube [sensorInput]="sensor"></app-sensor-cube>
     </mat-grid-tile>
+  </div>
   </mat-grid-list>
 </div>
 </div>

@@ -1,0 +1,83 @@
+<h3>Setup metadata</h3>
+<p>Select device and add or update metadata to this device</p>
+<br/>
+<mat-form-field appearance="fill" color = "Accent" (change)="selectDevice()">
+    <mat-label>Select device</mat-label>
+    <select matNativeControl [(ngModel)]="selectedDeviceId" name="metadatas">
+        <option value="" selected></option>
+        <option *ngFor="let device of supportedDevices" [value]="device.id">
+          {{device.name}}
+        </option>
+      </select>
+</mat-form-field>
+<button mat-mini-fab color="primary" aria-label="Show metadata for device" (click)="selectDevice()">
+    <mat-icon>play_arrow</mat-icon>
+  </button>
+
+  <mat-form-field appearance="standard">
+    <mat-label>Name</mat-label>
+    <mat-select [formControl] = "formControlObj" [compareWith]="compareCategoryObjects">
+      <mat-option *ngFor="let metadata of avaliableMetadata" [value]="metadata.id">{{metadata.name}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="standard">
+    <mat-label>Numeric value</mat-label>
+    <input #numericValue matInput type="number" placeholder="0" value="{{selectedMetadata?.numericValue}}">
+  </mat-form-field>
+
+  <mat-form-field appearance="standard">
+    <mat-label>String value</mat-label>
+    <input #stringValue matInput placeholder="test" value="{{selectedMetadata?.stringValue}}">
+  </mat-form-field>
+
+  <mat-form-field appearance="standard">
+    <mat-label>Minimal value</mat-label>
+    <input #minValue matInput type="number" placeholder="0" value="{{selectedMetadata?.minVal}}">
+  </mat-form-field>
+
+  <mat-form-field appearance="standard">
+    <mat-label>Maximum value</mat-label>
+    <input #maxValue matInput type="number" placeholder="100" value="{{selectedMetadata?.maxVal}}">
+  </mat-form-field>
+
+  <button mat-mini-fab color="primary" aria-label="Update metadata" 
+    (click)="updateMetadata(numericValue.value, stringValue.value, minValue.value, maxValue.value)">
+    <mat-icon>play_arrow</mat-icon>
+  </button>
+<br/>
+
+<mat-selection-list #metadata [multiple]="false" (selectionChange)="selChange($event)">
+    <mat-list-option *ngFor="let metadata of metadatas" [value]="metadata.metadataId">
+        <div>
+        <mat-form-field appearance="standard" disabled = "true">
+            <mat-label>Name</mat-label>
+            <input matInput disabled value="{{metadata.name}}">
+          </mat-form-field>
+          <mat-form-field appearance="standard">
+            <mat-label>Value</mat-label>
+            <input matInput disabled value="{{metadata.numericValue}}/{{metadata.stringValue}}">
+          </mat-form-field>
+          <mat-form-field appearance="standard">
+            <mat-label>Mininum</mat-label>
+            <input matInput disabled value="{{metadata.minVal}}">
+          </mat-form-field>
+          <mat-form-field appearance="standard">
+            <mat-label>Maximum</mat-label>
+            <input matInput disabled value="{{metadata.maxVal}}">
+          </mat-form-field>
+        </div>
+    </mat-list-option>
+  </mat-selection-list>
+
+  <br/><br/>
+  <p>Insert brand new metadata base to be selected</p>
+
+  <mat-form-field appearance="standard">
+    <mat-label>Metadata name</mat-label>
+    <input #metadataName matInput placeholder="Any name">
+  </mat-form-field>
+
+  <button mat-mini-fab color="primary" aria-label="Create new metadata" (click)="createMetadata(metadataName.value)">
+    <mat-icon>add</mat-icon>
+  </button>

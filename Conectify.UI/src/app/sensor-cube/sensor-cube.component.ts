@@ -18,7 +18,7 @@ import { SensorDetailComponent } from '../sensor-detail/sensor-detail.component'
 })
 export class SensorCubeComponent implements OnInit {
 
-  @Input() sensorId?: string;
+  @Input() sensorInput?: {id:string, visible: boolean};
   public sensor?: Sensor;
   public device?: Device;
   public values: BaseInputType[] = [];
@@ -36,15 +36,19 @@ export class SensorCubeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.sensorId) {
-      this.be.getSensorDetail(this.sensorId).subscribe(x => {
+    if (this.sensorInput) {
+      this.be.getSensorDetail(this.sensorInput.id).subscribe(x => {
         this.sensor = x
 
         if (this.sensor) {
           this.be.getDevice(this.sensor.sourceDeviceId).subscribe(x => this.device = x);
-          this.metadatas = this.sensor.metadata;
-          // if(this.sensor.sourceThing)
-          //  this.metadatas = this.metadatas.concat(this.sensor.sourceThing.metadata);
+          this.be.getSensorMetadatas(this.sensor.id).subscribe(x => {
+            this.metadatas = x;
+            var visibilityMetadata = this.metadatas.find(x => x.name === "Visible");
+            if(visibilityMetadata && this.sensorInput){
+              this.sensorInput.visible = visibilityMetadata.numericValue > 0;
+            }
+          });
           this.be.getSensorValues(this.sensor.id).subscribe(
             x => {
               this.values = x;

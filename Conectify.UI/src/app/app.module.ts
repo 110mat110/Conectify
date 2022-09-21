@@ -28,6 +28,10 @@ import { SelectInputSensorOverlayComponent } from './select-input-sensor-overlay
 import {DragDropModule} from '@angular/cdk/drag-drop';
 import { AutChangeDestinationComponent } from './aut-change-destination/aut-change-destination.component';
 import { SelectDestinationActuatorOverlayComponent } from './select-destination-actuator-overlay/select-destination-actuator-overlay.component';
+import { MetadataComponent } from './metadata/metadata.component';
+import {MatListModule} from '@angular/material/list';
+import {MatButtonModule} from '@angular/material/button';
+import {MatSelectModule} from '@angular/material/select';
 
 @NgModule({
   declarations: [
@@ -44,7 +48,8 @@ import { SelectDestinationActuatorOverlayComponent } from './select-destination-
     AutomatizationComponentComponent,
     SelectInputSensorOverlayComponent,
     AutChangeDestinationComponent,
-    SelectDestinationActuatorOverlayComponent
+    SelectDestinationActuatorOverlayComponent,
+    MetadataComponent
   ],
   imports: [
     FormsModule,
@@ -62,6 +67,9 @@ import { SelectDestinationActuatorOverlayComponent } from './select-destination-
     OverlayModule,
     MatInputModule,
     MatIconModule,
+    MatListModule,
+    MatButtonModule,
+    MatSelectModule
   ],  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],
   bootstrap: [AppComponent]
 })

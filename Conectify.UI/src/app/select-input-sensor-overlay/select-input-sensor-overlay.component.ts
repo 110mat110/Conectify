@@ -37,7 +37,7 @@ export class SelectInputSensorOverlayComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.be.getSensors().subscribe(
+    this.be.getAllSensors().subscribe(
       (x) => {
         this.sensors = x;
         this.setColNum();

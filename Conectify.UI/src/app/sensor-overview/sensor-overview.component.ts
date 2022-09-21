@@ -9,7 +9,7 @@ import { MessagesService } from '../messages.service';
   styleUrls: ['./sensor-overview.component.css']
 })
 export class SensorOverviewComponent implements OnInit {
-  public sensors: string[] = [];
+  public sensors: {id: string, visible: boolean}[] = [];
   columnNum: number = 4;
   tileSize: number = 400;
   @ViewChild('theContainer') theContainer: any;
@@ -19,8 +19,7 @@ export class SensorOverviewComponent implements OnInit {
 
   ngOnInit(): void {
     this.be.getActiveSensors().subscribe(x => {
-      this.messanger.addMessage("Subscribe was called");
-      this.sensors = x;
+      x.forEach(s => this.sensors.push({id: s, visible: true}));
       this.setColNum();
     }, (err) => {
       this.messanger.addMessage("Error!");
