@@ -4,7 +4,7 @@
 <mat-form-field appearance="fill">
     <mat-label>Select new rule</mat-label>
     <mat-select matNativeControl [(ngModel)]="selectedRule" name="rules">
-        <mat-option value="" selected></option>
+        <mat-option value="" selected></mat-option>
         <mat-option *ngFor="let rule of supportedRules" [value]="rule.value">
           {{rule.viewValue}}
         </mat-option>
