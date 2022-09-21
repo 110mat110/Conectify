@@ -1,4 +1,6 @@
-﻿namespace Conectify.Shared.Library.Models;
+﻿using System;
+
+namespace Conectify.Shared.Library.Models;
 
 public class ApiMetadata
 {
@@ -9,4 +11,6 @@ public class ApiMetadata
 
     public float? MinVal { get; set; }
     public float? MaxVal { get; set; }
+
+    public Guid MetadataId { get; set; }
 }

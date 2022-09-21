@@ -77,7 +77,7 @@ public class DeviceControllerBase<TApi> : ControllerBase where TApi : IApiModel
     {
         try
         {
-            var result = await service.GetSpecificDevice(id, ct);
+            var result = await service.GetMetadata(id, ct);
             return result != null ? new ObjectResult(result) : NotFound();
         }
         catch (Exception ex)

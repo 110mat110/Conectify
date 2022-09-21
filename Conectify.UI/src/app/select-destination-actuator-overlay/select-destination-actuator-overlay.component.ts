@@ -31,7 +31,7 @@ export class SelectDestinationActuatorOverlayComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.be.getActuators().subscribe(
+    this.be.getAllActuators().subscribe(
       (x) => {
         this.actuators = x;
         this.setColNum();

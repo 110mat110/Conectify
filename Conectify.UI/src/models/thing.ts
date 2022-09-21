@@ -12,3 +12,9 @@ export interface Position {
     lat: number;
     long: number;
 }
+
+export interface DeviceSelector{
+    id: string;
+    name: string;
+    type: number;
+}

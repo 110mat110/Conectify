@@ -29,6 +29,9 @@
     --inputBackground: var(--color2);
     --cubeborders: rgb(88, 88, 88);
 }
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
 
   h1,
   h2,

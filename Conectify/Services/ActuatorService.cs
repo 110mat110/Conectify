@@ -56,4 +56,18 @@ public class ActuatorService : UniversalDeviceService<Actuator, ApiActuator>, IA
     {
         return await database.Actuators.AsNoTracking().Where(x => x.SourceDeviceId == deviceId).ProjectTo<ApiActuator>(mapper.ConfigurationProvider).ToListAsync(ct);
     }
+
+    public override async Task<IEnumerable<ApiMetadata>> GetMetadata(Guid actuatorId, CancellationToken ct = default)
+    {
+        var actuator = await database.Set<Actuator>().FirstOrDefaultAsync(x => x.Id == actuatorId, ct);
+        if (actuator == null)
+        {
+            return new List<ApiMetadata>();
+        }
+        var actuatorMetadatas = await database.Set<MetadataConnector<Actuator>>().Where(x => x.DeviceId == actuatorId).AsNoTracking().ProjectTo<ApiMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
+
+        var deviceMetadata = await database.Set<MetadataConnector<Device>>().Where(x => x.DeviceId == actuator.SourceDeviceId).AsNoTracking().ProjectTo<ApiMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
+
+        return actuatorMetadatas.Concat(deviceMetadata.Where(x => !actuatorMetadatas.Select(x => x.Name).Contains(x.Name)));
+    }
 }
