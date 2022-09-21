@@ -3,12 +3,12 @@
 <br/>
 <mat-form-field appearance="fill" color = "Accent" (change)="selectDevice()">
     <mat-label>Select device</mat-label>
-    <select matNativeControl [(ngModel)]="selectedDeviceId" name="metadatas">
-        <option value="" selected></option>
-        <option *ngFor="let device of supportedDevices" [value]="device.id">
+    <mat-select matNativeControl [(ngModel)]="selectedDeviceId" name="metadatas">
+        <mat-option value="" selected></mat-option>
+        <mat-option *ngFor="let device of supportedDevices" [value]="device.id">
           {{device.name}}
-        </option>
-      </select>
+        </mat-option>
+      </mat-select>
 </mat-form-field>
 <button mat-mini-fab color="primary" aria-label="Show metadata for device" (click)="selectDevice()">
     <mat-icon>play_arrow</mat-icon>
