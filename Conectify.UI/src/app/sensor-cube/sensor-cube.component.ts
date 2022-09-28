@@ -1,41 +1,58 @@
 import { Overlay, OverlayConfig } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Component, Input, OnInit, ViewContainerRef } from '@angular/core';
-import { connect } from 'echarts';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewContainerRef } from '@angular/core';
 import { BaseInputType } from 'src/models/extendedValue';
 import { Metadata } from 'src/models/metadata';
 import { Sensor } from 'src/models/sensor';
 import { Device } from 'src/models/thing';
-import { AutValueInputComponent } from '../aut-value-input/aut-value-input.component';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 import { SensorDetailComponent } from '../sensor-detail/sensor-detail.component';
+import { WebsocketService } from '../websocket.service';
 
 @Component({
   selector: 'app-sensor-cube',
   templateUrl: './sensor-cube.component.html',
   styleUrls: ['./sensor-cube.component.css']
 })
-export class SensorCubeComponent implements OnInit {
+export class SensorCubeComponent implements OnInit, OnChanges {
 
   @Input() sensorInput?: {id:string, visible: boolean};
   public sensor?: Sensor;
   public device?: Device;
   public values: BaseInputType[] = [];
   public latestVal?: BaseInputType;
-  public mapedValues: number[] = [];
   public metadatas: Metadata[] = [];
   public valsReady: boolean = false;
+  public mapedValues: number[] = [];
   chartOption: any;
 
-  constructor(public messenger: MessagesService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef) {
+  constructor(public messenger: MessagesService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef, private websocketService: WebsocketService) {
     this.setOptions();
+  }
+
+  HandleIncomingValue(msg: any) : void{
+    var id = msg.sourceId;
+    if(id && this.sensor && id == this.sensor.id){
+      this.messenger.addMessage("Got value from ws:");
+      this.latestVal = msg;
+      this.values.push(msg);
+      this.mapedValues = this.getChart();
+    }
   }
 
   onDetailsClick(): void {
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+  }
+
   ngOnInit(): void {
+    this.websocketService.receivedMessages.subscribe(msg => {
+      this.messenger.addMessage("cube has value");
+      this.HandleIncomingValue(msg);
+    });
+
     if (this.sensorInput) {
       this.be.getSensorDetail(this.sensorInput.id).subscribe(x => {
         this.sensor = x
@@ -74,7 +91,7 @@ export class SensorCubeComponent implements OnInit {
   }
 
   setOptions() {
-
+    this.chartOption = {};
     this.chartOption = {
       xAxis: {
         type: 'category',

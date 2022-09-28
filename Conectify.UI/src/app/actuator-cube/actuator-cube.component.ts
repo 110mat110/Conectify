@@ -54,7 +54,7 @@ export class ActuatorCubeComponent implements OnInit {
           }
         });
         if (this.actuator.sourceDeviceId) {
-          this.be.getDevice(this.actuator.sourceDeviceId);
+          this.be.getDevice(this.actuator.sourceDeviceId).subscribe(x => this.device = x);
         }
       });
       if (this.latestVal)
@@ -84,7 +84,7 @@ export class ActuatorCubeComponent implements OnInit {
   sendn(stringValue: string, numericValue: number): void {
     if (this.actuator) {
       let action = this.output.createBaseAction(this.actuator?.id, numericValue, stringValue, "");
-      this.websocketService.messages?.next(action);
+      this.websocketService.SendMessage(action);
     }
   }
 

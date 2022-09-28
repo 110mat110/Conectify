@@ -3,6 +3,7 @@ using Conectify.Database.Interfaces;
 using Conectify.Database.Models.Values;
 using Conectify.Shared.Library.Interfaces;
 using Conectify.Shared.Services.Data;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Net.WebSockets;
 using System.Text;
@@ -25,10 +26,20 @@ namespace Conectify.Services.Library
 
     public class ServicesWebsocketClient : IServicesWebsocketClient
     {
-        public ServicesWebsocketClient(Configuration configuration, IMapper mapper)
+        public ServicesWebsocketClient(Configuration configuration, IMapper mapper, ILogger<ServicesWebsocketClient> logger)
         {
             this.configuration = configuration;
             this.mapper = mapper;
+            this.logger = logger;
+            var timer = new System.Timers.Timer(2000);
+            timer.Elapsed += Timer_Elapsed;
+            timer.AutoReset = true;
+            timer.Enabled = true;
+        }
+
+        private async void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            await ConnectAsync();
         }
 
         public int ReceiveBufferSize { get; set; } = 8192;
@@ -52,12 +63,22 @@ namespace Conectify.Services.Library
                 if (WS.State == WebSocketState.Open) return;
                 else WS.Dispose();
             }
+            logger.LogInformation("Trying to reconnect websocket");
             WS = new ClientWebSocket();
-            if (CTS != null) CTS.Dispose();
+            if (CTS != null)
+            {
+                CTS.Cancel();
+                CTS.Dispose();
+            }
             CTS = new CancellationTokenSource();
-            await WS.ConnectAsync(new Uri(url), CTS.Token);
-            //await ReceiveLoop();
-            await Task.Factory.StartNew(ReceiveLoop, CTS.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            try
+            {
+                await WS.ConnectAsync(new Uri(url), CTS.Token);
+                if (CTS.IsCancellationRequested) return;
+                logger.LogWarning("Connected to websocket!");
+                await Task.Factory.StartNew(ReceiveLoop, CTS.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            }
+            catch (Exception) { };
         }
 
         public async Task DisconnectAsync()
@@ -101,14 +122,15 @@ namespace Conectify.Services.Library
             }
             catch (Exception ex)
             {
-                Console.WriteLine("WS failed!");
-                Console.WriteLine(ex.Message);
+                logger.LogError("WS failed!");
+                logger.LogError(ex.Message);
             }
             finally
             {
-                Console.WriteLine("Closing ws");
+                logger.LogWarning("Closing ws");
                 outputStream?.Dispose();
             }
+            await ConnectAsync();
         }
 
         public async Task<bool> SendMessageAsync<RequestType>(RequestType message, CancellationToken cancellationToken = default) where RequestType : IWebsocketModel
@@ -133,6 +155,7 @@ namespace Conectify.Services.Library
         private CancellationTokenSource CTS;
         private readonly Configuration configuration;
         private readonly IMapper mapper;
+        private readonly ILogger<ServicesWebsocketClient> logger;
 
         private void NotifyAboutIncomingMessage(IBaseInputType inputEntity, Type entitytype)
         {

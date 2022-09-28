@@ -96,11 +96,11 @@ void LoopMandatoryRoutines()
   {
     SendAllSensorsToServerIfNeeded();
     websocketClient.poll();
-    delay(500);
   }
   else
   {
-    // DebugMessage("WS not avaliable. Trying to reconnect!");
+    DebugMessage("WS not avaliable. Trying to reconnect!");
+    SetupWebSocket();
   }
   // END OF LOOP SERVER ROUTINES
 }
@@ -155,7 +155,13 @@ void SetupWebSocket()
 
 void SendViaWebSocket(String message)
 {
+    if (websocketClient.available())
+  {
   websocketClient.send(message);
+  } else{
+    DebugMessage("Cannot send message, websocket is not active. Trying to reconnect");
+    SetupWebSocket();
+  }
 }
 
 void OneTimeWifiManagerSetup()
@@ -251,6 +257,8 @@ void RegisterActuator()
     DebugMessage("ActuatorRegistered registrated with ID:" + String(GetGlobalVariables()->actuatorsArr[i].id));
   }
 }
+
+void onEventsCallback(WebsocketsEvent event, String data){}
 
 void CreateBaseThing()
 {
@@ -409,19 +417,20 @@ void RegisterAllEntities(Thing thing)
     DebugMessage("Not online. Cannot register anything!");
   }
 }
+void HandleCommand(String commandText, float commandValue, String commandTextParam){
+  
+}
 
 void onMessageCallback(WebsocketsMessage message)
 {
   DebugMessage("Got Message: ");
   DebugMessage(message.data());
-  /*
       decodeIncomingJson(
         message.data(),
         HandleCommand,
         GetGlobalVariables()->dateTime,
         GetGlobalVariables()->actuatorsArr,
         GetGlobalVariables()->actuatorArrSize);
-        */
 }
 
 void RequestActuatorValues()

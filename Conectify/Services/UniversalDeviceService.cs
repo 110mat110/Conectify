@@ -5,6 +5,7 @@ using AutoMapper.QueryableExtensions;
 using Conectify.Database;
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
+using Conectify.Database.Models.Values;
 using Conectify.Shared.Library.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,22 +24,38 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
     private readonly ConectifyDb database;
     private readonly IMapper mapper;
     private readonly ILogger<UniversalDeviceService<TDbs, TApi>> logger;
+    private readonly IDataService dataService;
 
-    public UniversalDeviceService(ConectifyDb database, IMapper mapper, ILogger<UniversalDeviceService<TDbs, TApi>> logger)
+    public UniversalDeviceService(ConectifyDb database, IMapper mapper, ILogger<UniversalDeviceService<TDbs, TApi>> logger, IDataService dataService)
     {
         this.database = database;
         this.mapper = mapper;
         this.logger = logger;
+        this.dataService = dataService;
     }
 
     public async Task<Guid> AddKnownDevice(TApi apiDevice, CancellationToken ct = default)
     {
         var device = mapper.Map<TDbs>(apiDevice);
         device.IsKnown = true;
-
+        dataService.InsertJsonModel(CreateNewDeviceCommand(),);
         await database.AddOrUpdateAsync(device);
         await database.SaveChangesAsync(ct);
         return device.Id;
+    }
+
+    private Command CreateNewDeviceCommand()
+    {
+        return new Command()
+        {
+            Id = Guid.NewGuid(),
+            Name = "New device",
+            NumericValue = 1,
+            StringValue = typeof(TDbs).Name,
+            Unit = "units",
+            TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            SourceId = //Guid.NewGuid(),
+        };
     }
 
     public abstract Task<bool> TryAddUnknownDevice(Guid deviceId, Guid parentId = default, CancellationToken ct = default);

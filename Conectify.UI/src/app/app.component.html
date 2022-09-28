@@ -9,7 +9,9 @@
 </div>
 <div style="margin: 25px">
   <router-outlet></router-outlet>
-  <app-debug-messages></app-debug-messages>
     <input hidden="true" type="text" name="fingerprintIdTextBox"  #fingerprintIdTextBoxRef/>
     <button hidden="true" name="triggerWs" (click)="onChange()"></button>
+    <div>
+      {{wsStatus}}
+    </div>
 </div>

@@ -1,5 +1,4 @@
 import { Component, HostListener, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
-import { AutValueInputComponent } from '../aut-value-input/aut-value-input.component';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 

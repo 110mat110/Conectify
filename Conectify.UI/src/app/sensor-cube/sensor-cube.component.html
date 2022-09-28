@@ -8,21 +8,29 @@
         <app-metadata-icons [metadatas] = "metadatas"></app-metadata-icons>
       </div>
     <!-- <div><b>{{sensor.sourceThing.thingName}}</b></div> -->
-<div *ngIf="latestVal">
-    {{latestVal.name}} 
-    <div *ngIf="latestVal.numericValue">
-    {{latestVal.numericValue}} {{latestVal.unit}}
+    <div *ngIf="latestVal">
+        {{latestVal.name}}
+        <div *ngIf="latestVal.numericValue >= 0">
+            <mat-form-field appearance="standard">
+                <mat-label>Value</mat-label>
+                <input matInput disabled value="{{latestVal.numericValue}} {{latestVal.unit}}">
+            </mat-form-field>
+        </div>
+        <div *ngIf="latestVal.stringValue">
+            <mat-form-field appearance="standard">
+                <mat-label>Value</mat-label>
+                <input matInput disabled value="{{latestVal.stringValue}} {{latestVal.unit}}">
+            </mat-form-field>
+            
+        </div>
     </div>
-    <div *ngIf="latestVal.stringValue">
-    {{latestVal.stringValue}} {{latestVal.unit}}
-    </div>
-</div>
 
 </td>
 <br/>
 <br/>
 <td *ngIf="valsReady" width="100%">
-<div echarts [autoResize]="true" [options]="chartOption" class="cube-chart" ></div>
+    <app-last-value [values] = "values"></app-last-value>
+<!-- <div echarts [autoResize]="true" [options]="chartOption" class="cube-chart" ></div> -->
 </td>
 </tr>
 </table>

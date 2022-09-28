@@ -75,6 +75,10 @@ export class AdressesService {
     return this.serverURL + "metadata/all"
   }
 
+  subscribeToAll(id:string){
+    return this.serverURL + "subscribe/"+id+"/all"
+  }
+
   postMetadata(){
     return this.serverURL + "metadata"
   }
