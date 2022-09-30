@@ -24,7 +24,7 @@ public class SystemController : ControllerBase
     [HttpGet("Time")]
     public long GetTime()
     {
-        return DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
     }
 
     [HttpGet("UpdateDatabase")]

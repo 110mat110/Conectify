@@ -21,6 +21,7 @@ public class SubscribersCache : ISubscribersCache
     private static Dictionary<Guid, Subscriber> subscribers = new Dictionary<Guid, Subscriber>();
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
+    private readonly object locker = new();
 
     public SubscribersCache(IServiceProvider serviceProvider, IMapper mapper)
     {
@@ -56,11 +57,11 @@ public class SubscribersCache : ISubscribersCache
             var sub = mapper.Map<Subscriber>(device);
             if (subscribers.ContainsKey(deviceId))
             {
-                subscribers[deviceId] = sub;
+                lock (locker) { subscribers[deviceId] = sub; }
             }
             else
             {
-                subscribers.Add(deviceId, sub);
+                lock (locker) { subscribers.Add(deviceId, sub); }
             }
             return subscribers[deviceId];
         }

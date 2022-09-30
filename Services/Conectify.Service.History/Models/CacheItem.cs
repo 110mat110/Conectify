@@ -19,7 +19,7 @@ namespace Conectify.Service.History.Models
 
         public void Reorder<TKey>(Func<T, TKey> orderSelector)
         {
-            var orderedItems = this.OrderBy(orderSelector);
+            var orderedItems = this.OrderBy(orderSelector).ToList();
             this.Clear();
             this.AddRange(orderedItems);
         }

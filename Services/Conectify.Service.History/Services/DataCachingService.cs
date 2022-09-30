@@ -21,12 +21,14 @@ namespace Conectify.Service.History.Services
         private readonly IDictionary<Guid, CacheItem<Value>> valueCache = new Dictionary<Guid, CacheItem<Value>>(); //TODO check if I should not use Concurency dictionary here
         private readonly IServiceProvider serviceProvider;
         private readonly IMapper mapper;
+        private readonly ILogger<DataCachingService> logger;
         private static double cacheDurationMillis = 1000*60*15;
 
-        public DataCachingService(IServiceProvider serviceProvider, IMapper mapper)
+        public DataCachingService(IServiceProvider serviceProvider, IMapper mapper, ILogger<DataCachingService> logger)
         {
             this.serviceProvider = serviceProvider;
             this.mapper = mapper;
+            this.logger = logger;
         }
 
         public async Task InsertValue(Value value, CancellationToken ct = default)
@@ -40,7 +42,7 @@ namespace Conectify.Service.History.Services
             else
             {
                 valueCache.Add(value.SourceId, new CacheItem<Value>(value));
-                await PreloadValueCache(value.SourceId);
+                await PreloadValueCache(value.SourceId, ct);
             }
         }
 
@@ -55,11 +57,14 @@ namespace Conectify.Service.History.Services
         private async Task PreloadValueCache(Guid sensorId, CancellationToken ct = default)
         {
             var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
+            logger.LogInformation("Preloading cache from time " + yesterdayUnixTime);
             using var scope = this.serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-
+            var query = db.Set<Value>().Where(x => x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime).ToQueryString();
+            var allValues = (await db.Set<Value>().ToListAsync(ct)).Where(x => x.SourceId == sensorId).ToList();
             var values = await db.Set<Value>().Where(x => x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime).ToListAsync(ct);
-
+            var syncValues = db.Set<Value>().Where(x => x.TimeCreated > yesterdayUnixTime).ToList();
+            
             if (!valueCache.ContainsKey(sensorId))
             {
                 valueCache.Add(sensorId, new CacheItem<Value>());
@@ -73,7 +78,6 @@ namespace Conectify.Service.History.Services
             TryInvalidateCache(sourceId);
             if (!valueCache.ContainsKey(sourceId))
             {
-                valueCache.Add(sourceId, new CacheItem<Value>());
                 await PreloadValueCache(sourceId, ct);
             }
             return mapper.Map<IEnumerable<ApiValue>>(valueCache[sourceId]);

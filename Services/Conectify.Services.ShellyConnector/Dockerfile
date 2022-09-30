@@ -11,6 +11,11 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Services/Conectify.Services.ShellyConnector/Conectify.Services.ShellyConnector.csproj", "Services/Conectify.Services.ShellyConnector/"]
+COPY ["Conectify.Database/Conectify.Database.csproj", "Conectify.Database/"]
+COPY ["Conectify.Shared.Library/Conectify.Shared.Library.csproj", "Conectify.Shared.Library/"]
+COPY ["Conectify.Shared.Maps/Conectify.Shared.Maps.csproj", "Conectify.Conectify.Shared.Maps/"]
+COPY ["Conectify.Shared.Services/Conectify.Shared.Services.csproj", "Conectify.Conectify.Shared.Services/"]
+COPY ["Services/Conectify.Services.Library/Conectify.Services.Library.csproj", "Conectify.Services.Library.Services/"]
 RUN dotnet restore "Services/Conectify.Services.ShellyConnector/Conectify.Services.ShellyConnector.csproj"
 COPY . .
 WORKDIR "/src/Services/Conectify.Services.ShellyConnector"

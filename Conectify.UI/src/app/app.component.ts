@@ -29,10 +29,6 @@ export class AppComponent {
       console.warn("Connectiong to ws with id " + id);
       this.websocketService.SetId(id);
       this.websocketService.ConnectById(id);
-      this.websocketService.messages?.subscribe(msg => {
-        this.received.push(msg);
-        console.log("Response from websocket: " + msg);
-      });
     } else {
       console.warn("fingerprint is not initialized");
     }

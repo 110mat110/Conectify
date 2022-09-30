@@ -1,6 +1,6 @@
 import { Overlay, OverlayConfig } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewContainerRef } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild, ViewContainerRef } from '@angular/core';
 import { BaseInputType } from 'src/models/extendedValue';
 import { Metadata } from 'src/models/metadata';
 import { Sensor } from 'src/models/sensor';
@@ -25,10 +25,11 @@ export class SensorCubeComponent implements OnInit, OnChanges {
   public metadatas: Metadata[] = [];
   public valsReady: boolean = false;
   public mapedValues: number[] = [];
-  chartOption: any;
+  
+  mergeOptions = {};
+  chartOption: any = {};
 
   constructor(public messenger: MessagesService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef, private websocketService: WebsocketService) {
-    this.setOptions();
   }
 
   HandleIncomingValue(msg: any) : void{
@@ -37,7 +38,7 @@ export class SensorCubeComponent implements OnInit, OnChanges {
       this.messenger.addMessage("Got value from ws:");
       this.latestVal = msg;
       this.values.push(msg);
-      this.mapedValues = this.getChart();
+      this.addData(this.latestVal?.numericValue ?? 0);
     }
   }
 
@@ -58,6 +59,7 @@ export class SensorCubeComponent implements OnInit, OnChanges {
         this.sensor = x
 
         if (this.sensor) {
+          
           this.be.getDevice(this.sensor.sourceDeviceId).subscribe(x => this.device = x);
           this.be.getSensorMetadatas(this.sensor.id).subscribe(x => {
             this.metadatas = x;
@@ -72,10 +74,27 @@ export class SensorCubeComponent implements OnInit, OnChanges {
               this.valsReady = this.values.length > 0;
               if (this.valsReady) {
                 this.mapedValues = this.getChart();
-                this.setOptions();
               }
             });
-          this.be.getLatestSensorValue(this.sensor.id).subscribe(x => this.latestVal = x);
+          this.be.getLatestSensorValue(this.sensor.id).subscribe(x =>{
+            this.latestVal = x;
+            this.addData(this.latestVal.numericValue);
+          });
+          this.chartOption = {
+            xAxis: {
+              type: 'category',
+            },
+            yAxis: {
+              type: 'value',
+              show: false
+            },
+            series: [{
+              name: this.sensor?.name,
+              data: this.mapedValues,
+              type: 'line',
+              symbolKeepAspect: false,
+            }]
+          }
         }
       });
     }
@@ -90,18 +109,15 @@ export class SensorCubeComponent implements OnInit, OnChanges {
     return this.values.map(x => x.numericValue);
   }
 
-  setOptions() {
-    this.chartOption = {};
-    this.chartOption = {
-      xAxis: {
-        type: 'category',
-      },
-      yAxis: {
-        type: 'value',
-        show: false
-      },
+  addData(newVal: number) {
+    let newData = this.mapedValues;
+
+    newData.push(newVal);
+
+    this.mergeOptions = {
       series: [{
-        data: this.mapedValues,
+        name: this.sensor?.name,
+        data: newData,
         type: 'line',
         symbolKeepAspect: false,
       }]

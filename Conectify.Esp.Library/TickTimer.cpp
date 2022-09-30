@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "TickTimer.h"
+#include "Int64String.h"
 
 TickTimer::TickTimer(int defaultIntervalInSeconds){
     previousTrigger =0;
@@ -32,13 +33,13 @@ bool TickTimer::IsTriggeredNoReset(){
   }
 
 String Time::ToJSONString(){
-	  unsigned long time = startTime + millis();
-		return String(time);	
+	  uint64_t time = startTime + millis();
+		return int64String(time);	
 }
     Time::Time(){
 		startTime = 0;
     }
 
-void Time::decodeTime(unsigned long time){
+void Time::decodeTime(uint64_t time){
 	startTime = time - millis();
 }

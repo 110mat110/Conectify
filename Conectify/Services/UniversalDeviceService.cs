@@ -24,21 +24,19 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
     private readonly ConectifyDb database;
     private readonly IMapper mapper;
     private readonly ILogger<UniversalDeviceService<TDbs, TApi>> logger;
-    private readonly IDataService dataService;
 
-    public UniversalDeviceService(ConectifyDb database, IMapper mapper, ILogger<UniversalDeviceService<TDbs, TApi>> logger, IDataService dataService)
+    public UniversalDeviceService(ConectifyDb database, IMapper mapper, ILogger<UniversalDeviceService<TDbs, TApi>> logger)
     {
         this.database = database;
         this.mapper = mapper;
         this.logger = logger;
-        this.dataService = dataService;
     }
 
     public async Task<Guid> AddKnownDevice(TApi apiDevice, CancellationToken ct = default)
     {
         var device = mapper.Map<TDbs>(apiDevice);
         device.IsKnown = true;
-        dataService.InsertJsonModel(CreateNewDeviceCommand(),);
+        //dataService.InsertJsonModel(CreateNewDeviceCommand(), ct);
         await database.AddOrUpdateAsync(device);
         await database.SaveChangesAsync(ct);
         return device.Id;
@@ -54,7 +52,7 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
             StringValue = typeof(TDbs).Name,
             Unit = "units",
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            SourceId = //Guid.NewGuid(),
+            SourceId = Guid.NewGuid(), //TODO
         };
     }
 

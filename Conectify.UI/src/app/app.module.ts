@@ -33,7 +33,6 @@ import {MatListModule} from '@angular/material/list';
 import {MatButtonModule} from '@angular/material/button';
 import {MatSelectModule} from '@angular/material/select';
 import { LastValueComponent } from './last-value/last-value.component';
-import { NgChartsModule } from 'ng2-charts';
 
 @NgModule({
   declarations: [
@@ -59,7 +58,6 @@ import { NgChartsModule } from 'ng2-charts';
     DragDropModule,
     BrowserModule,
     MatSliderModule,
-    NgChartsModule,
     MatGridListModule,
     AppRoutingModule,
     HttpClientModule,

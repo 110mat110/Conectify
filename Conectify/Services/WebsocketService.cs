@@ -9,15 +9,15 @@ public interface IWebSocketService
 {
     Task<bool> ConnectAsync(Guid thingId, WebSocket webSocket, CancellationToken ct = default);
     Task<bool> TestConnectionAsync(string testMessage, WebSocket webSocket, CancellationToken ct = default);
-    Task<bool> SendToThingAsync(Guid thingId, IWebsocketModel returnValue, CancellationToken cancelationToken = default);
-    Task<bool> SendToThingAsync(Guid thingId, string rawString, CancellationToken cancelationToken = default);
+    Task<bool> SendToDeviceAsync(Guid thingId, IWebsocketModel returnValue, CancellationToken cancelationToken = default);
+    Task<bool> SendToDeviceAsync(Guid thingId, string rawString, CancellationToken cancelationToken = default);
 }
 
 public class WebSocketService : IWebSocketService
 {
 
     private readonly ILogger<WebSocketService> logger;
-    private readonly ISubscribersCache cache;
+    private readonly ISubscribersCache subscribersCache;
     private readonly IServiceProvider serviceProvider;
     private readonly IDeviceService deviceService;
     private readonly IWebsocketCache websocketCache;
@@ -25,7 +25,7 @@ public class WebSocketService : IWebSocketService
     public WebSocketService(ILogger<WebSocketService> logger, ISubscribersCache cache, IServiceProvider serviceProvider, IDeviceService deviceService, IWebsocketCache websocketCache)
     {
         this.logger = logger;
-        this.cache = cache;
+        this.subscribersCache = cache;
         this.serviceProvider = serviceProvider;
         this.deviceService = deviceService;
         this.websocketCache = websocketCache;
@@ -34,14 +34,22 @@ public class WebSocketService : IWebSocketService
     public async Task<bool> ConnectAsync(Guid deviceId, WebSocket webSocket, CancellationToken ct = default)
     {
         websocketCache.AddNewWebsocket(deviceId, webSocket);
-        await deviceService.TryAddUnknownDevice(deviceId, ct: ct); ;
-        await cache.UpdateSubscriber(deviceId, ct);
+            await deviceService.TryAddUnknownDevice(deviceId, ct: ct); ;
+        await subscribersCache.UpdateSubscriber(deviceId, ct);
         logger.LogWarning($"Connection with device {deviceId} has started.");
         await HandleInput(webSocket, deviceId, ct);
 
         logger.LogWarning($"Connection with device {deviceId} has ended.");
         websocketCache.Remove(deviceId);
-        cache.RemoveSubscriber(deviceId);
+        if (websocketCache.GetNoOfActiveSockets(deviceId) < 1)
+        {
+            subscribersCache.RemoveSubscriber(deviceId);
+        }
+        else
+        {
+            logger.LogWarning("There was already websocket connected as " + deviceId.ToString() + " so I have redirected old traffic to new one");
+        }
+
         return true;
     }
 
@@ -67,23 +75,24 @@ public class WebSocketService : IWebSocketService
         } while (true);
     }
 
-    public async Task<bool> SendToThingAsync(Guid thingId, IWebsocketModel returnValue, CancellationToken cancelationToken = default)
+    public async Task<bool> SendToDeviceAsync(Guid deviceId, IWebsocketModel returnValue, CancellationToken cancelationToken = default)
     {
-        return await SendToThingAsync(thingId, returnValue.ToJson(), cancelationToken);
+        return await SendToDeviceAsync(deviceId, returnValue.ToJson(), cancelationToken);
     }
 
-    public async Task<bool> SendToThingAsync(Guid thingId, string rawString, CancellationToken cancelationToken = default)
+    public async Task<bool> SendToDeviceAsync(Guid deviceId, string rawString, CancellationToken cancelationToken = default)
     {
         var msg = Encoding.UTF8.GetBytes(rawString);
-        var socket = websocketCache.GetActiveSocket(thingId);
+        var socket = websocketCache.GetActiveSocket(deviceId);
         if (socket is not null)
         {
             await socket.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, cancelationToken);
+            logger.LogInformation("Value sended to active websocket " + deviceId);
             return true;
         }
-        cache.RemoveSubscriber(thingId);
-        websocketCache.Remove(thingId);
-        logger.LogError($"Cannot send message to {thingId}");
+        subscribersCache.RemoveSubscriber(deviceId);
+        websocketCache.Remove(deviceId);
+        logger.LogError($"Cannot send message to {deviceId}");
         return false;
     }
 

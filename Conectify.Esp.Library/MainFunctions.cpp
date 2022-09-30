@@ -18,6 +18,7 @@
 #include "USBComm.h"
 #include "Thing.h"
 #include "CommandHanlder.h"
+#include "Int64String.h"
 
 using namespace websockets;
 
@@ -332,7 +333,12 @@ void AskServerForTime()
     counter++;
   } while (time == "!" && counter < 5);
   if (time != "!")
-    GetGlobalVariables()->dateTime.decodeTime((long)strtol(time.c_str(), NULL, 0));
+  {
+    DebugMessage("Trying to decode time " + time);
+    uint64_t timeNum = strtoull(time.c_str(), NULL, 0);
+    DebugMessage("Time decoded: " + int64String(timeNum));
+    GetGlobalVariables()->dateTime.decodeTime(timeNum);
+  }
 }
 
 void StartOTA(String OTAName)

@@ -60,11 +60,15 @@ export class WebsocketService {
                 (response: MessageEvent): any => {
                     console.log(response.data);
                     let data = JSON.parse(response.data)
-                    this.trigger(data);
                     return data;
                 }
             )
         );
+
+        this.messages.subscribe(x => {
+            console.log("Received message from WS");
+            this.trigger(x);
+        });
     }
 
     private connect(url: string): AnonymousSubject<MessageEvent> {
@@ -73,6 +77,10 @@ export class WebsocketService {
             console.log("Successfully connected: " + url);
             this.status = true;
         }
+        this.subject.subscribe(x => {
+            console.log("Received message from WS");
+            this.trigger(x);
+        });
         return this.subject;
     }
 
