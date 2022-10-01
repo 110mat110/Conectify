@@ -52,6 +52,7 @@ namespace Conectify.Services.Library
 
         public async Task ConnectAsync()
         {
+            logger.LogInformation($"trying to connect to WS at address: {configuration.WebsocketUrl}/api/Websocket/{configuration.DeviceId}");
             //await ConnectAsync(($"{configuration.WebsocketUrl}/api/Websocket/test/test"));
             await ConnectAsync(($"{configuration.WebsocketUrl}/api/Websocket/{configuration.DeviceId}"));
         }

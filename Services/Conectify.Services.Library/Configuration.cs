@@ -4,16 +4,17 @@ namespace Conectify.Services.Library
 {
     public class Configuration
     {
-        public IConfigurationRoot Config { get; set; }
-        public Configuration()
+        public Configuration(IConfiguration configuration)
         {
+            /*
             const string devSettings = "appsettings.Developement.json";
             const string prodSettings = "appsettings.json";
-            var builder = new ConfigurationBuilder().AddJsonFile(File.Exists(devSettings) ? devSettings : prodSettings, optional: true, reloadOnChange: true);
+            var builder = new ConfigurationBuilder().AddJsonFile(File.Exists(devSettings) ? devSettings : prodSettings, optional: true, reloadOnChange: true).AddEnvironmentVariables(); ;
 
             Config = builder.Build();
 
-            Config.Bind(this);
+            Config.Bind(this);*/
+            configuration.Bind(this);
         }
 
         public string WebsocketUrl { get; set; } = string.Empty;

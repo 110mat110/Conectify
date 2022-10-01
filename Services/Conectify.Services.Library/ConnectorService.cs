@@ -67,6 +67,7 @@ namespace Conectify.Services.Library
 
         private async Task PostAsync<T>(T objectToSend, string urlSuffix, CancellationToken ct = default) where T : IApiModel
         {
+            logger.LogWarning("Server url: " + configuration.ServerUrl);
             var finalURL = string.Format(urlSuffix, configuration.ServerUrl);
             var serializedApiModel = JsonConvert.SerializeObject(objectToSend);
             finalURL = finalURL.Replace("//", "/").Replace(@"\\", @"\").Replace("http:/", "http://").Replace("https:/", "https://");
@@ -80,6 +81,7 @@ namespace Conectify.Services.Library
 
         private async Task<T?> GetAsync<T>(string urlSuffix, CancellationToken ct = default)
         {
+            logger.LogWarning("Server url: " + configuration.ServerUrl);
             var finalURL = string.Format(urlSuffix, configuration.ServerUrl);
             finalURL = finalURL.Replace("//", "/").Replace(@"\\", @"\").Replace("http:/", "http://").Replace("https:/", "https://");
             logger.LogInformation($"Get to: {finalURL}");
