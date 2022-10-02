@@ -12,11 +12,11 @@ namespace Conectify.Services.Library
 {
     public interface IServicesWebsocketClient
     {
-        event IncomingActionDelegate OnIncomingAction;
-        event IncomingActionResponseDelegate OnIncomingActionResponse;
-        event IncomingCommandDelegate OnIncomingCommand;
-        event IncomingCommandResponseDelegate OnIncomingCommandResponse;
-        event IncomingValueDelegate OnIncomingValue;
+        event IncomingActionDelegate? OnIncomingAction;
+        event IncomingActionResponseDelegate? OnIncomingActionResponse;
+        event IncomingCommandDelegate? OnIncomingCommand;
+        event IncomingCommandResponseDelegate? OnIncomingCommandResponse;
+        event IncomingValueDelegate? OnIncomingValue;
 
         Task ConnectAsync();
         Task ConnectAsync(string url);
@@ -44,16 +44,14 @@ namespace Conectify.Services.Library
 
         public int ReceiveBufferSize { get; set; } = 8192;
 
-        public event IncomingValueDelegate OnIncomingValue;
-        public event IncomingActionDelegate OnIncomingAction;
-        public event IncomingCommandDelegate OnIncomingCommand;
-        public event IncomingActionResponseDelegate OnIncomingActionResponse;
-        public event IncomingCommandResponseDelegate OnIncomingCommandResponse;
+        public event IncomingValueDelegate? OnIncomingValue;
+        public event IncomingActionDelegate? OnIncomingAction;
+        public event IncomingCommandDelegate? OnIncomingCommand;
+        public event IncomingActionResponseDelegate? OnIncomingActionResponse;
+        public event IncomingCommandResponseDelegate? OnIncomingCommandResponse;
 
         public async Task ConnectAsync()
         {
-            logger.LogInformation($"trying to connect to WS at address: {configuration.WebsocketUrl}/api/Websocket/{configuration.DeviceId}");
-            //await ConnectAsync(($"{configuration.WebsocketUrl}/api/Websocket/test/test"));
             await ConnectAsync(($"{configuration.WebsocketUrl}/api/Websocket/{configuration.DeviceId}"));
         }
 
@@ -88,30 +86,31 @@ namespace Conectify.Services.Library
             // TODO: requests cleanup code, sub-protocol dependent.
             if (WS.State == WebSocketState.Open)
             {
-                CTS.CancelAfter(TimeSpan.FromSeconds(0));
+                CTS?.CancelAfter(TimeSpan.FromSeconds(0));
                 await WS.CloseOutputAsync(WebSocketCloseStatus.Empty, "", CancellationToken.None);
                 await WS.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
             }
             WS.Dispose();
             WS = null;
-            CTS.Dispose();
+            CTS?.Dispose();
             CTS = null;
         }
 
         private async Task ReceiveLoop()
         {
-            var loopToken = CTS.Token;
-            MemoryStream outputStream = null;
-            WebSocketReceiveResult receiveResult = null;
+            var loopToken = CTS?.Token;
+            //MemoryStream? outputStream = null;
+            //;
             var buffer = new byte[ReceiveBufferSize];
             try
             {
-                while (!loopToken.IsCancellationRequested)
+                while (WS is not null && loopToken is not null && !loopToken.Value.IsCancellationRequested)
                 {
-                    outputStream = new MemoryStream(ReceiveBufferSize);
+                    using var outputStream = new MemoryStream(ReceiveBufferSize);
+                    WebSocketReceiveResult? receiveResult = null;
                     do
                     {
-                        receiveResult = await WS.ReceiveAsync(buffer, CTS.Token);
+                        receiveResult = await WS.ReceiveAsync(buffer, loopToken.Value);
                         if (receiveResult.MessageType != WebSocketMessageType.Close)
                             outputStream.Write(buffer, 0, receiveResult.Count);
                     }
@@ -129,13 +128,18 @@ namespace Conectify.Services.Library
             finally
             {
                 logger.LogWarning("Closing ws");
-                outputStream?.Dispose();
+                //outputStream?.Dispose();
             }
             await ConnectAsync();
         }
 
         public async Task<bool> SendMessageAsync<RequestType>(RequestType message, CancellationToken cancellationToken = default) where RequestType : IWebsocketModel
         {
+            if (WS is null)
+            {
+                return false;
+            }
+
             var msg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
             await WS.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, cancellationToken);
             return true;
@@ -143,22 +147,22 @@ namespace Conectify.Services.Library
 
         private void ResponseReceived(Stream inputStream)
         {
-            StreamReader stream = new StreamReader(inputStream);
+            StreamReader stream = new(inputStream);
             string x = stream.ReadToEnd();
             stream.Dispose();
 
-            var (entity, type) = SharedDataService.DeserializeJson(x, this.mapper);
-            NotifyAboutIncomingMessage(entity, type);
+            var (entity, _) = SharedDataService.DeserializeJson(x, this.mapper);
+            NotifyAboutIncomingMessage(entity);
         }
 
 
-        private ClientWebSocket WS;
-        private CancellationTokenSource CTS;
+        private ClientWebSocket? WS;
+        private CancellationTokenSource? CTS;
         private readonly Configuration configuration;
         private readonly IMapper mapper;
         private readonly ILogger<ServicesWebsocketClient> logger;
 
-        private void NotifyAboutIncomingMessage(IBaseInputType inputEntity, Type entitytype)
+        private void NotifyAboutIncomingMessage(IBaseInputType inputEntity)
         {
             if (inputEntity is Value inputValue)
             {
