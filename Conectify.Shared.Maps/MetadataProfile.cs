@@ -3,6 +3,7 @@
 using AutoMapper;
 using Conectify.Database.Models;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Models.Services;
 
 public class MetadataProfile : Profile
 {
@@ -29,6 +30,7 @@ public class MetadataProfile : Profile
         CreateMap<MetadataConnector<Device>, ApiMetadataConnector>();
         CreateMap<MetadataConnector<Sensor>, ApiMetadataConnector>();
         CreateMap<MetadataConnector<Actuator>, ApiMetadataConnector>();
+        CreateMap<MetadataServiceConnector, ApiMetadataConnector>();
 
         CreateMap<MetadataConnector<Actuator>, ApiMetadata>()
             .ForMember(x => x.Name, opt => opt.MapFrom(x => x.Metadata.Name));

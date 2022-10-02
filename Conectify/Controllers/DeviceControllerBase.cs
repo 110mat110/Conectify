@@ -26,7 +26,7 @@ public class DeviceControllerBase<TApi> : ControllerBase where TApi : IApiModel
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError(ex, "Add new device failed");
             return this.Problem("Cannot upload device");
         }
     }
@@ -41,7 +41,7 @@ public class DeviceControllerBase<TApi> : ControllerBase where TApi : IApiModel
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError(ex, "Get all device failed");
             return this.Problem("Cannot upload device");
         }
     }
@@ -57,7 +57,7 @@ public class DeviceControllerBase<TApi> : ControllerBase where TApi : IApiModel
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError(ex, "Add device failed");
             return this.Problem("Cannot download device");
         }
     }
@@ -82,7 +82,7 @@ public class DeviceControllerBase<TApi> : ControllerBase where TApi : IApiModel
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError(ex, "Get metadata failed");
             return this.Problem("Cannot download device");
         }
     }

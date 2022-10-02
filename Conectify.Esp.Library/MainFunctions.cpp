@@ -18,6 +18,7 @@
 #include "USBComm.h"
 #include "Thing.h"
 #include "CommandHanlder.h"
+#include "Int64String.h"
 
 using namespace websockets;
 
@@ -96,11 +97,11 @@ void LoopMandatoryRoutines()
   {
     SendAllSensorsToServerIfNeeded();
     websocketClient.poll();
-    delay(500);
   }
   else
   {
-    // DebugMessage("WS not avaliable. Trying to reconnect!");
+    DebugMessage("WS not avaliable. Trying to reconnect!");
+    SetupWebSocket();
   }
   // END OF LOOP SERVER ROUTINES
 }
@@ -155,7 +156,13 @@ void SetupWebSocket()
 
 void SendViaWebSocket(String message)
 {
+    if (websocketClient.available())
+  {
   websocketClient.send(message);
+  } else{
+    DebugMessage("Cannot send message, websocket is not active. Trying to reconnect");
+    SetupWebSocket();
+  }
 }
 
 void OneTimeWifiManagerSetup()
@@ -252,6 +259,8 @@ void RegisterActuator()
   }
 }
 
+void onEventsCallback(WebsocketsEvent event, String data){}
+
 void CreateBaseThing()
 {
   EEPROM.begin(512);
@@ -324,7 +333,12 @@ void AskServerForTime()
     counter++;
   } while (time == "!" && counter < 5);
   if (time != "!")
-    GetGlobalVariables()->dateTime.decodeTime((long)strtol(time.c_str(), NULL, 0));
+  {
+    DebugMessage("Trying to decode time " + time);
+    uint64_t timeNum = strtoull(time.c_str(), NULL, 0);
+    DebugMessage("Time decoded: " + int64String(timeNum));
+    GetGlobalVariables()->dateTime.decodeTime(timeNum);
+  }
 }
 
 void StartOTA(String OTAName)
@@ -409,19 +423,20 @@ void RegisterAllEntities(Thing thing)
     DebugMessage("Not online. Cannot register anything!");
   }
 }
+void HandleCommand(String commandText, float commandValue, String commandTextParam){
+  
+}
 
 void onMessageCallback(WebsocketsMessage message)
 {
   DebugMessage("Got Message: ");
   DebugMessage(message.data());
-  /*
       decodeIncomingJson(
         message.data(),
         HandleCommand,
         GetGlobalVariables()->dateTime,
         GetGlobalVariables()->actuatorsArr,
         GetGlobalVariables()->actuatorArrSize);
-        */
 }
 
 void RequestActuatorValues()

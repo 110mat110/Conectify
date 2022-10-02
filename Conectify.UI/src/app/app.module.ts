@@ -32,6 +32,7 @@ import { MetadataComponent } from './metadata/metadata.component';
 import {MatListModule} from '@angular/material/list';
 import {MatButtonModule} from '@angular/material/button';
 import {MatSelectModule} from '@angular/material/select';
+import { LastValueComponent } from './last-value/last-value.component';
 
 @NgModule({
   declarations: [
@@ -49,7 +50,8 @@ import {MatSelectModule} from '@angular/material/select';
     SelectInputSensorOverlayComponent,
     AutChangeDestinationComponent,
     SelectDestinationActuatorOverlayComponent,
-    MetadataComponent
+    MetadataComponent,
+    LastValueComponent
   ],
   imports: [
     FormsModule,

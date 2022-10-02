@@ -1,15 +1,17 @@
 ﻿using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Models.Services;
 
-namespace Conectify.Services.Library
+namespace Conectify.Services.Library;
+
+public interface IDeviceData
 {
-    public interface IDeviceData
-    {
-        ApiDevice Device { get; }
+    ApiDevice Device { get; }
 
-        IEnumerable<ApiSensor> Sensors { get; }
+    IEnumerable<ApiSensor> Sensors { get; }
 
-        IEnumerable<ApiActuator> Actuators { get; }
+    IEnumerable<ApiActuator> Actuators { get; }
 
-        IEnumerable<ApiPreference> Preferences { get;}
-    }
+    IEnumerable<ApiPreference> Preferences { get;}
+
+    IEnumerable<MetadataServiceConnector> MetadataConnectors { get; }
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { WebsocketAction } from 'src/models/InputBareValue';
+import { ApiMetadata, ApiMetadataConnector } from 'src/models/metadata';
 import { Sensor } from 'src/models/sensor';
 import { Device } from 'src/models/thing';
 
@@ -32,12 +33,12 @@ export class OutputCreatorService {
   createDevice(id: string): Device{
     this.deviceId = id;
     return{
-      id: this.deviceId,
+      id: id,
       macAdress: "xxx",
       iPAdress: "xxx",
       name: "Angular web",
       positionId: null,
-      position: null,
+      position: {description:"server", lat:0, long: 0},
     }
   }
 
@@ -48,7 +49,20 @@ export class OutputCreatorService {
       name: "Angular web input",
       metadata: [],
       sourceDeviceId: this.deviceId,
+    }  
+  }
+
+  createMetadataToHideThis(metadataId: string) : ApiMetadataConnector{
+    return{
+      name: "Visible",
+      deviceId: this.sensorId,
+      numericValue: 0,
+      stringValue: "automatic",
+      unit: "",
+      minVal: 0,
+      maxVal: 1,
+      metadataId: metadataId,
+      typeValue: 0
     }
-  
   }
 }

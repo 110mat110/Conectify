@@ -3,13 +3,16 @@
     <div *ngIf="device">
       <b>{{actuator.name}} @ {{device.name}}</b>
     </div>
+    <div *ngIf="!device">
+      <b>{{actuator.name}}</b>
+    </div>
   </div>
   <div *ngIf="metadatas">
     <app-metadata-icons [metadatas]="metadatas"></app-metadata-icons>
   </div>
   <div *ngIf="latestVal">
     {{latestVal.name}}
-    <div *ngIf="latestVal.numericValue">
+    <div *ngIf="latestVal.numericValue >= 0">
       {{latestVal.numericValue}} {{latestVal.unit}}
     </div>
     <div *ngIf="latestVal.stringValue">

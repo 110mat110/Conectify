@@ -1,7 +1,9 @@
 ﻿namespace Conectify.Shared.Library.Models;
+
+using Conectify.Shared.Library.Interfaces;
 using System;
 
-public class ApiMetadataConnector
+public class ApiMetadataConnector : IApiModel
 {
     public float? NumericValue { get; set; }
     public string StringValue { get; set; } = string.Empty;

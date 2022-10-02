@@ -4,7 +4,7 @@ export interface Device {
     macAdress: string;
     name: string;
     positionId: string | null;
-    position: Position | null;
+    position: Position;
 }
 
 export interface Position {

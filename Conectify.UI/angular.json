@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "IoTHomeUI": {
+    "ConectifyUI": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:application": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/IoTHomeUI",
+            "outputPath": "dist/Conectify.UI",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -72,11 +72,11 @@
           "configurations": {
             "production": {
               "proxyConfig": "src/proxy.conf.json",
-              "browserTarget": "IoTHomeUI:build:production"
+              "browserTarget": "ConectifyUI:build:production"
             },
             "development": {
               "proxyConfig": "src/proxy.conf.json",
-              "browserTarget": "IoTHomeUI:build:development"
+              "browserTarget": "ConectifyUI:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -84,7 +84,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "IoTHomeUI:build"
+            "browserTarget": "ConectifyUI:build"
           }
         },
         "test": {
@@ -108,5 +108,8 @@
       }
     }
   },
-  "defaultProject": "Conectify.UI"
+  "defaultProject": "Conectify.UI",
+  "cli": {
+    "analytics": false
+  }
 }

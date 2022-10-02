@@ -10,6 +10,7 @@ using Conectify.Shared.Library.Interfaces;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Websocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Linq;
 
 public interface IPipelineService
@@ -28,13 +29,15 @@ public class PipelineService : IPipelineService
     private readonly ISubscribersCache subscribersCache;
     private readonly IWebSocketService webSocketService;
     private readonly IMapper mapper;
+    private readonly ILogger<PipelineService> logger;
 
-    public PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscribersCache, IWebSocketService webSocketService, IMapper mapper)
+    public PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscribersCache, IWebSocketService webSocketService, IMapper mapper, ILogger<PipelineService> logger)
     {
         this.conectifyDb = conectifyDb;
         this.subscribersCache = subscribersCache;
         this.webSocketService = webSocketService;
         this.mapper = mapper;
+        this.logger = logger;
     }
 
     public async Task ResendValueToSubscribers(IBaseInputType entity)
@@ -81,9 +84,13 @@ public class PipelineService : IPipelineService
             return;
         }
 
+        foreach (var sub in subscribersCache.AllSubscribers()){
+            logger.LogTrace(sub.DeviceId.ToString() + sub.IsSubedToAll);
+        }
         foreach (var subscriber in targetingSubscribers.Distinct())
         {
-            await webSocketService.SendToThingAsync(subscriber, apiModel);
+            this.logger.LogWarning("Sending from pipeline to " + subscriber.ToString());
+            await webSocketService.SendToDeviceAsync(subscriber, apiModel);
         }
     }
 
@@ -127,6 +134,7 @@ public class PipelineService : IPipelineService
         device.SubscribeToAll = sub;
 
         await conectifyDb.SaveChangesAsync(ct);
+        await subscribersCache.UpdateSubscriber(deviceId, ct);
     }
 
     public IEnumerable<Subscriber> GetAllSubscribers() => subscribersCache.AllSubscribers();
@@ -134,49 +142,52 @@ public class PipelineService : IPipelineService
     private IEnumerable<Guid> ActionResponseTargetingSubscribers(Guid sourceId, Guid? actionSourceId) =>
     GetAllSubscribers()
     .Where(x =>
+        x is not null &&(
         x.IsSubedToAll ||
         (actionSourceId is not null && x.Sensors.Contains(actionSourceId.Value)) ||
         x.Preferences.Any(preference =>
             preference.SubToCommandResponse &&
                 (preference.SensorId is null ||
-                preference.SensorId == sourceId)))
+                preference.SensorId == sourceId))))
     .Select(s => s.DeviceId);
 
     private IEnumerable<Guid> CommandResponseTargetingSubscribers(Guid sourceId, Guid? commandSourceId) =>
         GetAllSubscribers()
         .Where(x =>
+            x is not null && (
             x.IsSubedToAll ||
             x.DeviceId == commandSourceId ||
             x.Preferences.Any(preference =>
                 preference.SubToCommandResponse &&
                     (preference.DeviceId is null ||
-                    preference.DeviceId == sourceId)))
+                    preference.DeviceId == sourceId))))
         .Select(s => s.DeviceId);
 
     private IEnumerable<Guid> ValueTargetingSubscribers(Guid sourceId) =>
         GetAllSubscribers()
         .Where(x =>
+            x is not null && (
             x.IsSubedToAll ||
             x.Preferences.Any(preference =>
                 preference.SubToValues &&
                     (preference.SensorId is null ||
-                    preference.SensorId == sourceId)))
+                    preference.SensorId == sourceId))))
         .Select(s => s.DeviceId);
 
     private IEnumerable<Guid> CommandTargetingSubscribers(Guid targetId, Guid sourceId) =>
          GetAllSubscribers()
-        .Where(x => x.IsSubedToAll || x.DeviceId == targetId || x.Preferences.Any(preference =>
+        .Where(x => x is not null && (x.IsSubedToAll || x.DeviceId == targetId || x.Preferences.Any(preference =>
                 preference.SubToCommands &&
                     (preference.SensorId is null ||
-                    preference.SensorId == sourceId)))
+                    preference.SensorId == sourceId))))
         .Select(x => x.DeviceId);
 
     private IEnumerable<Guid> ActionTargetingSubscribers(Guid sourceId, Guid? destinationId) =>
         GetAllSubscribers()
-        .Where(x => x.IsSubedToAll || (destinationId != null && x.Actuators.Contains(destinationId.Value)) || x.Preferences.Any(preference =>
+        .Where(x => x is not null && (x.IsSubedToAll || (destinationId != null && x.Actuators.Contains(destinationId.Value)) || x.Preferences.Any(preference =>
                 preference.SubToActions &&
                     (preference.SensorId is null ||
-                    preference.SensorId == sourceId)))
+                    preference.SensorId == sourceId))))
         .Select(x => x.DeviceId);
 
     private readonly Func<Preference, bool> IsSubbedToAll = x =>

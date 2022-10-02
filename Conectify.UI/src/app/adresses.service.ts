@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdressesService {
 
-  private serverURL: string = "http://server.home:5000/api/"
-  private automatizationURL: string = "http://server.home:5010/api/"
-  private historyURL: string = "http://server.home:5020/api/"
+  private serverURL: string = environment.serverUrl + "/api/"
+  private automatizationURL: string = environment.automatizationURL + "/api/"
+  private historyURL: string = environment.historyUrl + "/api/"
 
   constructor() { }
 
@@ -73,6 +74,10 @@ export class AdressesService {
 
   getAllMetadata(){
     return this.serverURL + "metadata/all"
+  }
+
+  subscribeToAll(id:string){
+    return this.serverURL + "subscribe/"+id+"/all"
   }
 
   postMetadata(){

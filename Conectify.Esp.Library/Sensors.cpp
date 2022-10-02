@@ -21,6 +21,11 @@ String Sensor::SerializeSensor(char thingId[IdStringLength]){
     DynamicJsonDocument doc(256);
     if(isInitialized)
         doc[DTid] = id;
+    else
+    {
+        doc[DTid] = "00000000-0000-0000-0000-000000000000";
+    }
+    
     doc[type] = SensorType;
     doc[DTSensorName] = sensorName;
     doc[DTSourceThingId] = thingId;
@@ -117,6 +122,10 @@ String Actuator::SerializeActuator(char thingId[37]){
     DynamicJsonDocument doc(256);
     if(isInitialized)
         doc[DTid] = id;
+            else
+    {
+        doc[DTid] = "00000000-0000-0000-0000-000000000000";
+    }
     doc[type] = ActuatorType;
     doc[DTvalueName] = actuatorName;
     doc[DTSourceThingId] = thingId;

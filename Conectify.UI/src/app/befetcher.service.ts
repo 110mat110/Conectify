@@ -29,19 +29,19 @@ export class BEFetcherService {
   getActiveActuatorsIds(): Observable<string[]> {
     return this.http.get<string[]>(this.adresses.getActiveActuatorsIds());
   }
-  getActuatorMetadatas(id: string): Observable<Metadata[]>{
+  getActuatorMetadatas(id: string): Observable<Metadata[]> {
     return this.http.get<Metadata[]>(this.adresses.getActuatorMetdatas(id));
   }
-  postActuatorMetadata(metadata: ApiMetadataConnector): void{
+  postActuatorMetadata(metadata: ApiMetadataConnector): void {
     this.http.post(this.adresses.postActuatorMetadata(), metadata, this.httpOptions).subscribe();
     this.messenger.addMessage("Sending metadata {" + JSON.stringify(metadata) + "} to adress: " + this.adresses.postActuatorMetadata());
   }
 
-  postSensorMetadata(metadata: ApiMetadataConnector): void{
+  postSensorMetadata(metadata: ApiMetadataConnector): void {
     this.http.post(this.adresses.postSensorMetadata(), metadata, this.httpOptions).subscribe();
     this.messenger.addMessage("Sending metadata {" + JSON.stringify(metadata) + "} to adress: " + this.adresses.postSensorMetadata());
   }
-  getSensorMetadatas(id: string): Observable<Metadata[]>{
+  getSensorMetadatas(id: string): Observable<Metadata[]> {
     return this.http.get<Metadata[]>(this.adresses.getSensorMetdatas(id));
   }
   getAllSensors(): Observable<Sensor[]> {
@@ -78,23 +78,33 @@ export class BEFetcherService {
     this.messenger.addMessage("Registered sensor {" + JSON.stringify(value) + "} to adress: " + this.adresses.postSensor());
   }
 
-  postDevice(value: Device): void {
-    this.http.post(this.adresses.postDevice(), value, this.httpOptions).subscribe();
+  postDevice(value: Device): Observable<Object> {
     this.messenger.addMessage("Registered device {" + JSON.stringify(value) + "} to adress: " + this.adresses.postDevice());
+    return this.http.post(this.adresses.postDevice(), value, this.httpOptions)
   }
 
-  getAllMetadata(): Observable<ApiMetadata[]>{
-   return this.http.get<ApiMetadata[]>(this.adresses.getAllMetadata());
+  getAllMetadata(): Observable<ApiMetadata[]> {
+    return this.http.get<ApiMetadata[]>(this.adresses.getAllMetadata());
   }
 
-  postMetadata(metadata: ApiMetadata){
+  postMetadata(metadata: ApiMetadata) {
     this.http.post(this.adresses.postMetadata(), metadata, this.httpOptions).subscribe();
     this.messenger.addMessage("Creating new metadata {" + JSON.stringify(metadata) + "} to adress: " + this.adresses.postMetadata());
   }
 
   register(id: string): void {
-    this.postDevice(this.ocs.createDevice(id));
-    this.postSensor(this.ocs.createSensor(id));
-    this.isResigtered = true;
+    this.postDevice(this.ocs.createDevice(id)).subscribe(x => {
+      console.error("I am inside post device sub!");
+      this.http.get<any>(this.adresses.subscribeToAll(id)).subscribe();
+      this.postSensor(this.ocs.createSensor(id));
+      this.getAllMetadata().subscribe(x => {
+        let metadataId = x.find(f => f.name == "Visible")?.id;
+        if (metadataId) {
+          this.postSensorMetadata(this.ocs.createMetadataToHideThis(metadataId));
+        }
+      })
+      this.messenger.addMessage("Registered everything");
+      this.isResigtered = true;
+    });
   }
 }

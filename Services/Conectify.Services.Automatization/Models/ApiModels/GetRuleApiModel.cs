@@ -1,7 +1,6 @@
-﻿namespace Conectify.Services.Automatization.Models.ApiModels
+﻿namespace Conectify.Services.Automatization.Models.ApiModels;
+
+public class GetRuleApiModel
 {
-    public class GetRuleApiModel
-    {
-        public string Id { get; set; } = string.Empty;
-    }
+    public string Id { get; set; } = string.Empty;
 }

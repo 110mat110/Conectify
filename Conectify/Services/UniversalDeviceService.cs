@@ -5,6 +5,7 @@ using AutoMapper.QueryableExtensions;
 using Conectify.Database;
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
+using Conectify.Database.Models.Values;
 using Conectify.Shared.Library.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,10 +36,24 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
     {
         var device = mapper.Map<TDbs>(apiDevice);
         device.IsKnown = true;
-
+        //dataService.InsertJsonModel(CreateNewDeviceCommand(), ct);
         await database.AddOrUpdateAsync(device);
         await database.SaveChangesAsync(ct);
         return device.Id;
+    }
+
+    private Command CreateNewDeviceCommand()
+    {
+        return new Command()
+        {
+            Id = Guid.NewGuid(),
+            Name = "New device",
+            NumericValue = 1,
+            StringValue = typeof(TDbs).Name,
+            Unit = "units",
+            TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            SourceId = Guid.NewGuid(), //TODO
+        };
     }
 
     public abstract Task<bool> TryAddUnknownDevice(Guid deviceId, Guid parentId = default, CancellationToken ct = default);

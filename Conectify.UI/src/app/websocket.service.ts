@@ -3,7 +3,9 @@ import { Observable, Observer } from 'rxjs';
 import { AnonymousSubject } from 'rxjs/internal/Subject';
 import { Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { MessagesService } from "./messages.service";
 
+ 
 const CHAT_URL = "ws://server.home:5000/api/websocket/";
 
 export interface Message {
@@ -17,9 +19,40 @@ export interface Message {
 export class WebsocketService {
     private subject?: AnonymousSubject<MessageEvent>;
     public messages?: Subject<any>;
-    constructor() {
+    public receivedMessages: Observable<any>;
+    private id?: string
+    public status: boolean = false;
+    private subs: any[] = []
+    
+    constructor(private messageService: MessagesService) {
+        this.receivedMessages = new Observable<any>((s) => {
+            console.warn("Subed to websocket");
+            this.subs.push(s)
+          })
+    }
+
+    public SendMessage(message: any){
+        if(!this.status){
+            this.Connect();
+        }
+        this.messages?.next(message);
+    }
+    public SetId(id: string){
+        this.id = id;
+    }
+    public Connect(){
+        if(this.id){
+            this.ConnectById(this.id);
+        }
 
     }
+
+    private trigger = (v: any) => {
+        console.warn("Trigger triggered!");
+        this.subs.forEach((sub) => {
+          sub.next(v)
+        })
+      }
 
     public ConnectById(id: string){
         this.messages = <Subject<string>>this.connect(CHAT_URL + id).pipe(
@@ -31,13 +64,23 @@ export class WebsocketService {
                 }
             )
         );
+
+        this.messages.subscribe(x => {
+            console.log("Received message from WS");
+            this.trigger(x);
+        });
     }
 
     private connect(url: string): AnonymousSubject<MessageEvent> {
-        if (!this.subject) {
+        if (!this.status || !this.subject) {
             this.subject = this.create(url);
             console.log("Successfully connected: " + url);
+            this.status = true;
         }
+        this.subject.subscribe(x => {
+            console.log("Received message from WS");
+            this.trigger(x);
+        });
         return this.subject;
     }
 
@@ -52,15 +95,19 @@ export class WebsocketService {
         let observer = null;
         observer = {
             error: (err: any)=>{
-               console.log(err);
+                this.status = false;
+                console.log(err);
             },
             complete: ()=>{
+              this.status = false;
               console.log("ws complete");
            },
             next: (data: Object) => {
                 console.log('Message sent to websocket: ', data);
                 if (ws.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify(data));
+                } else{
+                    this.status = false;
                 }
             }
         };

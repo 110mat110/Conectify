@@ -52,7 +52,7 @@ public class WebsocketController : ControllerBase
     [HttpPost("{id}/direct")]
     public async Task<IActionResult> DirectWriteToSocket(Guid id, string message)
     {
-        await webSocketService.SendToThingAsync(id, message);
+        await webSocketService.SendToDeviceAsync(id, message);
         return Ok();
     }
 }

@@ -1,10 +1,9 @@
 ﻿using Conectify.Services.Automatization.Models;
 
-namespace Conectify.Services.Automatization.Rules
+namespace Conectify.Services.Automatization.Rules;
+
+public interface IRuleBehaviour
 {
-    public interface IRuleBehaviour
-    {
-        Guid GetId();
-        AutomatisationValue Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule);
-    }
+    Guid GetId();
+    AutomatisationValue Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule);
 }

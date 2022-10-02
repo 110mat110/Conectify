@@ -20,7 +20,6 @@ public class DataService : IDataService
     private readonly ISensorService sensorService;
     private readonly IActuatorService actuatorService;
     private readonly IMapper mapper;
-    private const string ApiPrefix = "Api";
 
     public DataService(ILogger<DataService> logger, ConectifyDb database, IPipelineService pipelineService, IDeviceService deviceService, ISensorService sensorService, IActuatorService actuatorService, IMapper mapper)
     {

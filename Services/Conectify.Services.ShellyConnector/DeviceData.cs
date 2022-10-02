@@ -3,6 +3,10 @@
 using Conectify.Database.Models;
 using Conectify.Services.Library;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Models.Services;
+using Conectify.Shared.Services;
+using System.Net;
+using System.Net.NetworkInformation;
 
 public class DeviceData : IDeviceData
 {
@@ -11,14 +15,19 @@ public class DeviceData : IDeviceData
     public DeviceData(Configuration configuration)
     {
         this.configuration = configuration;
+
+        Dns.GetHostEntry(Dns.GetHostName())
+   .AddressList
+   .First(x => x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+   .ToString();
     }
 
-    public ApiDevice Device => new ApiDevice()
+    public ApiDevice Device => new()
     {
         Id = configuration.DeviceId,
-        IPAdress = "192.168.1.1",
-        MacAdress = "xx.xx.xx",
-        Name = "Shelly server"
+        IPAdress = WebFunctions.GetIPAdress(),
+        MacAdress = WebFunctions.GetMacAdress(),
+        Name = "Shelly"
     };
 
     public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
@@ -26,7 +35,7 @@ public class DeviceData : IDeviceData
             new ApiSensor()
             {
                 Id = configuration.SensorId,
-                Name = "TestSensor",
+                Name = configuration.DeviceName,
                 SourceDeviceId = configuration.DeviceId,
             }
         };
@@ -36,11 +45,13 @@ public class DeviceData : IDeviceData
             new ApiActuator()
             {
                 Id = configuration.ActuatorId,
-                Name = "TestActuator",
+                Name =  configuration.DeviceName,
                 SourceDeviceId = configuration.DeviceId,
                 SensorId = configuration.SensorId
             }
         };
 
     public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>();
+
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>();
 }

@@ -21,9 +21,9 @@ class TickTimer
 
 class Time {
     public:
-	    unsigned long startTime;
+	    uint64_t startTime;
         Time();
-        void decodeTime(unsigned long time);
+        void decodeTime(uint64_t time);
 	    String ToJSONString();
         
 };

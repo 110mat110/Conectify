@@ -1,9 +1,9 @@
 <h3>Setup metadata</h3>
 <p>Select device and add or update metadata to this device</p>
 <br/>
-<mat-form-field appearance="fill" color = "Accent" (change)="selectDevice()">
+<mat-form-field appearance="fill" color = "Accent" >
     <mat-label>Select device</mat-label>
-    <mat-select matNativeControl [(ngModel)]="selectedDeviceId" name="metadatas">
+    <mat-select matNativeControl [(ngModel)]="selectedDeviceId" name="metadatas" (selectionChange)="selectDevice()">
         <mat-option value="" selected></mat-option>
         <mat-option *ngFor="let device of supportedDevices" [value]="device.id">
           {{device.name}}
@@ -11,7 +11,7 @@
       </mat-select>
 </mat-form-field>
 <button mat-mini-fab color="primary" aria-label="Show metadata for device" (click)="selectDevice()">
-    <mat-icon>play_arrow</mat-icon>
+    <mat-icon>refresh`</mat-icon>
   </button>
 
   <mat-form-field appearance="standard">

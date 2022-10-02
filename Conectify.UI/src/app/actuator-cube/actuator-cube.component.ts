@@ -33,6 +33,18 @@ export class ActuatorCubeComponent implements OnInit {
   ngOnInit(): void {
     this.refreshActualStatus();
     this.determineType();
+    this.websocketService.receivedMessages.subscribe(msg => {
+      this.messenger.addMessage("actuator cube has value");
+      this.HandleIncomingValue(msg);
+    });
+  }
+
+  HandleIncomingValue(msg: any) : void{
+    var id = msg.sourceId;
+    if(id && this.actuator?.sensorId && id == this.actuator?.sensorId){
+      this.messenger.addMessage("Got value from ws:");
+      this.latestVal = msg;
+    }
   }
 
   refreshActualStatus() {
@@ -54,7 +66,7 @@ export class ActuatorCubeComponent implements OnInit {
           }
         });
         if (this.actuator.sourceDeviceId) {
-          this.be.getDevice(this.actuator.sourceDeviceId);
+          this.be.getDevice(this.actuator.sourceDeviceId).subscribe(x => this.device = x);
         }
       });
       if (this.latestVal)
@@ -84,7 +96,7 @@ export class ActuatorCubeComponent implements OnInit {
   sendn(stringValue: string, numericValue: number): void {
     if (this.actuator) {
       let action = this.output.createBaseAction(this.actuator?.id, numericValue, stringValue, "");
-      this.websocketService.messages?.next(action);
+      this.websocketService.SendMessage(action);
     }
   }
 
