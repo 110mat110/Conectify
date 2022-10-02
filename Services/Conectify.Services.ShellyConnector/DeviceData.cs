@@ -15,11 +15,6 @@ public class DeviceData : IDeviceData
     public DeviceData(Configuration configuration)
     {
         this.configuration = configuration;
-
-        Dns.GetHostEntry(Dns.GetHostName())
-   .AddressList
-   .First(x => x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-   .ToString();
     }
 
     public ApiDevice Device => new()
