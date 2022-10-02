@@ -76,10 +76,6 @@ export class SensorCubeComponent implements OnInit, OnChanges {
                 this.mapedValues = this.getChart();
               }
             });
-          this.be.getLatestSensorValue(this.sensor.id).subscribe(x =>{
-            this.latestVal = x;
-            this.addData(this.latestVal.numericValue);
-          });
           this.chartOption = {
             xAxis: {
               type: 'category',
@@ -95,6 +91,10 @@ export class SensorCubeComponent implements OnInit, OnChanges {
               symbolKeepAspect: false,
             }]
           }
+          this.be.getLatestSensorValue(this.sensor.id).subscribe(x =>{
+            this.latestVal = x;
+            this.addData(this.latestVal.numericValue);
+          });
         }
       });
     }

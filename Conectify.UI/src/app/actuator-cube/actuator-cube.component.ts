@@ -33,6 +33,18 @@ export class ActuatorCubeComponent implements OnInit {
   ngOnInit(): void {
     this.refreshActualStatus();
     this.determineType();
+    this.websocketService.receivedMessages.subscribe(msg => {
+      this.messenger.addMessage("actuator cube has value");
+      this.HandleIncomingValue(msg);
+    });
+  }
+
+  HandleIncomingValue(msg: any) : void{
+    var id = msg.sourceId;
+    if(id && this.actuator?.sensorId && id == this.actuator?.sensorId){
+      this.messenger.addMessage("Got value from ws:");
+      this.latestVal = msg;
+    }
   }
 
   refreshActualStatus() {
