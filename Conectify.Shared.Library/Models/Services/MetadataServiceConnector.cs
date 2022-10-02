@@ -1,9 +1,12 @@
-﻿namespace Conectify.Shared.Library.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-using Conectify.Shared.Library.Interfaces;
-using System;
+namespace Conectify.Shared.Library.Models.Services;
 
-public class ApiMetadataConnector : IApiModel
+public record MetadataServiceConnector
 {
     public float? NumericValue { get; set; }
     public string StringValue { get; set; } = string.Empty;
@@ -13,6 +16,5 @@ public class ApiMetadataConnector : IApiModel
     public float? MinVal { get; set; }
     public float? MaxVal { get; set; }
 
-    public Guid MetadataId { get; set; }
-    public Guid DeviceId { get; set; }
+    public string MetadataName { get; set; } = string.Empty;
 }

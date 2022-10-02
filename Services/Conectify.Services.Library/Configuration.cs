@@ -1,25 +1,16 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace Conectify.Services.Library
+namespace Conectify.Services.Library;
+
+public class Configuration
 {
-    public class Configuration
+    public Configuration(IConfiguration configuration)
     {
-        public Configuration(IConfiguration configuration)
-        {
-            /*
-            const string devSettings = "appsettings.Developement.json";
-            const string prodSettings = "appsettings.json";
-            var builder = new ConfigurationBuilder().AddJsonFile(File.Exists(devSettings) ? devSettings : prodSettings, optional: true, reloadOnChange: true).AddEnvironmentVariables(); ;
-
-            Config = builder.Build();
-
-            Config.Bind(this);*/
-            configuration.Bind(this);
-        }
-
-        public string WebsocketUrl { get; set; } = string.Empty;
-        public string ServerUrl { get; set; } = string.Empty;
-
-        public Guid DeviceId { get; set; } = Guid.NewGuid();
+        configuration.Bind(this);
     }
+
+    public string WebsocketUrl { get; set; } = string.Empty;
+    public string ServerUrl { get; set; } = string.Empty;
+
+    public Guid DeviceId { get; set; } = Guid.NewGuid();
 }

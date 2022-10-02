@@ -2,6 +2,8 @@
 
 using Conectify.Services.Library;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Models.Services;
+using Conectify.Shared.Services;
 
 public class DeviceData : IDeviceData
 {
@@ -15,8 +17,8 @@ public class DeviceData : IDeviceData
     public ApiDevice Device => new()
     {
         Id = configuration.DeviceId,
-        IPAdress = "192.168.1.1",
-        MacAdress = "xx.xx.xx",
+        IPAdress = WebFunctions.GetIPAdress(),
+        MacAdress = WebFunctions.GetMacAdress(),
         Name = "History service"
     };
 
@@ -48,6 +50,20 @@ public class DeviceData : IDeviceData
             SubToValues = true,
             SubToActionResponse = true,
             SubToActions = true,
+        }
+    };
+
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
+    {
+        new MetadataServiceConnector()
+        {
+            MaxVal = 1,
+            MinVal = 0,
+            MetadataName = "Visible",
+            NumericValue = 0,
+            StringValue = string.Empty,
+            TypeValue = 0,
+            Unit = string.Empty,
         }
     };
 }

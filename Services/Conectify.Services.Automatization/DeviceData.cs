@@ -1,5 +1,7 @@
 ﻿using Conectify.Services.Library;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Models.Services;
+using Conectify.Shared.Services;
 
 namespace Conectify.Services.Automatization;
 
@@ -12,12 +14,12 @@ public class DeviceData : IDeviceData
         this.configuration = configuration;
     }
 
-    public ApiDevice Device => new ApiDevice()
+    public ApiDevice Device => new()
     {
         Id = configuration.DeviceId,
-        IPAdress = "192.168.1.1",
-        MacAdress = "xx.xx.xx",
-        Name = "Shelly server"
+        IPAdress = WebFunctions.GetIPAdress(),
+        MacAdress = WebFunctions.GetMacAdress(),
+        Name = "Automatization service"
     };
 
     public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
@@ -42,4 +44,6 @@ public class DeviceData : IDeviceData
         };
 
     public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>();
+
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>();
 }

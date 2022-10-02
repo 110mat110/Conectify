@@ -1,8 +1,7 @@
 ﻿using Conectify.Shared.Library.Classes;
 
-namespace Conectify.Shared.Library.Interfaces
+namespace Conectify.Shared.Library.Interfaces;
+
+public interface IWebsocketModel : ISerializable
 {
-    public interface IWebsocketModel : ISerializable
-    {
-    }
 }

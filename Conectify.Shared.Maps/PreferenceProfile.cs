@@ -7,17 +7,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Conectify.Shared.Maps
+namespace Conectify.Shared.Maps;
+
+public class PreferenceProfile : Profile
 {
-    public class PreferenceProfile : Profile
+    public PreferenceProfile()
     {
-        public PreferenceProfile()
-        {
-            CreateMap<ApiPreference, Preference>()
-                .ForMember(x => x.Id, opt => opt.Ignore())
-                .ForMember(x => x.Actuator, opt => opt.Ignore())
-                .ForMember(x => x.Sensor, opt => opt.Ignore())
-                .ForMember(x => x.Device, opt => opt.Ignore());
-        }
+        CreateMap<ApiPreference, Preference>()
+            .ForMember(x => x.Id, opt => opt.Ignore())
+            .ForMember(x => x.Actuator, opt => opt.Ignore())
+            .ForMember(x => x.Sensor, opt => opt.Ignore())
+            .ForMember(x => x.Device, opt => opt.Ignore());
     }
 }

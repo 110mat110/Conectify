@@ -1,32 +1,31 @@
 using Conectify.Services.ShellyConnector.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Conectify.Services.ShellyConnector.Controllers
+namespace Conectify.Services.ShellyConnector.Controllers;
+
+[Route("[controller]")]
+[ApiController]
+public class SwitchController : ControllerBase
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class SwitchController : ControllerBase
+    private readonly IShellyService shellyService;
+
+    public SwitchController(IShellyService shellyService)
     {
-        private readonly IShellyService shellyService;
+        this.shellyService = shellyService;
+    }
 
-        public SwitchController(IShellyService shellyService)
-        {
-            this.shellyService = shellyService;
-        }
+    [HttpGet("Off")]
+    public string Off()
+    {
+        shellyService.SetSwitch(false);
+        return "Hello";
+    }
 
-        [HttpGet("Off")]
-        public string Off()
-        {
-            shellyService.SetSwitch(false);
-            return "Hello";
-        }
+    [HttpGet("On")]
+    public string On()
+    {
+        shellyService.SetSwitch(true);
 
-        [HttpGet("On")]
-        public string On()
-        {
-            shellyService.SetSwitch(true);
-
-            return "Hello";
-        }
+        return "Hello";
     }
 }
