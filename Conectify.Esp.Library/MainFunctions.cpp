@@ -22,7 +22,6 @@
 
 using namespace websockets;
 
-bool onLine = false; // wifi status
 USBComm usb;
 bool requestAcc = true;
 bool sendSensors = true;
@@ -131,7 +130,6 @@ void InitializeNetwork(Thing insertedThing)
 
     if (wm.autoConnect("ConectifyAP"))
     {
-      onLine = true;
       StartOTA("Conectify");
       RegisterAllEntities(insertedThing);
       AskServerForTime();
@@ -191,6 +189,7 @@ void saveParamsCallback()
   siteName.setValue(GetGlobalVariables()->baseThing.serverUrl, 35);
 
   InitializeNetwork(thing);
+  RegisterAllEntities(thing);
 }
 
 void HandleWebSetup()
@@ -212,7 +211,7 @@ void ReceiveSerialConnection()
 
 void SendAllSensorsToServerIfNeeded()
 {
-  if (!onLine)
+  if (!WiFi.status() == WL_CONNECTED)
   {
     DebugMessage("trying to connect to server withouth wifi!");
     return;
@@ -297,8 +296,8 @@ bool ConnectToWifi()
     GetGlobalVariables()->InvertLed();
     delay(500);
   }
-  onLine = (WiFi.status() == WL_CONNECTED);
-  if (!onLine)
+
+  if (!(WiFi.status() == WL_CONNECTED))
   {
     for (int i = 0; i < 10; i++)
     {
@@ -317,8 +316,6 @@ void DisconnectWiFi()
   {
     WiFi.disconnect();
   }
-
-  onLine = (WiFi.status() == WL_CONNECTED);
 }
 
 void AskServerForTime()
@@ -409,7 +406,7 @@ void RecievedMessageRoutine()
 void RegisterAllEntities(Thing thing)
 {
   DebugMessage("Registering entites");
-  if (onLine)
+  if ((WiFi.status() == WL_CONNECTED))
   {
     RegisterBaseThing(GetGlobalVariables()->baseThing, WiFi, thing);
     SaveToEEPRom(EEPROM, GetGlobalVariables()->baseThing);

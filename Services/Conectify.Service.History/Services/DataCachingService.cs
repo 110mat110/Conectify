@@ -13,7 +13,7 @@ public interface IDataCachingService
     Task InsertValue(Value websocketValue, CancellationToken ct = default);
     Task<IEnumerable<ApiValue>> GetDataForLast24h(Guid sourceId, CancellationToken ct = default);
 
-    ApiValue? GetLatestValue(Guid sourceId);
+    Task<ApiValue?> GetLatestValueAsync(Guid sourceId, CancellationToken ct = default);
 }
 
 public class DataCachingService : IDataCachingService
@@ -56,6 +56,12 @@ public class DataCachingService : IDataCachingService
 
     private async Task PreloadValueCache(Guid sensorId, CancellationToken ct = default)
     {
+        TryInvalidateCache(sensorId);
+        if (valueCache.ContainsKey(sensorId))
+        {
+            return;
+        }
+
         var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
         logger.LogInformation("Preloading cache from time " + yesterdayUnixTime);
         using var scope = this.serviceProvider.CreateScope();
@@ -83,8 +89,10 @@ public class DataCachingService : IDataCachingService
         return mapper.Map<IEnumerable<ApiValue>>(valueCache[sourceId]);
     }
 
-    public ApiValue? GetLatestValue(Guid sourceId)
+    public async Task<ApiValue?> GetLatestValueAsync(Guid sourceId, CancellationToken ct = default)
     {
+        await PreloadValueCache(sourceId, ct);
+
         if (valueCache.ContainsKey(sourceId))
         {
             var value = valueCache[sourceId].OrderByDescending(x => x.TimeCreated).FirstOrDefault();

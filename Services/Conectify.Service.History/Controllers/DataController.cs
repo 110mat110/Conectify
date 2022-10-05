@@ -24,8 +24,8 @@ public class DataController : ControllerBase
     }
 
     [HttpGet("{sensorId}/latest")]
-    public ApiValue? GetLatest(Guid sensorId)
+    public async Task<ApiValue?> GetLatestAsync(Guid sensorId)
     {
-        return dataCachingService.GetLatestValue(sensorId);
+        return await dataCachingService.GetLatestValueAsync(sensorId);
     }
 }

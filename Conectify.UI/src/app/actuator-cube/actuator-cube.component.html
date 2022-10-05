@@ -11,12 +11,19 @@
     <app-metadata-icons [metadatas]="metadatas"></app-metadata-icons>
   </div>
   <div *ngIf="latestVal">
-    {{latestVal.name}}
+    <br/>
     <div *ngIf="latestVal.numericValue >= 0">
-      {{latestVal.numericValue}} {{latestVal.unit}}
+      <mat-form-field class="current-value">
+        <mat-label>Current {{latestVal.name}}</mat-label>
+        <input matInput disabled value="{{latestVal.numericValue}} {{latestVal.unit}}" #stringInput>
+      </mat-form-field>
     </div>
     <div *ngIf="latestVal.stringValue">
-      {{latestVal.stringValue}} {{latestVal.unit}}
+      <mat-form-field class="current-value">
+        <mat-label>Current {{latestVal.name}}</mat-label>
+        <input matInput disabled value="{{latestVal.stringValue}} {{latestVal.unit}}" #stringInput>
+      </mat-form-field>
+      
     </div>
   </div>
   <div *ngIf=" !iotype || iotype === 0">

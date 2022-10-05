@@ -1,15 +1,47 @@
-.string-input{
+.string-input {
     scrollbar-face-color: chartreuse;
 }
 
-mat-label{
+mat-label {
     color: lightblue;
 }
-.mat-form-field-ripple{background-color:blue}
 
-cube{
+.mat-form-field-ripple {
+    background-color: blue
+}
+
+/* cube{
     width: 100%;
     height: 100%;
+} */
+
+.cube {
+    width: 100% !important;
+    padding: 10px !important;
+    border: (solid, black, 2px);
+}
+
+
+.onButton:hover {
+    background-color: #002000;
+    border-bottom: solid;
+    border-bottom-color: lawngreen;
+    border-bottom-width: 3px;
+}
+
+.offButton {
+    color: var(--whiteText) !important;
+    text-align: center;
+    background-color: transparent;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-bottom: solid;
+    border-bottom-color: darkred !important;
+    border-bottom-width: 3px;
+    border-radius: 0px !important;
+    height: 50px;
+    width: 130px;
 }
 
 .onButton {
@@ -27,31 +59,9 @@ cube{
     width: 130px;
 }
 
-    .onButton:hover {
-        background-color: #002000;
-        border-bottom: solid;
-        border-bottom-color: lawngreen;
-        border-bottom-width: 3px;
-    }
-
-.offButton {
-    color: var(--whiteText) !important;
-    text-align: center;
-    background-color: transparent;
-    border-left: none !important;
-    border-right: none !important;
-    border-top: none !important;
+.offButton:hover {
+    background-color: #200000;
     border-bottom: solid;
-    border-bottom-color: darkred !important;
+    border-bottom-color: red;
     border-bottom-width: 3px;
-    border-radius: 0px !important;
-    height: 50px;
-    width: 130px;
 }
-
-    .offButton:hover {
-        background-color: #200000;
-        border-bottom: solid;
-        border-bottom-color: red;
-        border-bottom-width: 3px;
-    }
