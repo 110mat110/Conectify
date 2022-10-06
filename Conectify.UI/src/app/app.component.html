@@ -1,6 +1,7 @@
-<span class="toolbar">
+<!-- <span class="toolbar"> -->
+<mat-toolbar>
   <div style="width: 20px;"></div>
-  <h1>   Conectify   </h1> 
+  <h1> Conectify </h1>
   <div style="width: 20px;"></div>
   <span class="buttonBar">
     <button class="navbar-button" routerLink="/sensors">Sensors</button>
@@ -8,9 +9,10 @@
     <button class="navbar-button" routerLink="/automatization">Automatization</button>
     <button class="navbar-button" routerLink="/metadata">Metadata</button>
   </span>
-</span>
+  <!-- </span> -->
+</mat-toolbar>
 <div style="margin: 25px">
   <router-outlet></router-outlet>
-    <input hidden="true" type="text" name="fingerprintIdTextBox"  #fingerprintIdTextBoxRef/>
-    <button hidden="true" name="triggerWs" (click)="onChange()"></button>
+  <input hidden="true" type="text" name="fingerprintIdTextBox" #fingerprintIdTextBoxRef />
+  <button hidden="true" name="triggerWs" (click)="onChange()"></button>
 </div>
