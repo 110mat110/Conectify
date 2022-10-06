@@ -1,12 +1,14 @@
-<div #theContainer *ngIf="actuatorIds">
-<mat-grid-list cols="4" rowHeight="200px" gutterSize="6px" >
-  <div  *ngFor="let actuator of actuatorIds" width="100%" style="flex: 1 1 auto;">
-    <mat-grid-tile *ngIf = "actuator.visible">
-        <app-actuator-cube [actuatorId]="actuator" ></app-actuator-cube>
-    </mat-grid-tile>
+<div *ngIf="actuatorIds">
+  <div #theContainer>
+    <mat-grid-list cols="{{columnNum}}" rowHeight="250px" gutterSize="6px">
+      <div *ngFor="let actuator of actuatorIds" width="100%" style="flex: 1 1 auto;">
+        <mat-grid-tile *ngIf="actuator.visible">
+          <app-actuator-cube [actuatorId]="actuator"></app-actuator-cube>
+        </mat-grid-tile>
+      </div>
+    </mat-grid-list>
   </div>
-  </mat-grid-list> 
 </div>
 <div *ngIf="!actuatorIds">
-    no actuators found!
+  no actuators found!
 </div>

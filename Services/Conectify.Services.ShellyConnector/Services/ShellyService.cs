@@ -77,7 +77,7 @@ public class ShellyService : IShellyService
             NumericValue = websocketAction.NumericValue > 0 ? 100 : 0,
             SourceId = configuration.ActuatorId,
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            Type = "ActionResult",
+            Type = "ActionResponse",
             Unit = "%",
             ActionId = websocketAction.Id,
             StringValue = string.Empty

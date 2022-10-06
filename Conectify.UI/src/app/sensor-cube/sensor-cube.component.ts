@@ -70,10 +70,12 @@ export class SensorCubeComponent implements OnInit, OnChanges {
           });
           this.be.getSensorValues(this.sensor.id).subscribe(
             x => {
-              this.values = x;
-              this.valsReady = this.values.length > 0;
+              //this.values = x;
+              this.valsReady = x.length > 0;
               if (this.valsReady) {
-                this.mapedValues = this.getChart();
+                x.forEach(val => {
+                  this.addData(val.numericValue);
+                });
               }
             });
           this.chartOption = {

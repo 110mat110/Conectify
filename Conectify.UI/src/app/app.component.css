@@ -54,10 +54,11 @@ input[type=number]::-webkit-inner-spin-button {
 
   .toolbar {
     height: 60px;
-    display: flex;
+    display: block ruby;
     align-items: center;
     background-color: #001224;
     font-weight: 600;
+    overflow: scroll !important;
   }
 
   .toolbar img {
@@ -331,4 +332,15 @@ input[type=number]::-webkit-inner-spin-button {
     .navbar-button:hover {
         background-color: var(--hoverButtonBackground) !important;
         color: var(--whiteText) !important;
+    }
+
+    .buttonBar{
+      height: 60px;
+      display: inline !important;
+      overflow: hidden;
+    }
+
+    #menuContainer{
+      height: 60px;
+      white-space: nowrap
     }

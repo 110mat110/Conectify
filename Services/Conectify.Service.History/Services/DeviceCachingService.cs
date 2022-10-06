@@ -1,6 +1,5 @@
 ﻿using Conectify.Database.Models.Values;
 using Conectify.Services.Library;
-using Newtonsoft.Json.Linq;
 
 namespace Conectify.Service.History.Services;
 

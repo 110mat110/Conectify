@@ -6,6 +6,7 @@
 .cube-chart{
     margin: 30, 10, 30, 10;
     width: auto;
+    height: 200px;
 };
 .hiddenTable{
     table-layout: fixed;
@@ -14,12 +15,5 @@ width: 100%;
     border-width: 2px;
     border:"solid";
 }
-mat-grid-tile {
-    background: var(--cubes);
-    border: solid;
-    border-radius: 10px;
-    border-color: var(--cubeborders);
-    border-width: 2px;
-  }
 
 
