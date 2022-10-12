@@ -50,7 +50,7 @@ public class CHMIScraper
                 Unit = "PM10",
                 Type = "Value",
             };
-
+            logger.LogInformation($"Got values! AQI is {AQI}");
             await websocketClient.SendMessageAsync(value);
         }
         catch (Exception ex)
