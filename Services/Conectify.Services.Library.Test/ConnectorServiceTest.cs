@@ -28,7 +28,7 @@ namespace Conectify.Services.Library.Test
             var client = A.Fake<HttpClient>();
             var provider = A.Fake<IHttpFactory>();
             A.CallTo(() => provider.HttpClient).Returns(client);
-            var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(),new Configuration(Configuration), A.Fake<IMapper>(), provider);
+            var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new Configuration(Configuration), A.Fake<IMapper>(), provider);
 
             await service.RegisterDevice(new ApiDevice(), new List<ApiSensor>(), new List<ApiActuator>());
 
@@ -44,7 +44,7 @@ namespace Conectify.Services.Library.Test
             A.CallTo(() => provider.HttpClient).Returns(client);
             var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new Configuration(Configuration), A.Fake<IMapper>(), provider);
 
-            await service.RegisterDevice(new ApiDevice(), new List<ApiSensor>() { new ApiSensor(), new ApiSensor(), new ApiSensor()}, new List<ApiActuator>() { new ApiActuator(), new ApiActuator() });
+            await service.RegisterDevice(new ApiDevice(), new List<ApiSensor>() { new ApiSensor(), new ApiSensor(), new ApiSensor() }, new List<ApiActuator>() { new ApiActuator(), new ApiActuator() });
 
             var deviceResultUrl = serverUrl + "/api/device";
             var sensorResultUrl = serverUrl + "/api/sensors";
@@ -92,6 +92,11 @@ namespace Conectify.Services.Library.Test
 
             Assert.False(result);
         }
-    }
+
+        [Fact]
+        public void ThisIsJustTest()
+        {
+            Assert.True(false);
+        }
     }
 }
