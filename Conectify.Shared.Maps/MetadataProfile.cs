@@ -10,11 +10,6 @@ public class MetadataProfile : Profile
 
     public MetadataProfile()
     {
-        CreateMap<Metadata, ApiMetadata>();
-
-        CreateMap<ApiMetadata, Metadata>()
-            .ForMember(x => x.Id, opt => opt.Ignore());
-
         CreateMap<ApiMetadataConnector, MetadataConnector<Device>>()
             .ForMember(x => x.Metadata, opt => opt.Ignore())
             .ForMember(x => x.Device, opt => opt.Ignore());
@@ -30,7 +25,9 @@ public class MetadataProfile : Profile
         CreateMap<MetadataConnector<Device>, ApiMetadataConnector>();
         CreateMap<MetadataConnector<Sensor>, ApiMetadataConnector>();
         CreateMap<MetadataConnector<Actuator>, ApiMetadataConnector>();
-        CreateMap<MetadataServiceConnector, ApiMetadataConnector>();
+        CreateMap<MetadataServiceConnector, ApiMetadataConnector>()
+            .ForMember(x => x.MetadataId, opt => opt.Ignore())
+            .ForMember(x => x.DeviceId, opt => opt.Ignore());
 
         CreateMap<MetadataConnector<Actuator>, ApiMetadata>()
             .ForMember(x => x.Name, opt => opt.MapFrom(x => x.Metadata.Name));
