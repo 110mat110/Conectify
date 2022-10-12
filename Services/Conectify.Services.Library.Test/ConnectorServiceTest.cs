@@ -92,11 +92,5 @@ namespace Conectify.Services.Library.Test
 
             Assert.False(result);
         }
-
-        [Fact]
-        public void ThisIsJustTest()
-        {
-            Assert.True(false);
-        }
     }
 }
