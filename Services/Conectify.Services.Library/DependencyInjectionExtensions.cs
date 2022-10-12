@@ -1,4 +1,5 @@
 ﻿using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Services;
 using Conectify.Shared.Maps;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -15,7 +16,7 @@ public static class DependencyInjectionExtensions
         services.AddTransient<Configuration, TConfiguration>();
         services.AddTransient<IConnectorService, ConnectorService>();
         services.AddTransient<IDeviceData, TDeviceData>();
-
+        services.AddTransient<IHttpFactory, HttpFactory>();
         return services;
     }
 
