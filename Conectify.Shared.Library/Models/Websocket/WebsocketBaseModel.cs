@@ -14,6 +14,8 @@ public interface IWebsocketBaseModel : ISerializable, IWebsocketModel
     string StringValue { get; set; }
     float? NumericValue { get; set; }
     long TimeCreated { get; set; }
+    Guid? DestinationId { get; set; }
+    Guid? ResponseSourceId { get; set; }
 }
 
 public class WebsocketBaseModel : Serializable, IWebsocketBaseModel
@@ -26,4 +28,6 @@ public class WebsocketBaseModel : Serializable, IWebsocketBaseModel
     public float? NumericValue { get; set; }
     public long TimeCreated { get; set; }
     public Guid SourceId { get; set; }
+    public Guid? DestinationId { get; set; }
+    public Guid? ResponseSourceId { get; set; }
 }

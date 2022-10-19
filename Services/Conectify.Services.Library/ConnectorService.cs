@@ -37,7 +37,7 @@ public class ConnectorService : IConnectorService
         this.httpProvider = httpProvider;
     }
 
-    public async Task<bool> RegisterDevice(ApiDevice device, IEnumerable<ApiSensor> apiSensors, IEnumerable<ApiActuator> apiActuators, CancellationToken ct = default)//TODO better naming for function
+    public async Task<bool> RegisterDevice(ApiDevice device, IEnumerable<ApiSensor> apiSensors, IEnumerable<ApiActuator> apiActuators, CancellationToken ct = default)
     {
         await PostAsync(device, "{0}/api/device", ct);
 

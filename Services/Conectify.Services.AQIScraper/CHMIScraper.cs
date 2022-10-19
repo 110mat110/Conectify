@@ -40,7 +40,7 @@ public class CHMIScraper
             
             AQI = float.Parse(aqi.Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator));
 
-            var value = new WebsocketValue()
+            var value = new WebsocketBaseModel()
             {
                 Name = "AQI",
                 NumericValue = AQI,

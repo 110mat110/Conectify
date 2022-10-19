@@ -56,13 +56,16 @@ public class DataCachingService : IDataCachingService
 
     public async Task InsertValue(Value value, CancellationToken ct = default)
     {
-        TryInvalidateCache(value.SourceId);
+        await ReloadCache(value.SourceId, ct);
 
         if (valueCache.ContainsKey(value.SourceId))
         {
-            lock (locker)
+            if(!(valueCache[value.SourceId].Any(x => x.NumericValue == value.NumericValue && x.TimeCreated == value.TimeCreated)))
             {
-                valueCache[value.SourceId].Add(value);
+                lock (locker)
+                {
+                    valueCache[value.SourceId].Add(value);
+                }
             }
         }
         else
@@ -71,24 +74,19 @@ public class DataCachingService : IDataCachingService
             {
                 valueCache.Add(value.SourceId, new CacheItem<Value>(value));
             }
-            await PreloadValueCache(value.SourceId, ct);
         }
     }
 
-    private void TryInvalidateCache(Guid id)
+    private async Task ReloadCache(Guid sensorId, CancellationToken ct = default)
     {
-        if(valueCache.ContainsKey(id) && DateTime.UtcNow.Subtract(valueCache[id].CreationTimeUtc).TotalMilliseconds > cacheDurationMillis)
+        if (valueCache.ContainsKey(sensorId) && DateTime.UtcNow.Subtract(valueCache[sensorId].CreationTimeUtc).TotalMilliseconds > cacheDurationMillis)
         {
             lock (locker)
             {
-                valueCache.Remove(id);
+                valueCache.Remove(sensorId);
             }
         }
-    }
 
-    private async Task PreloadValueCache(Guid sensorId, CancellationToken ct = default)
-    {
-        TryInvalidateCache(sensorId);
         if (valueCache.ContainsKey(sensorId))
         {
             return;
@@ -107,10 +105,7 @@ public class DataCachingService : IDataCachingService
 
         lock (locker)
         {
-            if (!valueCache.ContainsKey(sensorId))
-            {
-                valueCache.Add(sensorId, new CacheItem<Value>());
-            }
+            valueCache.Add(sensorId, new CacheItem<Value>());
             valueCache[sensorId].AddRange(values);
             valueCache[sensorId].Reorder(x => x.TimeCreated);
         }
@@ -118,17 +113,13 @@ public class DataCachingService : IDataCachingService
 
     public async Task<IEnumerable<ApiValue>> GetDataForLast24h(Guid sourceId, CancellationToken ct = default)
     {
-        TryInvalidateCache(sourceId);
-        if (!valueCache.ContainsKey(sourceId))
-        {
-            await PreloadValueCache(sourceId, ct);
-        }
+        await ReloadCache(sourceId);
         return mapper.Map<IEnumerable<ApiValue>>(valueCache[sourceId]);
     }
 
     public async Task<ApiValue?> GetLatestValueAsync(Guid sourceId, CancellationToken ct = default)
     {
-        await PreloadValueCache(sourceId, ct);
+        await ReloadCache(sourceId, ct);
 
         if (valueCache.ContainsKey(sourceId))
         {

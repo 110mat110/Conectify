@@ -26,7 +26,7 @@ public class ShellyService : IShellyService
     public async Task<bool> SetSwitch(bool isOn)
     {
         logger.LogInformation($"Light was turned {LightState(isOn)}");
-        var value = new WebsocketValue()
+        var value = new WebsocketBaseModel()
         {
             Name = "Light",
             NumericValue = isOn ? 100 : 0,
@@ -70,7 +70,7 @@ public class ShellyService : IShellyService
             }
         }
 
-        await websocketClient.SendMessageAsync(new WebsocketActionResponse()
+        await websocketClient.SendMessageAsync(new WebsocketBaseModel()
         {
             Id = Guid.NewGuid(),
             Name = "Shelly light",
@@ -79,7 +79,7 @@ public class ShellyService : IShellyService
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             Type = "ActionResponse",
             Unit = "%",
-            ActionId = websocketAction.Id,
+            ResponseSourceId = websocketAction.Id,
             StringValue = string.Empty
         });
         return true;

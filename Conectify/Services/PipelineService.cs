@@ -46,19 +46,19 @@ public class PipelineService : IPipelineService
         IEnumerable<Guid> targetingSubscribers = new List<Guid>();
         if (entity is Value v)
         {
-            apiModel = mapper.Map<WebsocketValue>(entity);
+            apiModel = mapper.Map<WebsocketBaseModel>(entity);
             targetingSubscribers = ValueTargetingSubscribers(v.SourceId);
         }
 
         if (entity is Command command)
         {
-            apiModel = mapper.Map<WebsocketCommand>(entity);
+            apiModel = mapper.Map<WebsocketBaseModel>(entity);
             targetingSubscribers = targetingSubscribers.Concat(CommandTargetingSubscribers(command.DestinationId, command.SourceId));
         }
 
         if (entity is Action action)
         {
-            apiModel = mapper.Map<WebsocketAction>(entity);
+            apiModel = mapper.Map<WebsocketBaseModel>(entity);
             targetingSubscribers = ActionTargetingSubscribers(action.SourceId, action.DestinationId);
         }
 
@@ -66,7 +66,7 @@ public class PipelineService : IPipelineService
         {
             var commandSourceId = conectifyDb.Commands.FirstOrDefault(x => x.Id == cr.CommandId)?.SourceId;
 
-            apiModel = mapper.Map<WebsocketCommandResponse>(entity);
+            apiModel = mapper.Map<WebsocketBaseModel>(entity);
             targetingSubscribers = CommandResponseTargetingSubscribers(cr.SourceId, commandSourceId);
         }
 
@@ -75,7 +75,7 @@ public class PipelineService : IPipelineService
             var actionSourceId = conectifyDb.Actions.FirstOrDefault(x => x.Id == ar.ActionId)?.SourceId;
 
 
-            apiModel = mapper.Map<WebsocketActionResponse>(entity);
+            apiModel = mapper.Map<WebsocketBaseModel>(entity);
             targetingSubscribers = ActionResponseTargetingSubscribers(ar.SourceId, actionSourceId);
         }
 
