@@ -21,13 +21,8 @@ namespace Conectify.Server.Test.Services
                 .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
                 .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
                 .Options;
-            var database = (ConectifyDb?)Activator.CreateInstance(typeof(ConectifyDb), contextOptions);
 
-            if (database == null)
-            {
-                throw new ArgumentException("Wrong context options or context cannot be constructed");
-            }
-            this.dbContext = database;
+            this.dbContext = new ConectifyDb(contextOptions);
         }
 
         [Fact]

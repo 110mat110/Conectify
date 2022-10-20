@@ -10,7 +10,7 @@ public class ApiPosition
 {
     public string Description { get; set; } = "PLACEHOLDER";
 
-    public long Lat { get; set; }
+    public float Lat { get; set; }
 
-    public long Long { get; set;}
+    public float Long { get; set;}
 }
