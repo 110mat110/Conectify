@@ -1,5 +1,4 @@
 ﻿using Conectify.Services.Library;
-using Conectify.Shared.Library.Models.Values;
 using Conectify.Shared.Library.Models.Websocket;
 using HtmlAgilityPack;
 using System.Globalization;
@@ -33,11 +32,12 @@ public class CHMIScraper
         pageDocument.LoadHtml(res);
         float AQI;
         string status = string.Empty;
-        try { 
+        try
+        {
             var x = pageDocument.DocumentNode.SelectSingleNode("//body");
             status = pageDocument.DocumentNode.SelectSingleNode("//body//div[@id='main']//div[@id='content']//table[2]//tr[last()]//td[2]//span").InnerText;
             string aqi = pageDocument.DocumentNode.SelectSingleNode("//body//div[@id='main']//div[@id='content']//table[2]//tr[last()]//td[5]").InnerText;
-            
+
             AQI = float.Parse(aqi.Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator));
 
             var value = new WebsocketBaseModel()

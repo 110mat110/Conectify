@@ -34,7 +34,7 @@ public class WebSocketService : IWebSocketService
     public async Task<bool> ConnectAsync(Guid deviceId, WebSocket webSocket, CancellationToken ct = default)
     {
         websocketCache.AddNewWebsocket(deviceId, webSocket);
-            await deviceService.TryAddUnknownDevice(deviceId, ct: ct); ;
+        await deviceService.TryAddUnknownDevice(deviceId, ct: ct); ;
         await subscribersCache.UpdateSubscriber(deviceId, ct);
         logger.LogWarning($"Connection with device {deviceId} has started.");
         await HandleInput(webSocket, deviceId, ct);

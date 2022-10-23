@@ -1,18 +1,11 @@
 ﻿using AutoMapper;
 using Conectify.Database;
 using Conectify.Database.Models;
-using Conectify.Server.Mapper;
 using Conectify.Server.Services;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Maps;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Conectify.Server.Test.Services
 {
@@ -61,7 +54,7 @@ namespace Conectify.Server.Test.Services
             {
                 Id = deviceId,
                 Name = deviceName,
-            }) ;
+            });
             dbs.SaveChanges();
 
             var result = await service.TryAddUnknownDevice(deviceId);
@@ -154,7 +147,7 @@ namespace Conectify.Server.Test.Services
             var deviceId = Guid.NewGuid();
             var dbs = new ConectifyDb(dbContextoptions);
             dbs.Add(new Device()
-                {
+            {
                 Id = deviceId,
                 Name = deviceName,
             });
@@ -232,7 +225,7 @@ namespace Conectify.Server.Test.Services
             Assert.False(result);
         }
 
-        
+
 
         [Fact]
         public async Task ItShallNotThrowWhenMetadataNotInDbs()
@@ -355,11 +348,11 @@ namespace Conectify.Server.Test.Services
                 StringValue = Guid.NewGuid().ToString(),
             });
             dbs.SaveChanges();
-          
+
             var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>());
             var result = await service.GetMetadata(deviceId);
 
-            Assert.Equal(2,result.Count());
+            Assert.Equal(2, result.Count());
         }
     }
 }

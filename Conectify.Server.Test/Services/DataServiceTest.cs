@@ -6,7 +6,6 @@ using Conectify.Shared.Library.Models.Websocket;
 using Conectify.Shared.Maps;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Action = Conectify.Database.Models.Values.Action;
 
@@ -75,7 +74,7 @@ namespace Conectify.Server.Test.Services
 
             await ds.InsertJsonModel(JsonConvert.SerializeObject(validValue), deviceId);
 
-            if(valueType == "Value" || valueType == "Action")
+            if (valueType == "Value" || valueType == "Action")
             {
                 A.CallTo(() => sensorService.TryAddUnknownDevice(A<Guid>.That.IsEqualTo(sensorId), A<Guid>.That.IsEqualTo(deviceId), A<CancellationToken>.Ignored)).MustHaveHappenedOnceExactly();
                 A.CallTo(() => deviceService.TryAddUnknownDevice(A<Guid>.Ignored, A<Guid>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();

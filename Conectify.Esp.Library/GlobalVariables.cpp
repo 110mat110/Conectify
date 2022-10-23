@@ -56,7 +56,7 @@ int GlobalVariables::GVNot(int state){
   return LOW;
 }
 
-bool GlobalVariables::WiFiRestartRequired(){
+bool GlobalVariables::RestartRequired(){
   if(WiFiRestartReq){
     WiFiRestartReq = false;
     return true;

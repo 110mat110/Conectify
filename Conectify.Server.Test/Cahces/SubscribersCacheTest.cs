@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Castle.Core.Internal;
 using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Server.Caches;
@@ -7,14 +6,8 @@ using Conectify.Server.Mapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Conectify.Server.Test.Services
+namespace Conectify.Server.Test.Cahces
 {
     public class SubscribersCacheTest
     {
@@ -28,21 +21,11 @@ namespace Conectify.Server.Test.Services
                 .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
                 .Options;
 
-            this.dbContext = new ConectifyDb(contextOptions);
+            dbContext = new ConectifyDb(contextOptions);
 
             var services = new ServiceCollection();
-            services.AddTransient<ConectifyDb>(services => new ConectifyDb(contextOptions));
+            services.AddTransient(services => new ConectifyDb(contextOptions));
             serviceProvider = services.BuildServiceProvider();
-        }
-
-        [Fact]
-        public void ItShallBeCreatedEmpty()
-        {
-            var subsCache = new SubscribersCache(A.Fake<IServiceProvider>(), A.Fake<IMapper>());
-            
-            var allSubs = subsCache.AllSubscribers();
-
-            Assert.Empty(allSubs);
         }
 
         [Fact]
@@ -90,8 +73,8 @@ namespace Conectify.Server.Test.Services
                     }
                 }
             };
-            await this.dbContext.AddAsync(device);
-            await this.dbContext.SaveChangesAsync();
+            await dbContext.AddAsync(device);
+            await dbContext.SaveChangesAsync();
 
             var subsCache = new SubscribersCache(serviceProvider, mapper);
 
@@ -129,8 +112,8 @@ namespace Conectify.Server.Test.Services
                     }
                 }
             };
-            await this.dbContext.AddAsync(device);
-            await this.dbContext.SaveChangesAsync();
+            await dbContext.AddAsync(device);
+            await dbContext.SaveChangesAsync();
 
             var subsCache = new SubscribersCache(serviceProvider, mapper);
 

@@ -14,7 +14,7 @@ namespace Conectify.Shared.Maps.Test
             {
                 configuration.AddMaps(typeof(ValuesProfile).GetTypeInfo().Assembly);
                 configuration.AddMaps(typeof(SubscriberProfile).GetTypeInfo().Assembly);
-        });
+            });
 
             // Assert
             config.AssertConfigurationIsValid();

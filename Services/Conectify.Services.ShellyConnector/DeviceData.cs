@@ -1,12 +1,9 @@
 ﻿namespace Conectify.Services.ShellyConnector;
 
-using Conectify.Database.Models;
 using Conectify.Services.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Services;
 using Conectify.Shared.Services;
-using System.Net;
-using System.Net.NetworkInformation;
 
 public class DeviceData : IDeviceData
 {

@@ -1,6 +1,4 @@
-﻿using Conectify.Database.Interfaces;
-
-namespace Conectify.Service.History.Models;
+﻿namespace Conectify.Service.History.Models;
 
 public class CacheItem<T> : List<T> where T : class
 {

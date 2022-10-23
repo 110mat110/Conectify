@@ -26,13 +26,13 @@ public class MetadataService : IMetadataService
     }
     public async Task<bool> AddNewMetadata(ApiBasicMetadata metadata, CancellationToken ct = default)
     {
-        if(metadata.Id == Guid.Empty)
+        if (metadata.Id == Guid.Empty)
         {
             metadata.Id = Guid.NewGuid();
         }
 
         var dbModel = mapper.Map<Metadata>(metadata);
-        await database.Set<Metadata>().AddAsync(dbModel,ct);
+        await database.Set<Metadata>().AddAsync(dbModel, ct);
 
         await database.SaveChangesAsync(ct);
         return true;

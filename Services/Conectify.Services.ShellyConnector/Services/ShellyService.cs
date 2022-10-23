@@ -1,5 +1,4 @@
 ﻿using Conectify.Services.Library;
-using Conectify.Shared.Library.Models.Values;
 using Conectify.Shared.Library.Models.Websocket;
 
 namespace Conectify.Services.ShellyConnector.Services;

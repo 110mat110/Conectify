@@ -26,7 +26,8 @@ namespace Conectify.Shared.Services.Test
             try
             {
                 SharedDataService.DeserializeJson("!@#$", Mapper);
-            } catch(ConectifyException ex)
+            }
+            catch (ConectifyException ex)
             {
                 Assert.Matches(ex.Message, "Json to deserialize is not in valid format!!");
             }

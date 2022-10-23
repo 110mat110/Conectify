@@ -74,12 +74,12 @@ public class ConnectorService : IConnectorService
         }
 
         var allMetadata = await LoadAllMetadata(cancellationToken);
-        if(allMetadata is null || !allMetadata.Any() || ! metadatas.Any(x => allMetadata.Select(x => x.Name.ToLowerInvariant()).Contains(x.MetadataName.ToLowerInvariant())))
+        if (allMetadata is null || !allMetadata.Any() || !metadatas.Any(x => allMetadata.Select(x => x.Name.ToLowerInvariant()).Contains(x.MetadataName.ToLowerInvariant())))
         {
             return false;
         }
 
-    
+
         foreach (var metadata in metadatas.Where(x => allMetadata.Select(x => x.Name).Contains(x.MetadataName)))
         {
             var apiModel = mapper.Map<ApiMetadataConnector>(metadata);
@@ -119,7 +119,7 @@ public class ConnectorService : IConnectorService
         await client.SendAsync(message, ct);
     }
 
-    private async Task<TResult?> PostAsync<T,TResult>(T objectToSend, string urlSuffix, CancellationToken ct = default) where T : IApiModel
+    private async Task<TResult?> PostAsync<T, TResult>(T objectToSend, string urlSuffix, CancellationToken ct = default) where T : IApiModel
     {
         var finalURL = string.Format(urlSuffix, configuration.ServerUrl);
         var serializedApiModel = JsonConvert.SerializeObject(objectToSend);

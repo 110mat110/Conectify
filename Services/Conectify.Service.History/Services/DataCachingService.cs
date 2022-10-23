@@ -23,7 +23,7 @@ public class DataCachingService : IDataCachingService
     private readonly IMapper mapper;
     private readonly ILogger<DataCachingService> logger;
     private readonly IDeviceCachingService deviceCachingService;
-    private static double cacheDurationMillis = 1000*60*15;
+    private static double cacheDurationMillis = 1000 * 60 * 15;
 
     public DataCachingService(IServiceProvider serviceProvider, IMapper mapper, ILogger<DataCachingService> logger, IDeviceCachingService deviceCachingService)
     {
@@ -36,7 +36,8 @@ public class DataCachingService : IDataCachingService
 
     private void PreloadAllSensors()
     {
-        lock (locker) { 
+        lock (locker)
+        {
             var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
             logger.LogInformation("Preloading all active sensors to the cache from time " + yesterdayUnixTime);
             using var scope = this.serviceProvider.CreateScope();
@@ -60,7 +61,7 @@ public class DataCachingService : IDataCachingService
 
         if (valueCache.ContainsKey(value.SourceId))
         {
-            if(!(valueCache[value.SourceId].Any(x => x.NumericValue == value.NumericValue && x.TimeCreated == value.TimeCreated)))
+            if (!(valueCache[value.SourceId].Any(x => x.NumericValue == value.NumericValue && x.TimeCreated == value.TimeCreated)))
             {
                 lock (locker)
                 {

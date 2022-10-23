@@ -84,9 +84,6 @@ public class PipelineService : IPipelineService
             return;
         }
 
-        foreach (var sub in subscribersCache.AllSubscribers()){
-            logger.LogTrace(sub.DeviceId.ToString() + sub.IsSubedToAll);
-        }
         foreach (var subscriber in targetingSubscribers.Distinct())
         {
             this.logger.LogWarning("Sending from pipeline to " + subscriber.ToString());
@@ -104,7 +101,7 @@ public class PipelineService : IPipelineService
         if (device is null) return;
 
         var preferences = mapper.Map<IEnumerable<Preference>>(apiPreferences);
-        foreach(var preference in preferences)
+        foreach (var preference in preferences)
         {
             preference.SubscriberId = deviceId;
         };
@@ -117,8 +114,8 @@ public class PipelineService : IPipelineService
                 ));
         device.Preferences = device.Preferences.Except(preferencesToRemove).ToHashSet();
         device.Preferences.Concat(preferences);
-        device.SubscribeToAll = device.Preferences.Any(IsSubbedToAll);
         await conectifyDb.AddRangeAsync(preferences);
+        device.SubscribeToAll = device.Preferences.Any(IsSubbedToAll);
         conectifyDb.Update(device);
         await conectifyDb.SaveChangesAsync(ct);
 
@@ -142,11 +139,11 @@ public class PipelineService : IPipelineService
     private IEnumerable<Guid> ActionResponseTargetingSubscribers(Guid sourceId, Guid? actionSourceId) =>
     GetAllSubscribers()
     .Where(x =>
-        x is not null &&(
+        x is not null && (
         x.IsSubedToAll ||
         (actionSourceId is not null && x.Sensors.Contains(actionSourceId.Value)) ||
         x.Preferences.Any(preference =>
-            preference.SubToCommandResponse &&
+            preference.SubToActionResponse &&
                 (preference.SensorId is null ||
                 preference.SensorId == sourceId))))
     .Select(s => s.DeviceId);

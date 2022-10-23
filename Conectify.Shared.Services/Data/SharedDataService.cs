@@ -17,7 +17,8 @@ public class SharedDataService
         {
             var type = JsonConvert.DeserializeAnonymousType(rawJson, new { Type = string.Empty });
             expectedTypeName = type?.Type;
-        } catch (Exception)
+        }
+        catch (Exception)
         {
             throw new ConectifyException("Json to deserialize is not in valid format!!");
         };
@@ -37,7 +38,7 @@ public class SharedDataService
             throw new ConectifyException($"Could not serialize {rawJson} to websocket");
         }
 
-        if (mapper.Map(deserialized,typeof(WebsocketBaseModel), t) is not IBaseInputType mapped)
+        if (mapper.Map(deserialized, typeof(WebsocketBaseModel), t) is not IBaseInputType mapped)
         {
             throw new ConectifyException($"Could not map websocket to {t.Name}");
         }
