@@ -2,12 +2,11 @@
 <p>Details of sensor</p>
 {{sensor.name}}
 <div *ngIf="latestVal">
-    {{latestVal.name}}  <br/>
-    {{latestVal.numericValue}} {{latestVal.unit}}<br/>
+    <p>{{latestVal.name}} : {{latestVal.numericValue}} {{latestVal.unit}}</p>
     <div *ngIf="latestVal.stringValue">
         {{latestVal.stringValue}} {{latestVal.unit}}<br/>
     </div>
-    {{latestVal.timeCreated}}
+    {{latestValTime}}
 </div>
 <div echarts [autoResize]="true" [options]="chartOption" class="cube-chart" #cubeChartRef></div>
 </div>

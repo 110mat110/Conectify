@@ -63,7 +63,7 @@ public class AutomatizationService : IAutomatizationService
     {
         IRuleBehaviour? rule = BehaviourFactory.GetRuleBehaviorByTypeId(ruleDTO.RuleTypeId);
         var result = rule?.Execute(ruleDTO.Values, ruleDTO);
-        if(result is null)
+        if (result is null)
         {
             return;
         }
@@ -80,7 +80,7 @@ public class AutomatizationService : IAutomatizationService
     {
         if (ruleDTO.DestinationActuatorId != null)
         {
-            var command = new WebsocketAction()
+            var command = new WebsocketBaseModel()
             {
                 DestinationId = ruleDTO.DestinationActuatorId.Value,
                 Name = automatisationValue.Name,

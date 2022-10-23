@@ -22,7 +22,6 @@
 
 using namespace websockets;
 
-bool onLine = false; // wifi status
 USBComm usb;
 bool requestAcc = true;
 bool sendSensors = true;
@@ -30,7 +29,7 @@ WebsocketsClient websocketClient;
 WiFiManager wm;
 char str[6];
 
-WiFiManagerParameter thingId("thingId", "Thing id", GetGlobalVariables()->baseThing.id, 37);
+WiFiManagerParameter thingId("thingId", "Thing id", GetGlobalVariables()->baseThing.id, IdStringLength);
 WiFiManagerParameter siteName("siteName", "Name of server", "", 40);
 WiFiManagerParameter sitePort("sitePort", "Port of the server", "", 6);
 Thing thing;
@@ -40,15 +39,12 @@ void InitializeDevice(int psensorArrSize, int pactuatorArrSize, void (*SensorsDe
 
 void HandleWebSetup();
 void ReceiveSerialConnection();
-
-bool ConnectToWifi();
 void RecievedMessageRoutine();
 void SendAllSensorsToServerIfNeeded();
 void CreateBaseThing();
 void RegisterAllEntities(Thing thing);
 void StartOTA(String OTAName);
 void AskServerForTime();
-void DisconnectWiFi();
 void saveParamsCallback();
 void onMessageCallback(WebsocketsMessage message);
 void onEventsCallback(WebsocketsEvent event, String data);
@@ -81,10 +77,9 @@ void LoopMandatoryRoutines()
   HandleWebSetup();
   ReceiveSerialConnection();
   RecievedMessageRoutine();
-  if (GetGlobalVariables()->WiFiRestartRequired())
+  if (GetGlobalVariables()->RestartRequired())
   {
-    ConnectToWifi();
-    RegisterAllEntities(thing);
+    ESP.restart();
   }
 
   if (GetGlobalVariables()->EEPROMWriteRequired())
@@ -126,18 +121,16 @@ void InitializeDevice(int psensorArrSize, int pactuatorArrSize, void (*SensorsDe
 
 void InitializeNetwork(Thing insertedThing)
 {
-  if (GetGlobalVariables()->initialized)
+  if (wm.autoConnect("ConectifyAP"))
   {
-
-    if (wm.autoConnect("ConectifyAP"))
+    StartOTA("Conectify");
+    if (GetGlobalVariables()->initialized)
     {
-      onLine = true;
-      StartOTA("Conectify");
       RegisterAllEntities(insertedThing);
       AskServerForTime();
       SetupWebSocket();
-      wm.startWebPortal();
     }
+    wm.startWebPortal();
   }
 }
 
@@ -156,10 +149,12 @@ void SetupWebSocket()
 
 void SendViaWebSocket(String message)
 {
-    if (websocketClient.available())
+  if (websocketClient.available())
   {
-  websocketClient.send(message);
-  } else{
+    websocketClient.send(message);
+  }
+  else
+  {
     DebugMessage("Cannot send message, websocket is not active. Trying to reconnect");
     SetupWebSocket();
   }
@@ -180,17 +175,18 @@ void OneTimeWifiManagerSetup()
 void saveParamsCallback()
 {
   DebugMessage("Save params called");
-  String(thingId.getValue()).toCharArray(GetGlobalVariables()->baseThing.id, 37);
+  String(thingId.getValue()).toCharArray(GetGlobalVariables()->baseThing.id, IdStringLength);
   String(siteName.getValue()).toCharArray(GetGlobalVariables()->baseThing.serverUrl, 40);
   String(sitePort.getValue()).toCharArray(GetGlobalVariables()->baseThing.port, 6);
 
   SaveToEEPRom(EEPROM, GetGlobalVariables()->baseThing);
 
-  thingId.setValue(GetGlobalVariables()->baseThing.id, 37);
+  thingId.setValue(GetGlobalVariables()->baseThing.id, IdStringLength);
   sitePort.setValue(GetGlobalVariables()->baseThing.port, 6);
   siteName.setValue(GetGlobalVariables()->baseThing.serverUrl, 35);
 
   InitializeNetwork(thing);
+  RegisterAllEntities(thing);
 }
 
 void HandleWebSetup()
@@ -212,7 +208,7 @@ void ReceiveSerialConnection()
 
 void SendAllSensorsToServerIfNeeded()
 {
-  if (!onLine)
+  if (!WiFi.status() == WL_CONNECTED)
   {
     DebugMessage("trying to connect to server withouth wifi!");
     return;
@@ -228,7 +224,8 @@ void SendAllSensorsToServerIfNeeded()
         GetGlobalVariables()->sensorsArr[i].MarkAsRead();
         DebugMessage("Calling SendSensorValuesToServer");
 
-        if (GetGlobalVariables()->sensorsArr[i].isInitialized){
+        if (GetGlobalVariables()->sensorsArr[i].isInitialized)
+        {
           GetGlobalVariables()->sensorsArr[i].MarkAsRead();
 
           DebugMessage("--------- Sensor Value ------------------------");
@@ -259,7 +256,7 @@ void RegisterActuator()
   }
 }
 
-void onEventsCallback(WebsocketsEvent event, String data){}
+void onEventsCallback(WebsocketsEvent event, String data) {}
 
 void CreateBaseThing()
 {
@@ -279,46 +276,6 @@ void CreateBaseThing()
     GetGlobalVariables()->initialized = true;
     DebugMessage("Loaded data from EEPROM");
   }
-}
-
-bool ConnectToWifi()
-{
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    return true;
-  }
-
-  GetGlobalVariables()->SetLedOFF();
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(GetGlobalVariables()->baseThing.ssid, GetGlobalVariables()->baseThing.password);
-  WiFi.waitForConnectResult() != WL_CONNECTED;
-  for (int i = 0; i < 10; i++)
-  {
-    GetGlobalVariables()->InvertLed();
-    delay(500);
-  }
-  onLine = (WiFi.status() == WL_CONNECTED);
-  if (!onLine)
-  {
-    for (int i = 0; i < 10; i++)
-    {
-      GetGlobalVariables()->InvertLed();
-      delay(50);
-    }
-  }
-
-  GetGlobalVariables()->SetLedOFF();
-  return WiFi.status() == WL_CONNECTED;
-}
-
-void DisconnectWiFi()
-{
-  if (WiFi.status() != WL_CONNECTED)
-  {
-    WiFi.disconnect();
-  }
-
-  onLine = (WiFi.status() == WL_CONNECTED);
 }
 
 void AskServerForTime()
@@ -409,7 +366,7 @@ void RecievedMessageRoutine()
 void RegisterAllEntities(Thing thing)
 {
   DebugMessage("Registering entites");
-  if (onLine)
+  if ((WiFi.status() == WL_CONNECTED))
   {
     RegisterBaseThing(GetGlobalVariables()->baseThing, WiFi, thing);
     SaveToEEPRom(EEPROM, GetGlobalVariables()->baseThing);
@@ -423,20 +380,20 @@ void RegisterAllEntities(Thing thing)
     DebugMessage("Not online. Cannot register anything!");
   }
 }
-void HandleCommand(String commandText, float commandValue, String commandTextParam){
-  
+void HandleCommand(String commandText, float commandValue, String commandTextParam)
+{
 }
 
 void onMessageCallback(WebsocketsMessage message)
 {
   DebugMessage("Got Message: ");
   DebugMessage(message.data());
-      decodeIncomingJson(
-        message.data(),
-        HandleCommand,
-        GetGlobalVariables()->dateTime,
-        GetGlobalVariables()->actuatorsArr,
-        GetGlobalVariables()->actuatorArrSize);
+  decodeIncomingJson(
+      message.data(),
+      HandleCommand,
+      GetGlobalVariables()->dateTime,
+      GetGlobalVariables()->actuatorsArr,
+      GetGlobalVariables()->actuatorArrSize);
 }
 
 void RequestActuatorValues()

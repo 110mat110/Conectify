@@ -2,7 +2,6 @@
 
 using Conectify.Shared.Library.Interfaces;
 using System;
-using System.Collections.Generic;
 
 public record ApiActuator : IApiModel
 {

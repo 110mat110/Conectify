@@ -4,7 +4,7 @@ namespace Conectify.Services.Automatization;
 
 public class AutomatizationConfiguration : Configuration
 {
-    public AutomatizationConfiguration(IConfiguration configuration) :base(configuration)
+    public AutomatizationConfiguration(IConfiguration configuration) : base(configuration)
     {
 
     }

@@ -1,5 +1,5 @@
-using Conectify.Services.Library;
 using Conectify.Services.AQIScraper;
+using Conectify.Services.Library;
 using System.Timers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,10 +15,10 @@ await app.Services.ConnectToConectifyServer();
 
 app.UseHttpsRedirection();
 
-var timer = new System.Timers.Timer(3*60*1000*1000);
+var timer = new System.Timers.Timer(60 * 60 * 1000);
 timer.Elapsed += Timer_ElapsedAsync;
 timer.AutoReset = true;
-timer.Start();
+timer.Enabled = true;
 
 async void Timer_ElapsedAsync(object? sender, ElapsedEventArgs e)
 {

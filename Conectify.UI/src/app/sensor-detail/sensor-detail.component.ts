@@ -19,6 +19,7 @@ export class SensorDetailComponent implements OnInit {
   xAxis: string[] = [];
   mapedValues: number[] = [];
   public latestVal?: BaseInputType;
+  public latestValTime?: string;
   
   constructor(public messenger: MessagesService, private be: BEFetcherService,) { }
 
@@ -32,8 +33,12 @@ export class SensorDetailComponent implements OnInit {
           this.setOptions();
         }
     });
-    this.latestVal = this.values[this.values.length-1];
-  }
+    this.be.getLatestSensorValue(this.sensor.id).subscribe(
+      x=> {this.latestVal = x;
+        this.latestValTime = new Date(x.timeCreated).toLocaleTimeString()
+      }
+    )
+    }
   }
 
   setOptions() {

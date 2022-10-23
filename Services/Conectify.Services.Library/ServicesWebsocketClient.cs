@@ -99,8 +99,6 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
     private async Task ReceiveLoop()
     {
         var loopToken = CTS?.Token;
-        //MemoryStream? outputStream = null;
-        //;
         var buffer = new byte[ReceiveBufferSize];
         try
         {
@@ -137,10 +135,11 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
     {
         if (WS is null)
         {
+            logger.LogError("Websocket unavaliable");
             return false;
         }
-
         var msg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
+        logger.LogInformation("Sending message via websocket: {msg}", msg);
         await WS.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, cancellationToken);
         return true;
     }
@@ -148,10 +147,11 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
     private void ResponseReceived(Stream inputStream)
     {
         StreamReader stream = new(inputStream);
-        string x = stream.ReadToEnd();
+        string serializedMessage = stream.ReadToEnd();
         stream.Dispose();
 
-        var (entity, _) = SharedDataService.DeserializeJson(x, this.mapper);
+        logger.LogInformation("WS recieved message {serializedMessage}", serializedMessage);
+        var (entity, _) = SharedDataService.DeserializeJson(serializedMessage, this.mapper);
         NotifyAboutIncomingMessage(entity);
     }
 

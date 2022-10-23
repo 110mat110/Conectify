@@ -30,7 +30,7 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 await app.Services.ConnectToConectifyServer();
 var ws = app.Services.GetRequiredService<IServicesWebsocketClient>();
-ws.OnIncomingValue += async(ws_IncomingValue) =>
+ws.OnIncomingValue += async (ws_IncomingValue) =>
 {
     var dataCache = app.Services.GetRequiredService<IDataCachingService>();
     var deviceCache = app.Services.GetRequiredService<IDeviceCachingService>();

@@ -13,7 +13,7 @@ import { BEFetcherService } from './befetcher.service';
   providers: [WebsocketService]
 })
 export class AppComponent {
-  title = 'IoTHomeUI';
+  title = 'Conectify';
   received: string[] = [];
   @ViewChild("fingerprintIdTextBoxRef") myNameElem?: ElementRef;
   wsStatus: any = this.websocketService.status;

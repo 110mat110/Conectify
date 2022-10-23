@@ -16,17 +16,13 @@ public class WebsocketCache : IWebsocketCache
     private static readonly Dictionary<Guid, WSCahceItem> sockets = new Dictionary<Guid, WSCahceItem>();
     private readonly object locker = new();
 
-    public WebsocketCache()
-    {
-    }
-
     public bool AddNewWebsocket(Guid deviceId, WebSocket webSocket)
     {
         if (sockets.ContainsKey(deviceId))
         {
             lock (locker)
             {
-                
+
                 sockets[deviceId].WebSocket = webSocket;
                 sockets[deviceId].Count++;
                 return false;
@@ -47,9 +43,9 @@ public class WebsocketCache : IWebsocketCache
         if (sockets.ContainsKey(deviceId))
         {
             if (sockets[deviceId].Count <= 1)
-            lock (locker)
-            {
-                sockets.Remove(deviceId);
+                lock (locker)
+                {
+                    sockets.Remove(deviceId);
                 }
             else
             {

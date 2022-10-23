@@ -1,6 +1,6 @@
 ﻿using Conectify.Services.Library;
-using Conectify.Shared.Library.Models.Services;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Models.Services;
 using Conectify.Shared.Services;
 
 namespace Conectify.Services.AQIScraper;

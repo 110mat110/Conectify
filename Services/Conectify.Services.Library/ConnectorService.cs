@@ -3,6 +3,7 @@ using Conectify.Database.Models;
 using Conectify.Shared.Library.Interfaces;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Services;
+using Conectify.Shared.Library.Services;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
@@ -21,22 +22,24 @@ public interface IConnectorService
 
 }
 
-internal class ConnectorService : IConnectorService
+public class ConnectorService : IConnectorService
 {
     private readonly ILogger<ConnectorService> logger;
     private readonly Configuration configuration;
     private readonly IMapper mapper;
+    private readonly IHttpFactory httpProvider;
 
-    public ConnectorService(ILogger<ConnectorService> logger, Configuration configuration, IMapper mapper)
+    public ConnectorService(ILogger<ConnectorService> logger, Configuration configuration, IMapper mapper, IHttpFactory httpProvider)
     {
         this.logger = logger;
         this.configuration = configuration;
         this.mapper = mapper;
+        this.httpProvider = httpProvider;
     }
 
-    public async Task<bool> RegisterDevice(ApiDevice device, IEnumerable<ApiSensor> apiSensors, IEnumerable<ApiActuator> apiActuators, CancellationToken ct = default)//TODO better naming for function
+    public async Task<bool> RegisterDevice(ApiDevice device, IEnumerable<ApiSensor> apiSensors, IEnumerable<ApiActuator> apiActuators, CancellationToken ct = default)
     {
-        await PostAsync(device, "{0}/api/device/", ct);
+        await PostAsync(device, "{0}/api/device", ct);
 
         foreach (var apiSensor in apiSensors)
         {
@@ -71,12 +74,12 @@ internal class ConnectorService : IConnectorService
         }
 
         var allMetadata = await LoadAllMetadata(cancellationToken);
-        if(allMetadata is null || !allMetadata.Any() || ! metadatas.Any(x => allMetadata.Select(x => x.Name.ToLowerInvariant()).Contains(x.MetadataName.ToLowerInvariant())))
+        if (allMetadata is null || !allMetadata.Any() || !metadatas.Any(x => allMetadata.Select(x => x.Name.ToLowerInvariant()).Contains(x.MetadataName.ToLowerInvariant())))
         {
             return false;
         }
 
-    
+
         foreach (var metadata in metadatas.Where(x => allMetadata.Select(x => x.Name).Contains(x.MetadataName)))
         {
             var apiModel = mapper.Map<ApiMetadataConnector>(metadata);
@@ -108,10 +111,30 @@ internal class ConnectorService : IConnectorService
         finalURL = finalURL.Replace("//", "/").Replace(@"\\", @"\").Replace("http:/", "http://").Replace("https:/", "https://");
         logger.LogInformation("Post to: {finalURL} with content; {serializedApiModel}", finalURL, serializedApiModel);
 
-        using HttpClient client = new();
-        var content = new StringContent(serializedApiModel, Encoding.UTF8, "application/json");
-        await client.PostAsync(finalURL, content, ct);
-        //Todo return result!
+        using var client = httpProvider.HttpClient;
+        var message = new HttpRequestMessage(HttpMethod.Post, finalURL)
+        {
+            Content = new StringContent(serializedApiModel, Encoding.UTF8, "application/json")
+        };
+        await client.SendAsync(message, ct);
+    }
+
+    private async Task<TResult?> PostAsync<T, TResult>(T objectToSend, string urlSuffix, CancellationToken ct = default) where T : IApiModel
+    {
+        var finalURL = string.Format(urlSuffix, configuration.ServerUrl);
+        var serializedApiModel = JsonConvert.SerializeObject(objectToSend);
+        finalURL = finalURL.Replace("//", "/").Replace(@"\\", @"\").Replace("http:/", "http://").Replace("https:/", "https://");
+        logger.LogInformation("Post to: {finalURL} with content; {serializedApiModel}", finalURL, serializedApiModel);
+
+        using var client = httpProvider.HttpClient;
+        var message = new HttpRequestMessage(HttpMethod.Post, finalURL)
+        {
+            Content = new StringContent(serializedApiModel, Encoding.UTF8, "application/json")
+        };
+        var result = await client.SendAsync(message, ct);
+        var jsonResult = await result.Content.ReadAsStringAsync(ct);
+
+        return JsonConvert.DeserializeObject<TResult>(jsonResult);
     }
 
     private async Task<T?> GetAsync<T>(string urlSuffix, CancellationToken ct = default)
@@ -120,8 +143,8 @@ internal class ConnectorService : IConnectorService
         finalURL = finalURL.Replace("//", "/").Replace(@"\\", @"\").Replace("http:/", "http://").Replace("https:/", "https://");
         logger.LogInformation("Get from: {finalURL}", finalURL);
 
-        using HttpClient client = new();
-        var result = await client.GetAsync(finalURL, ct);
+        using var client = httpProvider.HttpClient;
+        var result = await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, finalURL), ct);
         var jsonResult = await result.Content.ReadAsStringAsync(ct);
 
         return JsonConvert.DeserializeObject<T>(jsonResult);

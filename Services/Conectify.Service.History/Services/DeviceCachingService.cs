@@ -1,6 +1,5 @@
 ﻿using Conectify.Database.Models.Values;
 using Conectify.Services.Library;
-using Newtonsoft.Json.Linq;
 
 namespace Conectify.Service.History.Services;
 
@@ -21,7 +20,7 @@ public class DeviceCachingService : IDeviceCachingService
 
     public DeviceCachingService(IConnectorService connectorService)
     {
-        foreach(var result in connectorService.LoadAllActuators().Result)
+        foreach (var result in connectorService.LoadAllActuators().Result)
         {
             actuatorCache.TryAdd(result.Id, DateTime.UtcNow);
         }

@@ -34,7 +34,7 @@ public:
     void InvertLed();
     void SetWiFiTimerInSeconds(int secondsPerTimer);
     void SetSensoricTimerInSeconds(int secondsPerTimer);
-    bool WiFiRestartRequired();
+    bool RestartRequired();
     bool EEPROMWriteRequired();
 
     private:

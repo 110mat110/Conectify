@@ -4,7 +4,6 @@ using Conectify.Database.Models.Values;
 using Conectify.Service.History.Models;
 using Conectify.Shared.Library.Models.Values;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
 
 namespace Conectify.Service.History.Services;
 
@@ -13,78 +12,116 @@ public interface IDataCachingService
     Task InsertValue(Value websocketValue, CancellationToken ct = default);
     Task<IEnumerable<ApiValue>> GetDataForLast24h(Guid sourceId, CancellationToken ct = default);
 
-    ApiValue? GetLatestValue(Guid sourceId);
+    Task<ApiValue?> GetLatestValueAsync(Guid sourceId, CancellationToken ct = default);
 }
 
 public class DataCachingService : IDataCachingService
 {
+    private readonly object locker = new object();
     private readonly IDictionary<Guid, CacheItem<Value>> valueCache = new Dictionary<Guid, CacheItem<Value>>(); //TODO check if I should not use Concurency dictionary here
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
     private readonly ILogger<DataCachingService> logger;
-    private static double cacheDurationMillis = 1000*60*15;
+    private readonly IDeviceCachingService deviceCachingService;
+    private static double cacheDurationMillis = 1000 * 60 * 15;
 
-    public DataCachingService(IServiceProvider serviceProvider, IMapper mapper, ILogger<DataCachingService> logger)
+    public DataCachingService(IServiceProvider serviceProvider, IMapper mapper, ILogger<DataCachingService> logger, IDeviceCachingService deviceCachingService)
     {
         this.serviceProvider = serviceProvider;
         this.mapper = mapper;
         this.logger = logger;
+        this.deviceCachingService = deviceCachingService;
+        PreloadAllSensors();
+    }
+
+    private void PreloadAllSensors()
+    {
+        lock (locker)
+        {
+            var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
+            logger.LogInformation("Preloading all active sensors to the cache from time " + yesterdayUnixTime);
+            using var scope = this.serviceProvider.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
+            var groups = db.Set<Value>().Where(x => x.TimeCreated > yesterdayUnixTime).ToList().GroupBy(x => x.SourceId);
+
+
+            foreach (var valueGroup in groups)
+            {
+                deviceCachingService.ObserveSensorFromValue(valueGroup.Last());
+                valueCache.Add(valueGroup.Key, new CacheItem<Value>());
+                valueCache[valueGroup.Key].AddRange(valueGroup);
+                valueCache[valueGroup.Key].Reorder(x => x.TimeCreated);
+            }
+        }
     }
 
     public async Task InsertValue(Value value, CancellationToken ct = default)
     {
-        TryInvalidateCache(value.SourceId);
+        await ReloadCache(value.SourceId, ct);
 
         if (valueCache.ContainsKey(value.SourceId))
         {
-            valueCache[value.SourceId].Add(value);
+            if (!(valueCache[value.SourceId].Any(x => x.NumericValue == value.NumericValue && x.TimeCreated == value.TimeCreated)))
+            {
+                lock (locker)
+                {
+                    valueCache[value.SourceId].Add(value);
+                }
+            }
         }
         else
         {
-            valueCache.Add(value.SourceId, new CacheItem<Value>(value));
-            await PreloadValueCache(value.SourceId, ct);
+            lock (locker)
+            {
+                valueCache.Add(value.SourceId, new CacheItem<Value>(value));
+            }
         }
     }
 
-    private void TryInvalidateCache(Guid id)
+    private async Task ReloadCache(Guid sensorId, CancellationToken ct = default)
     {
-        if(valueCache.ContainsKey(id) && DateTime.UtcNow.Subtract(valueCache[id].CreationTimeUtc).TotalMilliseconds > cacheDurationMillis)
+        if (valueCache.ContainsKey(sensorId) && DateTime.UtcNow.Subtract(valueCache[sensorId].CreationTimeUtc).TotalMilliseconds > cacheDurationMillis)
         {
-            valueCache.Remove(id);
+            lock (locker)
+            {
+                valueCache.Remove(sensorId);
+            }
         }
-    }
 
-    private async Task PreloadValueCache(Guid sensorId, CancellationToken ct = default)
-    {
+        if (valueCache.ContainsKey(sensorId))
+        {
+            return;
+        }
+
         var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
         logger.LogInformation("Preloading cache from time " + yesterdayUnixTime);
         using var scope = this.serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var query = db.Set<Value>().Where(x => x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime).ToQueryString();
-        var allValues = (await db.Set<Value>().ToListAsync(ct)).Where(x => x.SourceId == sensorId).ToList();
         var values = await db.Set<Value>().Where(x => x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime).ToListAsync(ct);
-        var syncValues = db.Set<Value>().Where(x => x.TimeCreated > yesterdayUnixTime).ToList();
-        
-        if (!valueCache.ContainsKey(sensorId))
+
+        if (!values.Any())
+        {
+            return;
+        }
+
+        lock (locker)
         {
             valueCache.Add(sensorId, new CacheItem<Value>());
+            valueCache[sensorId].AddRange(values);
+            valueCache[sensorId].Reorder(x => x.TimeCreated);
         }
-        valueCache[sensorId].AddRange(values);
-        valueCache[sensorId].Reorder(x => x.TimeCreated);
     }
 
     public async Task<IEnumerable<ApiValue>> GetDataForLast24h(Guid sourceId, CancellationToken ct = default)
     {
-        TryInvalidateCache(sourceId);
-        if (!valueCache.ContainsKey(sourceId))
-        {
-            await PreloadValueCache(sourceId, ct);
-        }
+        await ReloadCache(sourceId);
         return mapper.Map<IEnumerable<ApiValue>>(valueCache[sourceId]);
     }
 
-    public ApiValue? GetLatestValue(Guid sourceId)
+    public async Task<ApiValue?> GetLatestValueAsync(Guid sourceId, CancellationToken ct = default)
     {
+        await ReloadCache(sourceId, ct);
+
         if (valueCache.ContainsKey(sourceId))
         {
             var value = valueCache[sourceId].OrderByDescending(x => x.TimeCreated).FirstOrDefault();

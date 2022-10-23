@@ -6,6 +6,7 @@
 .cube-chart{
     margin: 30, 10, 30, 10;
     width: auto;
+    height: 200px;
 };
 .hiddenTable{
     table-layout: fixed;

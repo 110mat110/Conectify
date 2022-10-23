@@ -1,5 +1,4 @@
 ﻿using Conectify.Services.Library;
-using Conectify.Shared.Library.Models.Values;
 using Conectify.Shared.Library.Models.Websocket;
 
 namespace Conectify.Services.ShellyConnector.Services;
@@ -26,7 +25,7 @@ public class ShellyService : IShellyService
     public async Task<bool> SetSwitch(bool isOn)
     {
         logger.LogInformation($"Light was turned {LightState(isOn)}");
-        var value = new WebsocketValue()
+        var value = new WebsocketBaseModel()
         {
             Name = "Light",
             NumericValue = isOn ? 100 : 0,
@@ -70,16 +69,16 @@ public class ShellyService : IShellyService
             }
         }
 
-        await websocketClient.SendMessageAsync(new WebsocketActionResponse()
+        await websocketClient.SendMessageAsync(new WebsocketBaseModel()
         {
             Id = Guid.NewGuid(),
             Name = "Shelly light",
             NumericValue = websocketAction.NumericValue > 0 ? 100 : 0,
             SourceId = configuration.ActuatorId,
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            Type = "ActionResult",
+            Type = "ActionResponse",
             Unit = "%",
-            ActionId = websocketAction.Id,
+            ResponseSourceId = websocketAction.Id,
             StringValue = string.Empty
         });
         return true;

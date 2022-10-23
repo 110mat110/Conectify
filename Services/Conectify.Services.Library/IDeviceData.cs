@@ -11,7 +11,7 @@ public interface IDeviceData
 
     IEnumerable<ApiActuator> Actuators { get; }
 
-    IEnumerable<ApiPreference> Preferences { get;}
+    IEnumerable<ApiPreference> Preferences { get; }
 
     IEnumerable<MetadataServiceConnector> MetadataConnectors { get; }
 }

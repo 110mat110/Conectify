@@ -1,14 +1,14 @@
 <div *ngIf="sensors">
   <div #theContainer>
-<mat-grid-list cols="{{columnNum}}" rowHeight="250px" gutterSize="6px">
-    <div *ngFor="let sensor of sensors">
-    <mat-grid-tile *ngIf = "sensor.visible">
-      <app-sensor-cube [sensorInput]="sensor"></app-sensor-cube>
-    </mat-grid-tile>
+    <mat-grid-list cols="{{columnNum}}" rowHeight="250px" gutterSize="6px">
+      <div *ngFor="let sensor of sensors">
+        <mat-grid-tile *ngIf="sensor.visible">
+          <app-sensor-cube [sensorInput]="sensor"></app-sensor-cube>
+        </mat-grid-tile>
+      </div>
+    </mat-grid-list>
   </div>
-  </mat-grid-list>
-</div>
 </div>
 <div *ngIf="!sensors">
-    no sesnors found!
+  no sesnors found!
 </div>
