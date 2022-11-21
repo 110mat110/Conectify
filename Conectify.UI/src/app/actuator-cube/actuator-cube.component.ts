@@ -27,6 +27,7 @@ export class ActuatorCubeComponent implements OnInit {
   metadatas: Metadata[] = [];
   maxValue: number = 0;
   minValue: number = 0;
+  metadataValue: number = 0;
 
   constructor(public messenger: MessagesService, private websocketService: WebsocketService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef, private output: OutputCreatorService) { }
 
@@ -59,6 +60,7 @@ export class ActuatorCubeComponent implements OnInit {
             this.iotype = IOType[typeMetadata.stringValue as keyof typeof IOType];
             this.minValue = typeMetadata.minVal;
             this.maxValue = typeMetadata.maxVal;
+            this.metadataValue = typeMetadata.numericValue;
           }
           var visibilityMetadata = this.metadatas.find(x => x.name === "Visible");
           if(visibilityMetadata && this.actuatorId){
@@ -85,12 +87,16 @@ export class ActuatorCubeComponent implements OnInit {
     this.refreshActualStatus();
   }
 
-  onbuttonClick() {
+  onButtonClick() {
     this.sendn("", this.maxValue);
   }
 
   offbuttonClick() {
     this.sendn("", this.minValue);
+  }
+
+  triggerButtonClick(){
+    this.sendn("", this.metadataValue);
   }
 
   sendn(stringValue: string, numericValue: number): void {

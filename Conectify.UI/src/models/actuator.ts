@@ -4,3 +4,7 @@ export interface Actuator {
     sourceDeviceId: string;
     sensorId: string;
 }
+
+export interface CreateActuatorApi{
+    actuatorName: string;
+}

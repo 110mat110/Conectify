@@ -2,13 +2,11 @@
 
 public record CreateRuleApiModel
 {
-    public List<Guid> DestinationRules { get; set; } = new List<Guid>();
+    public int X { get; set; }
 
-    public string Name { get; set; } = string.Empty;
-
-    public string Description { get; set; } = string.Empty;
+    public int Y { get; set; }
 
     public string Parameters { get; set; } = string.Empty;
 
-    public Guid RuleType { get; set; }
+    public Guid BehaviourId { get; set; }
 }

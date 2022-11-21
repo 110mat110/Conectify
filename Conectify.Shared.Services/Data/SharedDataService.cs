@@ -45,4 +45,30 @@ public class SharedDataService
 
         return (mapped, t);
     }
+
+    public static Guid? ExtractSourceId(string rawJson)
+    {
+        try
+        {
+            var id = JsonConvert.DeserializeAnonymousType(rawJson, new { SourceSensorId = Guid.Empty });
+            return id?.SourceSensorId;
+        }
+        catch (Exception)
+        {
+            return null;
+        };
+    }
+
+    public static Guid? ExtractDestinationId(string rawJson)
+    {
+        try
+        {
+            var id = JsonConvert.DeserializeAnonymousType(rawJson, new { DestinationId = Guid.Empty });
+            return id?.DestinationId;
+        }
+        catch (Exception)
+        {
+            return null;
+        };
+    }
 }

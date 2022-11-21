@@ -6,15 +6,8 @@ public static class BehaviourFactory
 {
     public static IRuleBehaviour? GetRuleBehaviorByTypeId(Guid id)
     {
-        var behaviours = AppDomain.CurrentDomain.GetAssemblies()
-        .SelectMany(x => x.GetTypes())
-        .Where(x =>
-            !x.IsAbstract
-            && !x.IsInterface
-            && x.GetInterfaces().Any(i =>
-                i.IsGenericType
-                && i.GetGenericTypeDefinition() == typeof(IRuleBehaviour)
-            )
+        var behaviours = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes())
+           .Where(t => t.GetInterfaces().Contains(typeof(IRuleBehaviour))
         ).Select(x => Activator.CreateInstance(x) as IRuleBehaviour).ToList();
 
         return behaviours.FirstOrDefault(x => (x)?.GetId() == id);

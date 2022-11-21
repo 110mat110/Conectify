@@ -6,7 +6,7 @@ import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 
 @Component({
-  selector: 'app-select-destination-actuator-overlay',
+  selector: 'app-',
   templateUrl: './select-destination-actuator-overlay.component.html',
   styleUrls: ['./select-destination-actuator-overlay.component.css']
 })

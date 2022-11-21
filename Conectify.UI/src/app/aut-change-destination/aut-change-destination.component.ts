@@ -48,9 +48,4 @@ export class AutChangeDestinationComponent implements OnInit {
     ref.instance.creatorComponent = this;
   }
 
-  saveClick(){
-    if(this.Rule)
-      this.be.saveChangeDestRule(this.Rule);
-  }
-
 }

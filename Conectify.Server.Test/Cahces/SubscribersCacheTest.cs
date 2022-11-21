@@ -7,142 +7,141 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Conectify.Server.Test.Cahces
+namespace Conectify.Server.Test.Cahces;
+
+public class SubscribersCacheTest
 {
-    public class SubscribersCacheTest
+    private ConectifyDb dbContext;
+    private IServiceProvider serviceProvider;
+
+    public SubscribersCacheTest()
     {
-        private ConectifyDb dbContext;
-        private IServiceProvider serviceProvider;
+        var contextOptions = new DbContextOptionsBuilder<ConectifyDb>()
+            .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
+            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
 
-        public SubscribersCacheTest()
+        dbContext = new ConectifyDb(contextOptions);
+
+        var services = new ServiceCollection();
+        services.AddTransient(services => new ConectifyDb(contextOptions));
+        serviceProvider = services.BuildServiceProvider();
+    }
+
+    [Fact]
+    public void ItShallNotFailWhenGettingNonExisting()
+    {
+        var subsCache = new SubscribersCache(A.Fake<IServiceProvider>(), A.Fake<IMapper>());
+
+        var sub = subsCache.GetSubscriber(Guid.NewGuid());
+
+        Assert.Null(sub);
+    }
+
+    [Fact]
+    public void ItShallNotFailWhenRemovingNonExisting()
+    {
+        var subsCache = new SubscribersCache(A.Fake<IServiceProvider>(), A.Fake<IMapper>());
+
+        var result = subsCache.RemoveSubscriber(Guid.NewGuid());
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task ItShallUpdateSameSubMultipleTimes()
+    {
+        var mapper = new MapperConfiguration(cfg =>
         {
-            var contextOptions = new DbContextOptionsBuilder<ConectifyDb>()
-                .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
-                .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-                .Options;
+            cfg.AddProfile<SubscriberProfile>();
+        }).CreateMapper();
 
-            dbContext = new ConectifyDb(contextOptions);
-
-            var services = new ServiceCollection();
-            services.AddTransient(services => new ConectifyDb(contextOptions));
-            serviceProvider = services.BuildServiceProvider();
-        }
-
-        [Fact]
-        public void ItShallNotFailWhenGettingNonExisting()
+        var deviceId = Guid.NewGuid();
+        var device = new Device()
         {
-            var subsCache = new SubscribersCache(A.Fake<IServiceProvider>(), A.Fake<IMapper>());
-
-            var sub = subsCache.GetSubscriber(Guid.NewGuid());
-
-            Assert.Null(sub);
-        }
-
-        [Fact]
-        public void ItShallNotFailWhenRemovingNonExisting()
-        {
-            var subsCache = new SubscribersCache(A.Fake<IServiceProvider>(), A.Fake<IMapper>());
-
-            var result = subsCache.RemoveSubscriber(Guid.NewGuid());
-
-            Assert.False(result);
-        }
-
-        [Fact]
-        public async Task ItShallUpdateSameSubMultipleTimes()
-        {
-            var mapper = new MapperConfiguration(cfg =>
+            Id = deviceId,
+            Name = "test",
+            MacAdress = "test",
+            IPAdress = "test",
+            Preferences = new List<Preference>()
             {
-                cfg.AddProfile<SubscriberProfile>();
-            }).CreateMapper();
-
-            var deviceId = Guid.NewGuid();
-            var device = new Device()
-            {
-                Id = deviceId,
-                Name = "test",
-                MacAdress = "test",
-                IPAdress = "test",
-                Preferences = new List<Preference>()
+                new Preference()
                 {
-                    new Preference()
-                    {
-                        SubscriberId=deviceId,
-                        Id = Guid.NewGuid(),
-                        SubToValues = true,
-                    }
+                    SubscriberId=deviceId,
+                    Id = Guid.NewGuid(),
+                    SubToValues = true,
                 }
-            };
-            await dbContext.AddAsync(device);
-            await dbContext.SaveChangesAsync();
+            }
+        };
+        await dbContext.AddAsync(device);
+        await dbContext.SaveChangesAsync();
 
-            var subsCache = new SubscribersCache(serviceProvider, mapper);
+        var subsCache = new SubscribersCache(serviceProvider, mapper);
 
-            var result1 = await subsCache.UpdateSubscriber(deviceId);
-            var result2 = await subsCache.UpdateSubscriber(deviceId);
+        var result1 = await subsCache.UpdateSubscriber(deviceId);
+        var result2 = await subsCache.UpdateSubscriber(deviceId);
 
-            Assert.NotNull(result1);
-            Assert.NotNull(result2);
-            Assert.Equal(deviceId, result1!.DeviceId);
-            Assert.Equal(deviceId, result2!.DeviceId);
-        }
+        Assert.NotNull(result1);
+        Assert.NotNull(result2);
+        Assert.Equal(deviceId, result1!.DeviceId);
+        Assert.Equal(deviceId, result2!.DeviceId);
+    }
 
-        [Fact]
-        public async Task ItShallReturnExistingSubscriber()
+    [Fact]
+    public async Task ItShallReturnExistingSubscriber()
+    {
+        var mapper = new MapperConfiguration(cfg =>
         {
-            var mapper = new MapperConfiguration(cfg =>
-            {
-                cfg.AddProfile<SubscriberProfile>();
-            }).CreateMapper();
+            cfg.AddProfile<SubscriberProfile>();
+        }).CreateMapper();
 
-            var deviceId = Guid.NewGuid();
-            var device = new Device()
+        var deviceId = Guid.NewGuid();
+        var device = new Device()
+        {
+            Id = deviceId,
+            Name = "test",
+            MacAdress = "test",
+            IPAdress = "test",
+            Preferences = new List<Preference>()
             {
-                Id = deviceId,
-                Name = "test",
-                MacAdress = "test",
-                IPAdress = "test",
-                Preferences = new List<Preference>()
+                new Preference()
                 {
-                    new Preference()
-                    {
-                        SubscriberId=deviceId,
-                        Id = Guid.NewGuid(),
-                        SubToValues = true,
-                    }
+                    SubscriberId=deviceId,
+                    Id = Guid.NewGuid(),
+                    SubToValues = true,
                 }
-            };
-            await dbContext.AddAsync(device);
-            await dbContext.SaveChangesAsync();
+            }
+        };
+        await dbContext.AddAsync(device);
+        await dbContext.SaveChangesAsync();
 
-            var subsCache = new SubscribersCache(serviceProvider, mapper);
+        var subsCache = new SubscribersCache(serviceProvider, mapper);
 
-            var emptyResult = subsCache.GetSubscriber(deviceId);
-            var updateResult = await subsCache.UpdateSubscriber(deviceId);
-            var cachedResult = subsCache.GetSubscriber(deviceId);
+        var emptyResult = subsCache.GetSubscriber(deviceId);
+        var updateResult = await subsCache.UpdateSubscriber(deviceId);
+        var cachedResult = subsCache.GetSubscriber(deviceId);
 
-            Assert.Null(emptyResult);
-            Assert.NotNull(updateResult);
-            Assert.NotNull(cachedResult);
-            Assert.Equal(deviceId, updateResult!.DeviceId);
-            Assert.Equal(deviceId, cachedResult!.DeviceId);
-        }
+        Assert.Null(emptyResult);
+        Assert.NotNull(updateResult);
+        Assert.NotNull(cachedResult);
+        Assert.Equal(deviceId, updateResult!.DeviceId);
+        Assert.Equal(deviceId, cachedResult!.DeviceId);
+    }
 
-        [Fact]
-        public async Task ItShallNotFallWhenNoneExistingSub()
+    [Fact]
+    public async Task ItShallNotFallWhenNoneExistingSub()
+    {
+        var mapper = new MapperConfiguration(cfg =>
         {
-            var mapper = new MapperConfiguration(cfg =>
-            {
-                cfg.AddProfile<SubscriberProfile>();
-            }).CreateMapper();
+            cfg.AddProfile<SubscriberProfile>();
+        }).CreateMapper();
 
-            var deviceId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
 
-            var subsCache = new SubscribersCache(serviceProvider, mapper);
+        var subsCache = new SubscribersCache(serviceProvider, mapper);
 
-            var result = await subsCache.UpdateSubscriber(deviceId);
+        var result = await subsCache.UpdateSubscriber(deviceId);
 
-            Assert.Null(result);
-        }
+        Assert.Null(result);
     }
 }

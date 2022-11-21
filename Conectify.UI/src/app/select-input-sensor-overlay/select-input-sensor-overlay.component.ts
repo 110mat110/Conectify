@@ -30,8 +30,8 @@ export class SelectInputSensorOverlayComponent implements OnInit {
   ) {}
 
   selectedSensor(id: string){
-    if(this.creatorComponent && this.creatorComponent.SourceRule){
-      this.creatorComponent.SourceRule.sourceId = id as string;
+    if(this.creatorComponent && this.creatorComponent.Rule){
+      this.creatorComponent.Rule.sourceId = id as string;
       this.creatorComponent.closeOverlay();
     }
   }

@@ -1,4 +1,5 @@
 ﻿using Conectify.Database.Models.Values;
+using Conectify.Services.Automatization.Rules;
 
 namespace Conectify.Services.Automatization.Models;
 
@@ -22,7 +23,6 @@ public class RuleDTO
 
     public IEnumerable<Guid> NextRules { get; set; } = new List<Guid>();
 
-
     public void InsertValue(Value value)
     {
         var automationValue = new AutomatisationValue()
@@ -39,15 +39,31 @@ public class RuleDTO
         InsertValue(automationValue);
     }
 
+    public void InsertValue(Database.Models.Values.Action action)
+    {
+        var automationValue = new AutomatisationValue()
+        {
+            Id = action.Id,
+            Name = action.Name,
+            NumericValue = action.NumericValue,
+            StringValue = action.StringValue,
+            SourceId = action.SourceId,
+            TimeCreated = action.TimeCreated,
+            Unit = action.Unit,
+        };
+
+        InsertValue(automationValue);
+    }
+
     public void InsertValue(AutomatisationValue value)
     {
-        if (cachedValues.ContainsKey(value.Id))
+        if (cachedValues.ContainsKey(value.SourceId))
         {
-            cachedValues[value.Id] = value;
+            cachedValues[value.SourceId] = value;
         }
         else
         {
-            cachedValues.Add(value.Id, value);
+            cachedValues.Add(value.SourceId, value);
         }
     }
 

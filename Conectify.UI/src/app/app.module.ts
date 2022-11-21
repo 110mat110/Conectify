@@ -33,7 +33,8 @@ import {MatListModule} from '@angular/material/list';
 import {MatButtonModule} from '@angular/material/button';
 import {MatSelectModule} from '@angular/material/select';
 import { LastValueComponent } from './last-value/last-value.component';
-import {MatToolbarModule} from '@angular/material/toolbar'; 
+import {MatToolbarModule} from '@angular/material/toolbar';
+import { AutUserInputComponent } from './aut-user-input/aut-user-input.component'; 
 
 @NgModule({
   declarations: [
@@ -52,7 +53,8 @@ import {MatToolbarModule} from '@angular/material/toolbar';
     AutChangeDestinationComponent,
     SelectDestinationActuatorOverlayComponent,
     MetadataComponent,
-    LastValueComponent
+    LastValueComponent,
+    AutUserInputComponent
   ],
   imports: [
     FormsModule,

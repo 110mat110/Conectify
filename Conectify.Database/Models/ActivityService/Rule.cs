@@ -14,13 +14,9 @@ public class Rule : IEntity
 
     public Guid RuleType { get; set; }
 
-    public Guid? SourceSensorId { get; set; }
+    public int X { get; set; }
 
-    public Guid? DestinationActuatorId { get; set; }
-
-    public virtual Sensor? SourceSensor { get; set; }
-
-    public virtual Actuator? DestinationActuator { get; set; }
+    public int Y { get; set; }
 
     public virtual IEnumerable<RuleConnector> ContinuingRules { get; set; } = null!;
 

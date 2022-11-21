@@ -12,18 +12,13 @@ import { SelectInputSensorOverlayComponent } from '../select-input-sensor-overla
   styleUrls: ['./aut-value-input.component.css']
 })
 export class AutValueInputComponent implements OnInit  {
-  @Input() SourceRule?: ValueInitRule;
+  @Input() Rule?: ValueInitRule;
   overlayRef: any;
 
   constructor(  private be: BefetchAutomatizationService, public messenger: MessagesService, public overlay: Overlay, public viewContainerRef: ViewContainerRef) {
 
   }
   ngOnInit(): void {
-  }
-
-  public saveClick(){
-    if(this.SourceRule)
-      this.be.saveInputRule(this.SourceRule); 
   }
 
   public closeOverlay(){

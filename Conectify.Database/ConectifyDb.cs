@@ -78,11 +78,11 @@ public class ConectifyDb : DbContext
 
         modelBuilder.Entity<RuleConnector>()
             .HasOne(bc => bc.ContinuingRule)
-            .WithMany(b => b.ContinuingRules)
+            .WithMany(b => b.PreviousRules)
             .HasForeignKey(bc => bc.ContinuingRuleId);
         modelBuilder.Entity<RuleConnector>()
             .HasOne(bc => bc.PreviousRule)
-            .WithMany(c => c.PreviousRules)
+            .WithMany(c => c.ContinuingRules)
             .HasForeignKey(bc => bc.PreviousRuleId);
 
         modelBuilder.Entity<Preference>()

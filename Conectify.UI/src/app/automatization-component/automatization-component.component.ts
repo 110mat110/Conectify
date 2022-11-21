@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ChangeDestinationRule } from 'src/models/Automatization/ChangeDestinationRule';
-import { MiddleRule } from 'src/models/Automatization/MiddleRule';
+import { EditRule } from 'src/models/Automatization/EditRule';
+import { UserInputRule } from 'src/models/Automatization/UserInputRule';
 import { ValueInitRule } from 'src/models/Automatization/ValueInitRule';
 import { AutomatizationBase, AutomatizationBaseWithTarget } from 'src/models/automatizationComponent';
 import { AutomatizationComponent } from '../automatization/automatization.component';
@@ -18,9 +19,10 @@ export class AutomatizationComponentComponent implements OnInit {
   @Input() ComponentCage?: AutomatizationComponent;
   ValueInitComponent?: ValueInitRule;
   ChangeDestinationRule?: ChangeDestinationRule;
+  UserInputRule?: UserInputRule;
   isSource: boolean = false;
   isDestination: boolean = false;
-  constructor(public messenger: MessagesService) { }
+  constructor(public messenger: MessagesService, public be: BefetchAutomatizationService) { }
 
   ngOnInit(): void {
     if(this.Component instanceof ValueInitRule){
@@ -28,23 +30,22 @@ export class AutomatizationComponentComponent implements OnInit {
       this.isDestination = false;
       this.isSource = true;
     }
-    if(this.Component instanceof MiddleRule){
-
+    if(this.Component instanceof ChangeDestinationRule){
+      this.ChangeDestinationRule = this.Component;
       this.isDestination = true;
       this.isSource = true;
     }
-    if(this.Component instanceof ChangeDestinationRule){
-      this.ChangeDestinationRule = this.Component;
 
-      console.warn("Found changeDest rule!")
+    if(this.Component instanceof UserInputRule){
+      this.UserInputRule = this.Component;
 
-      this.isDestination = true;
+      console.warn("Found userInput rule!")
+
+      this.isDestination = false;
       this.isSource = true;
     }
 
   }
-
-
 
   SourceClick(){
     this.messenger.addMessage("sourceClick");
@@ -56,5 +57,12 @@ export class AutomatizationComponentComponent implements OnInit {
     this.messenger.addMessage("Dest click");
     if(this.ComponentCage && this.Component)
     this.ComponentCage.DestinationClick(this.Component);
+  }
+
+  public saveClick(){
+    if(this.Component){
+      let apiModel: EditRule = {id: this.Component.id, x: this.Component.dragPosition.x, y: this.Component.dragPosition.y, behaviourId: this.Component.behaviorId, parameters: this.Component.getParametersJSon() };
+      this.be.saveRule(apiModel); 
+    }
   }
 }

@@ -65,3 +65,25 @@ mat-label {
     border-bottom-color: red;
     border-bottom-width: 3px;
 }
+
+.triggerButton {
+    color: var(--whiteText) !important;
+    text-align: center;
+    background-color: transparent;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-bottom: solid;
+    border-bottom-color: #0085de !important;
+    border-bottom-width: 3px;
+    border-radius: 0px !important;
+    height: 50px;
+    width: 130px;
+}
+
+.triggerButton:hover {
+    background-color: #200000;
+    border-bottom: solid;
+    border-bottom-color: rgb(0, 32, 138);
+    border-bottom-width: 3px;
+}

@@ -84,13 +84,31 @@ export class AdressesService {
     return this.serverURL + "metadata"
   }
 
-  InputRule() : string{
-    return this.automatizationURL + "input/inputValueRule"
+  createRule() : string{
+    return this.automatizationURL + "rule"
+  }
+  
+  allRules() : string{
+    return this.automatizationURL + "rule/all"
   }
 
-  saveChangeDestRule() : string{
-    return this.automatizationURL + "input/changeDestRule"
+  editRule(id: string){
+    return this.automatizationURL + "rule/" + id;
   }
 
+  behaviourList() : string{
+    return this.automatizationURL + "behaviour/all"
+  }
 
+  connectionChange(source: string, destination: string){
+    return this.automatizationURL + "rule/connection/"+source+"/"+destination;
+  }
+  
+  allConnections(){
+    return this.automatizationURL + "rule/connections"
+  }
+
+  customInput(){
+    return this.automatizationURL + "rule/input"
+  }
 }

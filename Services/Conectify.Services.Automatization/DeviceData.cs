@@ -43,7 +43,15 @@ public class DeviceData : IDeviceData
             }
         };
 
-    public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>();
+    public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>()
+    {
+        new ApiPreference()
+        {
+            SubToValues = true,
+            SubToActions = true,
+            SubToCommands = true,
+        }
+    };
 
     public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>();
 }

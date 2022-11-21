@@ -6,11 +6,13 @@ public class OutputRuleBehaviour : IRuleBehaviour
 {
     public AutomatisationValue Execute(IEnumerable<AutomatisationValue> automationValues, RuleDTO rule)
     {
-        return automationValues.First();
+        var value = automationValues.First();
+        value.DestinationId = rule.DestinationActuatorId;
+        return value;
     }
 
     public Guid GetId()
     {
-        return Guid.Parse("f5bd9cac215f4d2887cf959aa9cdf74c");
+        return Guid.Parse("d274c7f0-211e-413a-8689-f2543dbfc818");
     }
 }

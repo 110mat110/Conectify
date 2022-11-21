@@ -1,11 +1,14 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ChangeDestinationRule } from 'src/models/Automatization/ChangeDestinationRule';
-import { ValueInitRule } from 'src/models/Automatization/ValueInitRule';
+import { CreateRule } from 'src/models/Automatization/CreateRule';
 import { AdressesService } from './adresses.service';
-import { MessagesService } from './messages.service';
-import { OutputCreatorService } from './output-creator.service';
+import { BehaviourMenuItem } from 'src/models/Automatization/BehaviourMenuItem';
+import { AutomatizationBase } from 'src/models/automatizationComponent';
+import { RuleModel } from 'src/models/Automatization/RuleModel';
+import { EditRule } from 'src/models/Automatization/EditRule';
+import { RuleConnection } from 'src/models/Automatization/RuleConnection';
+import { CreateActuatorApi } from 'src/models/actuator';
 
 @Injectable({
   providedIn: 'root'
@@ -16,26 +19,35 @@ export class BefetchAutomatizationService {
   };
 
 
-  constructor(private http: HttpClient, private adresses: AdressesService, private messenger: MessagesService, private ocs: OutputCreatorService) { }
-
-  /*
-  getActuators(): Observable<Multiresult<Actuator>>{
-    return this.http.post(this.adresses.saveInputRule());
-   }
-   */
-   saveInputRule(value: ValueInitRule){
-    this.http.post(this.adresses.InputRule(), value, this.httpOptions).subscribe();
-   }
-
-   getAllInputRules(): Observable<ValueInitRule[]>{
-     return this.http.get<ValueInitRule[]>(this.adresses.InputRule());
-   }
-
-   getAllChangeDestRules(): Observable<ChangeDestinationRule[]>{
-    return this.http.get<ChangeDestinationRule[]>(this.adresses.saveChangeDestRule());
+  constructor(private http: HttpClient, private adresses: AdressesService) { }
+  getAllRules(): Observable<RuleModel[]>{
+    return this.http.get<RuleModel[]>(this.adresses.allRules());
+  }
+  GetAllBehaviours(): Observable<BehaviourMenuItem[]> {
+    return this.http.get<BehaviourMenuItem[]>(this.adresses.behaviourList());
   }
 
-   saveChangeDestRule(value: ChangeDestinationRule){
-    this.http.post(this.adresses.saveChangeDestRule(), value, this.httpOptions).subscribe();
-   }
+  GetAllConnections(): Observable<RuleConnection[]>{
+    return this.http.get<RuleConnection[]>(this.adresses.allConnections());
+  }
+
+  createRule(value: CreateRule): Observable<string> {
+    return this.http.post<string>(this.adresses.createRule(), value, this.httpOptions);
+  }
+
+  addNewConnection(source: string, destination: string) {
+    this.http.post(this.adresses.connectionChange(source, destination), {}).subscribe();
+  }
+
+  removeConnection(source: string, destination: string) {
+    this.http.delete(this.adresses.connectionChange(source, destination)).subscribe();
+  }
+
+  saveRule(rule: EditRule) {
+    this.http.put(this.adresses.editRule(rule.id), rule).subscribe();
+  }
+
+  createActuator(actuator: CreateActuatorApi){
+    this.http.post(this.adresses.customInput(), actuator).subscribe();
+  }
 }
