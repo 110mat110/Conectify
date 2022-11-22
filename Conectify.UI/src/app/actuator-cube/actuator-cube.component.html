@@ -46,7 +46,11 @@
   </div>
 
   <div *ngIf="iotype===1">
-    <button class="onButton" (click)="onbuttonClick()">ON</button>
+    <button class="onButton" (click)="onButtonClick()">ON</button>
     <button class="offButton" (click)="offbuttonClick()">OFF</button>
+  </div>
+
+  <div *ngIf="iotype===2">
+    <button class="triggerButton" (click)="triggerButtonClick()">CLICK</button>
   </div>
 </div>

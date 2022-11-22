@@ -17,7 +17,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
     {
 #pragma warning disable 612, 618
         modelBuilder
-            .HasAnnotation("ProductVersion", "6.0.3")
+            .HasAnnotation("ProductVersion", "6.0.10")
             .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
         NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -49,13 +49,19 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
                 b.Property<Guid?>("SourceSensorId")
                     .HasColumnType("uuid");
 
+                b.Property<int>("X")
+                    .HasColumnType("integer");
+
+                b.Property<int>("Y")
+                    .HasColumnType("integer");
+
                 b.HasKey("Id");
 
                 b.HasIndex("DestinationActuatorId");
 
                 b.HasIndex("SourceSensorId");
 
-                b.ToTable("Rules", (string)null);
+                b.ToTable("Rules");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.ActivityService.RuleConnector", b =>
@@ -70,7 +76,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("ContinuingRuleId");
 
-                b.ToTable("RuleConnector", (string)null);
+                b.ToTable("RuleConnector");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>
@@ -98,7 +104,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("SourceDeviceId");
 
-                b.ToTable("Actuators", (string)null);
+                b.ToTable("Actuators");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.Device", b =>
@@ -132,7 +138,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("PositionId");
 
-                b.ToTable("Devices", (string)null);
+                b.ToTable("Devices");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.Metadata", b =>
@@ -147,7 +153,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasKey("Id");
 
-                b.ToTable("Metadatas", (string)null);
+                b.ToTable("Metadatas");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.MetadataConnector<Conectify.Database.Models.Actuator>", b =>
@@ -182,7 +188,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("MetadataId");
 
-                b.ToTable("ActuatorMetadatas", (string)null);
+                b.ToTable("ActuatorMetadatas");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.MetadataConnector<Conectify.Database.Models.Device>", b =>
@@ -217,7 +223,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("MetadataId");
 
-                b.ToTable("DeviceMetadata", (string)null);
+                b.ToTable("DeviceMetadata");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.MetadataConnector<Conectify.Database.Models.Sensor>", b =>
@@ -252,7 +258,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("MetadataId");
 
-                b.ToTable("SensorMetadata", (string)null);
+                b.ToTable("SensorMetadata");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.Position", b =>
@@ -273,7 +279,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasKey("Id");
 
-                b.ToTable("Position", (string)null);
+                b.ToTable("Position");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.Preference", b =>
@@ -319,7 +325,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("SubscriberId");
 
-                b.ToTable("Preference", (string)null);
+                b.ToTable("Preference");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.Sensor", b =>
@@ -342,7 +348,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("SourceDeviceId");
 
-                b.ToTable("Sensors", (string)null);
+                b.ToTable("Sensors");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.Values.Action", b =>
@@ -381,7 +387,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("SourceId");
 
-                b.ToTable("Actions", (string)null);
+                b.ToTable("Actions");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.Values.ActionResponse", b =>
@@ -420,7 +426,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("SourceId");
 
-                b.ToTable("ActionResponses", (string)null);
+                b.ToTable("ActionResponses");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.Values.Command", b =>
@@ -459,7 +465,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("SourceId");
 
-                b.ToTable("Commands", (string)null);
+                b.ToTable("Commands");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.Values.CommandResponse", b =>
@@ -498,7 +504,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("SourceId");
 
-                b.ToTable("CommandResponses", (string)null);
+                b.ToTable("CommandResponses");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.Values.Value", b =>
@@ -532,7 +538,7 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
 
                 b.HasIndex("SourceId");
 
-                b.ToTable("Values", (string)null);
+                b.ToTable("Values");
             });
 
         modelBuilder.Entity("Conectify.Database.Models.ActivityService.Rule", b =>
@@ -553,13 +559,13 @@ partial class ConectifyDbModelSnapshot : ModelSnapshot
         modelBuilder.Entity("Conectify.Database.Models.ActivityService.RuleConnector", b =>
             {
                 b.HasOne("Conectify.Database.Models.ActivityService.Rule", "ContinuingRule")
-                    .WithMany("ContinuingRules")
+                    .WithMany("PreviousRules")
                     .HasForeignKey("ContinuingRuleId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
 
                 b.HasOne("Conectify.Database.Models.ActivityService.Rule", "PreviousRule")
-                    .WithMany("PreviousRules")
+                    .WithMany("ContinuingRules")
                     .HasForeignKey("PreviousRuleId")
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();

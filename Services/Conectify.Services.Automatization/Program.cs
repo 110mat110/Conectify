@@ -22,8 +22,9 @@ builder.Services.AddSingleton<AutomatizationCache>();
 builder.Services.AddSingleton<IAutomatizationService, AutomatizationService>();
 builder.Services.AddTransient<RuleService>();
 
-var app = builder.Build();
 
+var app = builder.Build();
+await app.Services.ConnectToConectifyServer();
 var automatizationService = app.Services.GetRequiredService<IAutomatizationService>();
 automatizationService.StartServiceAsync();
 

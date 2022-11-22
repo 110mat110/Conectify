@@ -4,9 +4,15 @@ export class AutomatizationBase{
     public dragPosition = {x: 0, y: 0};
 
     public initialPos = {x:0, y:0};
+    public behaviorId: string = "";
 
-    constructor(id: string){
+    public getParametersJSon(): string{
+        return "{}";
+    }
+
+    constructor(id: string, behaviourId: string){
         this.id = id;
+        this.behaviorId = behaviourId;
     }
 }
 
@@ -15,7 +21,7 @@ export class AutomatizationBaseWithTarget extends AutomatizationBase{
 
     public targets: string[] = [];
 
-    constructor(id: string){
-        super(id);
+    constructor(id: string, behaviourId: string){
+        super(id, behaviourId);
     }
 }

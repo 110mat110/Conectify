@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { ChangeDestinationRule } from 'src/models/Automatization/ChangeDestinationRule';
+import { UserInputRule } from 'src/models/Automatization/UserInputRule';
 import { ValueInitRule } from 'src/models/Automatization/ValueInitRule';
-import { AutomatizationBase } from 'src/models/automatizationComponent';
+import { AutomatizationBase, AutomatizationBaseWithTarget } from 'src/models/automatizationComponent';
 import { v4 } from 'uuid';
 import { AutomatizationComponent } from './automatization/automatization.component';
 import { BefetchAutomatizationService } from './befetch-automatization.service';
@@ -17,6 +18,19 @@ export class RuleProviderService {
   }
 
   LoadAllRules() {
+    this.Rules = [];
+    this.be.getAllRules().subscribe(x => {x.forEach((rule) => {
+        var createdRule = (this.RuleFactoryCreateRuleBasedOnBehaviourId(rule.behaviourId, rule.id, rule.propertyJson));
+        if(createdRule){
+          createdRule.dragPosition = {x: rule.x, y: rule.y};
+          if(createdRule instanceof AutomatizationBaseWithTarget){
+            createdRule.targets = rule.targets;
+          }
+          this.SaveComponent(createdRule);
+        }
+      })
+    });
+    /*
     this.be.getAllInputRules().subscribe((x) =>
       x.forEach((y) => {
         var rule = new ValueInitRule(y.id);
@@ -38,7 +52,7 @@ export class RuleProviderService {
         rule.dragPosition = y.dragPosition;
         this.SaveComponent(rule);
       })
-    );
+    );*/
   }
 
   SaveComponent(component: AutomatizationBase) {
@@ -52,17 +66,28 @@ export class RuleProviderService {
     this.Rules.push(component);
   }
 
-  createRule(selectedRule: string) {
-    if (selectedRule === 'inputValue') {
-      this.SaveComponent(new ValueInitRule(v4()));
-    }
-
-    if (selectedRule === 'changeDest') {
-      this.SaveComponent(new ChangeDestinationRule(v4()));
-    }
+  createRule(selectedRuleId: string) {
+    this.be.createRule({x: 100, y:100, behaviourId: selectedRuleId, propertyJson:"{}"}).subscribe(x => {
+        let component = this.RuleFactoryCreateRuleBasedOnBehaviourId(selectedRuleId, x, "{}");
+        if(component){
+          this.SaveComponent(component);
+        }
+    });
   }
 
   getRuleByID(id: string): AutomatizationBase | undefined {
     return this.Rules.find((x) => x.id == id);
+  }
+
+  RuleFactoryCreateRuleBasedOnBehaviourId(behaviourId: string, id: string, parametersJson: string): AutomatizationBase | undefined
+  {
+    switch(behaviourId) {
+    case "24ff4530-887b-48d1-a4fa-38cc83925797":{
+      return new ValueInitRule(id, behaviourId,parametersJson);
+    }
+    case "d274c7f0-211e-413a-8689-f2543dbfc818": return new ChangeDestinationRule(id, behaviourId, parametersJson );
+    case "24ff4530-887b-48d1-a4fa-38cc83925798": return new UserInputRule(id, behaviourId, parametersJson);
+    default: return;
+    }
   }
 }

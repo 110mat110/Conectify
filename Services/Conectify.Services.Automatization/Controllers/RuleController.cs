@@ -23,16 +23,22 @@ public class RuleController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet]
+    [HttpGet("all")]
     public async Task<IActionResult> GetAllRules()
     {
         return Ok(await ruleService.GetAllRules());
     }
 
-    [HttpPost("{id}")]
-    public async Task<IActionResult> EditRule(Guid id, string propertyJson)
+    [HttpGet("connections")]
+    public async Task<IEnumerable<ConnectionApiModel>> GetAllConnections()
     {
-        return Ok(await ruleService.EditRule(id, propertyJson));
+        return await ruleService.GetAllConnections();
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> EditRule(Guid id, EditRuleApiModel rule)
+    {
+        return Ok(await ruleService.EditRule(id, rule));
     }
 
     [HttpPost("connection/{idSource}/{idDestination}")]
@@ -45,5 +51,11 @@ public class RuleController : ControllerBase
     public async Task<IActionResult> RemoveConnection(Guid idSource, Guid idDestination)
     {
         return await ruleService.RemoveConnection(idSource, idDestination) ? Ok() : BadRequest();
+    }
+
+    [HttpPost("input")]
+    public async Task<IActionResult> AddCustomInput(AddActuatorApiModel actuator)
+    {
+        return await ruleService.AddCustomInput(actuator) ? Ok() : BadRequest();
     }
 }

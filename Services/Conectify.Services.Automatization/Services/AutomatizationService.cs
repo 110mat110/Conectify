@@ -36,13 +36,27 @@ public class AutomatizationService : IAutomatizationService
     public void StartServiceAsync()
     {
         websocketClient.OnIncomingValue += WebsocketClient_OnIncomingValue;
+        websocketClient.OnIncomingAction += WebsocketClient_OnIncomingAction;
         websocketClient.ConnectAsync();
         HandleTimerAsync();
     }
 
+    private async void WebsocketClient_OnIncomingAction(Database.Models.Values.Action action)
+    {
+        if (action.DestinationId != null)
+        {
+            var sourceRules = automatizationCache.GetRulesForSource(action.DestinationId.Value);
+            foreach (var sourceRule in sourceRules)
+            {
+                sourceRule.InsertValue(action);
+                await ExecuteRule(sourceRule);
+            }
+        }
+    }
+
     private async void WebsocketClient_OnIncomingValue(Value value)
     {
-        var sourceRules = await automatizationCache.GetRulesForSource(value.SourceId);
+        var sourceRules = automatizationCache.GetRulesForSource(value.SourceId);
         foreach (var sourceRule in sourceRules)
         {
             sourceRule.InsertValue(value);
@@ -52,7 +66,7 @@ public class AutomatizationService : IAutomatizationService
 
     public async Task OnValue(Guid ruleId, AutomatisationValue value)
     {
-        var rule = await automatizationCache.GetRuleById(ruleId);
+        var rule = await automatizationCache.GetRuleByIdAsync(ruleId);
         if (rule == null)
             return;
         rule.InsertValue(value);
@@ -70,7 +84,7 @@ public class AutomatizationService : IAutomatizationService
 
         SendToActuator(ruleDTO, result);
 
-        foreach (RuleDTO nextRule in await automatizationCache.GetNextRules(ruleDTO))
+        foreach (RuleDTO nextRule in automatizationCache.GetNextRules(ruleDTO))
         {
             await OnValue(nextRule.Id, result);
         }
@@ -78,7 +92,7 @@ public class AutomatizationService : IAutomatizationService
 
     private void SendToActuator(RuleDTO ruleDTO, AutomatisationValue automatisationValue)
     {
-        if (ruleDTO.DestinationActuatorId != null)
+        if (ruleDTO.DestinationActuatorId != null && ruleDTO.DestinationActuatorId != Guid.Empty)
         {
             var command = new WebsocketBaseModel()
             {
@@ -89,6 +103,7 @@ public class AutomatizationService : IAutomatizationService
                 TimeCreated = automatisationValue.TimeCreated,
                 Unit = automatisationValue.Unit,
                 SourceId = configuration.SensorId,
+                Type = "Action",
             };
 
             websocketClient.SendMessageAsync(command);
@@ -98,7 +113,7 @@ public class AutomatizationService : IAutomatizationService
     public async void HandleTimerAsync(CancellationToken cancellationToken = default)
     {
         var timer = new PeriodicTimer(TimeSpan.FromSeconds(this.configuration.RefreshIntervalSeconds));
-
+        /* fuj... co do pici som to stvoril
         while (!cancellationToken.IsCancellationRequested)
         {
             await timer.WaitForNextTickAsync(cancellationToken);
@@ -109,6 +124,6 @@ public class AutomatizationService : IAutomatizationService
             {
                 await ExecuteRule(rule);
             }
-        }
+        }*/
     }
 }

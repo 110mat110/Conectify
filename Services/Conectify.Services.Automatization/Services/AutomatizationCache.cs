@@ -3,6 +3,7 @@ using Conectify.Database;
 using Conectify.Database.Models.ActivityService;
 using Conectify.Services.Automatization.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Conectify.Services.Automatization.Services;
 
@@ -10,78 +11,40 @@ public class AutomatizationCache
 {
     private readonly IServiceProvider services;
     private readonly IMapper mapper;
-    private readonly IDictionary<Guid, RuleDTO> cache;
+    private IDictionary<Guid, RuleDTO> cache;
     public AutomatizationCache(IServiceProvider services, IMapper mapper)
     {
         this.services = services;
         this.mapper = mapper;
-        cache = new Dictionary<Guid, RuleDTO>();
+        cache = SyncReload();
     }
 
-    public async Task<RuleDTO?> GetRuleById(Guid id)
+    public async Task<RuleDTO?> GetRuleByIdAsync(Guid id)
     {
         if (cache.ContainsKey(id))
         {
             return cache[id];
         }
 
-        using var scope = services.CreateScope();
-        var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        //Todo guess what to do with exceptions later
-        var rule = await conectifyDb.Set<Rule>().FirstAsync(x => x.Id == id);
+        await Reload(id);
 
-        var dto = mapper.Map<RuleDTO>(rule);
-
-        cache.Add(id, dto);
-
-        return dto;
+        return cache.ContainsKey(id) ? cache[id] : null;
     }
 
-    public async Task<IEnumerable<RuleDTO>> GetRulesForSource(Guid sourceId)
+    public IEnumerable<RuleDTO> GetRulesForSource(Guid sourceId)
     {
-        using var scope = services.CreateScope();
-        var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var rules = await conectifyDb.Set<Rule>().Where(x => x.SourceSensorId == sourceId).ToListAsync();
-        var dtos = mapper.Map<IEnumerable<RuleDTO>>(rules);
-
-        foreach (var rule in dtos)
-        {
-            cache.TryAdd(rule.Id, rule);
-        }
-        var selectedKeys = dtos.Select(x => x.Id);
-        return cache.Where(x => selectedKeys.Contains(x.Key)).Select(x => x.Value);
+        return cache.Where(x => x.Value.SourceSensorId == sourceId).Select(x => x.Value);
     }
 
-    public async Task<IEnumerable<RuleDTO>> GetRulesByTypeId(Guid ruleTypeId)
+    public IEnumerable<RuleDTO> GetRulesByTypeId(Guid ruleTypeId)
     {
-        using var scope = services.CreateScope();
-        var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var rules = await conectifyDb.Set<Rule>().Where(x => x.RuleType == ruleTypeId).ToListAsync();
-        var dtos = mapper.Map<IEnumerable<RuleDTO>>(rules);
-
-        foreach (var rule in dtos)
-        {
-            cache.TryAdd(rule.Id, rule);
-        }
-        var selectedKeys = dtos.Select(x => x.Id);
-        return cache.Where(x => selectedKeys.Contains(x.Key)).Select(x => x.Value);
-
+        return cache.Where(x => x.Value.RuleTypeId == ruleTypeId).Select(x => x.Value);
     }
 
 
-    public async Task<IEnumerable<RuleDTO>> GetNextRules(RuleDTO ruleDTO)
+    public IEnumerable<RuleDTO> GetNextRules(RuleDTO ruleDTO)
     {
-        using var scope = services.CreateScope();
-        var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var rules = await conectifyDb.Set<Rule>().Where(x => ruleDTO.NextRules.Contains(x.Id)).ToListAsync();
-        var dtos = mapper.Map<IEnumerable<RuleDTO>>(rules);
-
-        foreach (var rule in dtos)
-        {
-            cache.TryAdd(rule.Id, rule);
-        }
-        var selectedKeys = dtos.Select(x => x.Id);
-        return cache.Where(x => selectedKeys.Contains(x.Key)).Select(x => x.Value);
+        return cache.Where(x => ruleDTO.NextRules.Contains(x.Value.Id)).Select(x => x.Value);
     }
 
     public async Task<Guid> AddNewRule(Rule rule, CancellationToken cancellationToken)
@@ -97,8 +60,37 @@ public class AutomatizationCache
         return rule.Id;
     }
 
-    public void Invalidate(Guid id)
+    public async Task Reload(Guid id, CancellationToken ct = default)
     {
         cache.Remove(id);
+
+        using var scope = services.CreateScope();
+        var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
+        var rule = await conectifyDb.Set<Rule>().FirstAsync(x => x.Id == id, ct);
+
+        var dto = mapper.Map<RuleDTO>(rule);
+
+        cache.Add(dto.Id, dto);
+    }
+
+    public async Task Reload(CancellationToken ct = default)
+    {
+        cache.Clear();
+        using var scope = services.CreateScope();
+        var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
+        var dbrules = await conectifyDb.Set<Rule>().ToListAsync(ct);
+
+        var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
+        cache = dtos.ToDictionary(x => x.Id);
+    }
+
+    private IDictionary<Guid, RuleDTO> SyncReload()
+    {
+        using var scope = services.CreateScope();
+        var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
+        var dbrules = conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).ToList();
+
+        var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
+        return dtos.ToDictionary(x => x.Id);
     }
 }

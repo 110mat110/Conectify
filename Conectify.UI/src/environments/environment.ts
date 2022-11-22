@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   serverUrl: "http://server.home:5000",
-  automatizationURL: "http://server.home:5030",
+  automatizationURL: "https://localhost:5001",
   historyUrl: "http://server.home:5020",
 };
 

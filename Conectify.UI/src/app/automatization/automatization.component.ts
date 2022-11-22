@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { ValueInitRule } from 'src/models/Automatization/ValueInitRule';
 import { MessagesService } from '../messages.service';
 import {v4} from 'uuid';
-import { MiddleRule } from 'src/models/Automatization/MiddleRule';
 import { AutomatizationBase, AutomatizationBaseWithTarget } from 'src/models/automatizationComponent';
 import { CdkDragEnd } from '@angular/cdk/drag-drop';
 import { ChangeDestinationRule } from 'src/models/Automatization/ChangeDestinationRule';
 import { BefetchAutomatizationService } from '../befetch-automatization.service';
 import { RuleProviderService } from '../rule-provider.service';
+import { BehaviourMenuItem } from 'src/models/Automatization/BehaviourMenuItem';
 
 interface Rule {
   value: string;
@@ -42,8 +42,8 @@ export class Polyline {
 })
 export class AutomatizationComponent implements OnInit {
 
-  selectedRule: string = "kktina";
-  constructor(public messenger: MessagesService, public ruleService: RuleProviderService) { }
+  selectedRuleId: string = "";
+  constructor(public messenger: MessagesService, public ruleService: RuleProviderService, public be:BefetchAutomatizationService) { }
   lineToFill: number = 0;
   lineHeight: number = 150;
 
@@ -52,17 +52,22 @@ export class AutomatizationComponent implements OnInit {
 
   polylines: Polyline[] = [];
 
-  supportedRules: Rule[] = [
-    {value: 'inputValue', viewValue: 'Input from sensor value'},
-    {value: 'changeDest', viewValue: 'Change destination actuator'},
-  ];
+  supportedRules: BehaviourMenuItem[] = [];
 
   ngOnInit(): void {
+    this.be.GetAllBehaviours().subscribe(x => this.supportedRules = x
+    , (err) => {
+      console.error(JSON.stringify(err));
+  });
+
+    this.be.GetAllBehaviours().subscribe(x => this.supportedRules = x);
     this.DrawConnections();
   }
 
  createRule(){
-   this.ruleService.createRule(this.selectedRule);
+    if(this.selectedRuleId != ""){
+      this.ruleService.createRule(this.selectedRuleId);
+    }
  }
 
   dragEnd(event: CdkDragEnd, rule: AutomatizationBase) {
@@ -84,6 +89,9 @@ export class AutomatizationComponent implements OnInit {
 
     if(this.source && this.destination){
       this.source.targets.push(this.destination.id);
+
+      this.be.addNewConnection(this.source.id, this.destination.id);
+
       this.DrawConnections();
     }
   }
@@ -111,5 +119,11 @@ export class AutomatizationComponent implements OnInit {
     
     this.messenger.addMessage("Drawing line");
     this.polylines.push( new Polyline(source.x,source.y + verticalOffset, dest.x, dest.y + verticalOffset))
+  }
+
+  AddCustomInput(inputName: string){
+    this.be.createActuator({actuatorName: inputName});
+
+    this.ruleService.LoadAllRules();
   }
 }
