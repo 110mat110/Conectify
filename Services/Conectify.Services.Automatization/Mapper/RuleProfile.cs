@@ -18,11 +18,21 @@ public class RuleProfile : Profile
             .ForMember(x => x.SourceSensorId, opt => opt.MapFrom(x => SharedDataService.ExtractSourceId(x.ParametersJson)))
             .ForMember(x => x.DestinationActuatorId, opt => opt.MapFrom(x => SharedDataService.ExtractDestinationId(x.ParametersJson)));
 
-        this.CreateMap<RuleDTO, Rule>();
+        this.CreateMap<RuleDTO, Rule>()
+            .ForMember(x => x.X, opt => opt.Ignore())
+            .ForMember(x => x.Y, opt => opt.Ignore())
+            .ForMember(x => x.ContinuingRules, opt => opt.Ignore())
+            .ForMember(x => x.RuleType, opt => opt.Ignore())
+            .ForMember(x => x.PreviousRules, opt => opt.Ignore());
 
         this.CreateMap<CreateRuleApiModel, Rule>()
             .ForMember(x => x.ParametersJson, opt => opt.MapFrom(x => x.Parameters))
-            .ForMember(x => x.RuleType, opt => opt.MapFrom(x => x.BehaviourId));
+            .ForMember(x => x.RuleType, opt => opt.MapFrom(x => x.BehaviourId))
+            .ForMember(x => x.Id, opt => opt.Ignore())
+            .ForMember(x => x.PreviousRules, opt => opt.Ignore())
+            .ForMember(x => x.Name, opt => opt.Ignore())
+            .ForMember(x => x.ContinuingRules, opt => opt.Ignore())
+            .ForMember(x => x.Description, opt => opt.Ignore());
 
         this.CreateMap<Rule, GetRuleApiModel>()
             .ForMember(x => x.PropertyJson, opt => opt.MapFrom(x => x.ParametersJson))

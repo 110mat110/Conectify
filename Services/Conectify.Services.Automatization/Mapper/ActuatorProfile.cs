@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿
+using AutoMapper;
 using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Shared.Library.Models;
 
@@ -10,7 +11,9 @@ public class ActuatorProfile : Profile
     {
         this.CreateMap<AddActuatorApiModel, ApiActuator>()
             .ForMember(x => x.Name, opt => opt.MapFrom(x => x.ActuatorName))
-            .ForMember(x => x.Id, opt => opt.MapFrom(x => Guid.NewGuid()));
+            .ForMember(x => x.Id, opt => opt.MapFrom(x => Guid.NewGuid()))
+            .ForMember(x => x.SourceDeviceId, opt => opt.Ignore())
+            .ForMember(x => x.SensorId, opt => opt.Ignore());
 
     }
 }
