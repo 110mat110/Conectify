@@ -11,7 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.UseConectifyWebsocket<Conectify.Services.ShellyConnector.Configuration, DeviceData>();
 builder.Services.AddTransient<IShellyService, ShellyService>();
-
+builder.Services.AddHostedService<ValueScraper>();
 var app = builder.Build();
 
 await app.Services.ConnectToConectifyServer();
