@@ -31,7 +31,7 @@ public class ShellyService : IShellyService
         {
             Name = "Press",
             NumericValue = configuration.LongPressDefaultValue,
-            SourceId = configuration.SensorId,
+            SourceId = configuration.LongPressSensorId,
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             Unit = "",
             Type = "Value",
