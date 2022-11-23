@@ -22,15 +22,7 @@ public class DeviceData : IDeviceData
         Name = "Shelly"
     };
 
-    public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
-        {
-            new ApiSensor()
-            {
-                Id = configuration.SensorId,
-                Name = configuration.DeviceName,
-                SourceDeviceId = configuration.DeviceId,
-            }
-        };
+    public IEnumerable<ApiSensor> Sensors => GenerateSensors();
 
     public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>()
         {
@@ -46,4 +38,38 @@ public class DeviceData : IDeviceData
     public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>();
 
     public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>();
+
+    private IEnumerable<ApiSensor> GenerateSensors()
+    {
+        var sensors = new List<ApiSensor>()
+        {
+            new ApiSensor()
+            {
+                Id = configuration.SensorId,
+                Name = configuration.DeviceName,
+                SourceDeviceId = configuration.DeviceId,
+            }
+        };
+
+        if (configuration.LongPressSensorId != Guid.Empty)
+        {
+            sensors.Add(new ApiSensor()
+            {
+                Id = configuration.LongPressSensorId,
+                Name = configuration.DeviceName + " - Long Press",
+                SourceDeviceId = configuration.DeviceId,
+            });
+        }
+
+        if (configuration.PowerSensorId != Guid.Empty)
+        {
+            sensors.Add(new ApiSensor()
+            {
+                Id = configuration.PowerSensorId,
+                Name = configuration.DeviceName + " - Power",
+                SourceDeviceId = configuration.DeviceId,
+            });
+        }
+        return sensors;
+    }
 }

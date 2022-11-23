@@ -13,4 +13,11 @@ public class Configuration : Conectify.Services.Library.Configuration
 
     public string DeviceName { get; set; } = string.Empty;
 
+    public Guid LongPressSensorId { get; set; } = Guid.Empty;
+
+    public int LongPressDefaultValue { get; set; } = 0;
+
+    public string ShellyType { get; set; } = string.Empty;
+
+    public Guid PowerSensorId { get; set; } = Guid.Empty;
 }
