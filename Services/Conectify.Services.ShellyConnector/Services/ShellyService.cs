@@ -77,7 +77,9 @@ public class ShellyService : IShellyService
             using (var client = new HttpClient())
             {
                 logger.LogInformation("Turning on light");
+                logger.LogInformation($"Calling address: {configuration.ShellyIp}/relay/0?turn=on");
                 var c = await client.GetAsync($"{configuration.ShellyIp}/relay/0?turn=on", cancellationToken);
+                logger.LogInformation(await c.Content.ReadAsStringAsync());
             }
         }
         else
@@ -85,7 +87,9 @@ public class ShellyService : IShellyService
             using (var client = new HttpClient())
             {
                 logger.LogInformation("Turning off light");
+                logger.LogInformation($"Calling address: {configuration.ShellyIp}/relay/0?turn=off");
                 var c = await client.GetAsync($"{configuration.ShellyIp}/relay/0?turn=off", cancellationToken);
+                logger.LogInformation(await c.Content.ReadAsStringAsync());
             }
         }
 
