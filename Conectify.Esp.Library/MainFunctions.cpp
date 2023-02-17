@@ -8,7 +8,7 @@
 #include <ESP8266HTTPClient.h>
 #include <EEPROM.h>
 #include <ArduinoWebsockets.h>
-#include <WiFiManager.h>
+#include <ESP8266WebServer.h>
 #include "TickTimer.h"
 #include "Sensors.h"
 #include "BaseThing.h"
@@ -19,6 +19,7 @@
 #include "Thing.h"
 #include "CommandHanlder.h"
 #include "Int64String.h"
+#include "WebServer.h"
 
 using namespace websockets;
 
@@ -26,18 +27,12 @@ USBComm usb;
 bool requestAcc = true;
 bool sendSensors = true;
 WebsocketsClient websocketClient;
-WiFiManager wm;
-char str[6];
+ESP8266WebServer server(80);
 
-WiFiManagerParameter thingId("thingId", "Thing id", GetGlobalVariables()->baseThing.id, IdStringLength);
-WiFiManagerParameter siteName("siteName", "Name of server", "", 40);
-WiFiManagerParameter sitePort("sitePort", "Port of the server", "", 6);
 Thing thing;
 
-void InitializeNetwork(Thing insertedThing);
+bool InitializeNetwork(Thing insertedThing);
 void InitializeDevice(int psensorArrSize, int pactuatorArrSize, void (*SensorsDeclarations)(), Thing insertedThing);
-
-void HandleWebSetup();
 void ReceiveSerialConnection();
 void RecievedMessageRoutine();
 void SendAllSensorsToServerIfNeeded();
@@ -45,28 +40,20 @@ void CreateBaseThing();
 void RegisterAllEntities(Thing thing);
 void StartOTA(String OTAName);
 void AskServerForTime();
-void saveParamsCallback();
 void onMessageCallback(WebsocketsMessage message);
 void onEventsCallback(WebsocketsEvent event, String data);
-void OneTimeWifiManagerSetup();
-void SetupWebSocket();
-
-void DeclareSensorArraysInternal(int psensorArrSize, int pactuatorArrSize)
-{
-  GetGlobalVariables()->sensorsArrSize = psensorArrSize;
-  GetGlobalVariables()->actuatorArrSize = pactuatorArrSize;
-  DebugMessage("Generated sensor array");
-  GetGlobalVariables()->sensorsArr = new Sensor[GetGlobalVariables()->sensorsArrSize];
-  GetGlobalVariables()->actuatorsArr = new Actuator[GetGlobalVariables()->actuatorArrSize];
-}
+void ConnectWebsocket();
+bool ConnectToWifi();
+void InitializeAP();
+void StartWebServer();
+bool ReloadNetwork(Thing insertedThing);
 
 void StartupMandatoryRoutine(int psensorArrSize, int pactuatorArrSize, void (*SensorsDeclarations)(), Thing insertedThing)
 {
   Serial.begin(115200);
   delay(5000);
-  DebugMessage("Mandatory setup here!" + String(psensorArrSize) + String(pactuatorArrSize));
+  DebugMessage("Mandatory setup here! Sensors: " + String(psensorArrSize) + " Actuators: " + String(pactuatorArrSize));
   InitializeDevice(psensorArrSize, pactuatorArrSize, SensorsDeclarations, insertedThing);
-  OneTimeWifiManagerSetup();
   InitializeNetwork(insertedThing);
   DebugMessage("End of setup");
 }
@@ -74,7 +61,6 @@ void StartupMandatoryRoutine(int psensorArrSize, int pactuatorArrSize, void (*Se
 void LoopMandatoryRoutines()
 {
   // DO NOT USE ANY DELAY IN LOOP, you will kill OTA function
-  HandleWebSetup();
   ReceiveSerialConnection();
   RecievedMessageRoutine();
   if (GetGlobalVariables()->RestartRequired())
@@ -88,6 +74,13 @@ void LoopMandatoryRoutines()
     RegisterAllEntities(thing);
   }
 
+  if (WiFi.status() != WL_CONNECTED && GetGlobalVariables()->WifiTimer.IsTriggeredNoReset())
+  {
+    if (ReloadNetwork(thing)){
+      GetGlobalVariables()->WifiTimer.ResetTimer();
+    }
+  }
+
   if (websocketClient.available())
   {
     SendAllSensorsToServerIfNeeded();
@@ -95,10 +88,23 @@ void LoopMandatoryRoutines()
   }
   else
   {
-    DebugMessage("WS not avaliable. Trying to reconnect!");
-    SetupWebSocket();
+    //DebugMessage("WS not avaliable");
+    if(WiFi.status() == WL_CONNECTED){
+      ConnectWebsocket();
+    }
   }
+
+  server.handleClient();
   // END OF LOOP SERVER ROUTINES
+}
+
+void DeclareSensorArraysInternal(int psensorArrSize, int pactuatorArrSize)
+{
+  GetGlobalVariables()->sensorsArrSize = psensorArrSize;
+  GetGlobalVariables()->actuatorArrSize = pactuatorArrSize;
+  DebugMessage("Generated sensor array");
+  GetGlobalVariables()->sensorsArr = new Sensor[GetGlobalVariables()->sensorsArrSize];
+  GetGlobalVariables()->actuatorsArr = new Actuator[GetGlobalVariables()->actuatorArrSize];
 }
 
 void InitializeDevice(int psensorArrSize, int pactuatorArrSize, void (*SensorsDeclarations)(), Thing insertedThing)
@@ -113,28 +119,78 @@ void InitializeDevice(int psensorArrSize, int pactuatorArrSize, void (*SensorsDe
     DebugMessage("Sensor declared");
   LoadSensorsFromEEPROM(EEPROM, GetGlobalVariables()->sensorsArr);
   LoadActuatorFromEEPROM(EEPROM, GetGlobalVariables()->actuatorsArr);
-
-  thingId.setValue(GetGlobalVariables()->baseThing.id, 37);
-  sitePort.setValue(GetGlobalVariables()->baseThing.port, 6);
-  siteName.setValue(GetGlobalVariables()->baseThing.serverUrl, 35);
 }
 
-void InitializeNetwork(Thing insertedThing)
+bool InitializeNetwork(Thing insertedThing)
 {
-  if (wm.autoConnect("ConectifyAP"))
-  {
-    StartOTA("Conectify");
-    if (GetGlobalVariables()->initialized)
-    {
-      RegisterAllEntities(insertedThing);
-      AskServerForTime();
-      SetupWebSocket();
-    }
-    wm.startWebPortal();
-  }
+  StartWebServer();
+  // StartOTA("Conectify");  TODO play with OTA later
+  return ReloadNetwork(insertedThing);
 }
 
-void SetupWebSocket()
+bool ReloadNetwork(Thing insertedThing)
+{
+  if (GetGlobalVariables()->initialized && ConnectToWifi())
+  {
+    RegisterAllEntities(insertedThing);
+    AskServerForTime();
+    ConnectWebsocket();
+    return true;
+  }
+  InitializeAP();
+  return false;
+}
+
+bool ConnectToWifi()
+{
+
+  if (WiFi.softAPgetStationNum() > 0)
+  {
+    DebugMessage("Cannot check for wifi, there is someone connected to AP");
+    return false;
+  }
+
+  GlobalVariables().SetLedOFF();
+  WiFi.mode(WIFI_STA);
+  delay(500);
+  WiFi.begin(GetGlobalVariables()->baseThing.ssid, GetGlobalVariables()->baseThing.password);
+
+  DebugMessage("Connecting to WiFi " + String(GetGlobalVariables()->baseThing.ssid) + " with pass: " + String(GetGlobalVariables()->baseThing.password));
+  int watchdog = 0;
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    if (watchdog > 10)
+    {
+      DebugMessage("Could not connect to wifi");
+      for (short i = 0; i < 3; i++)
+      {
+        GlobalVariables().SetLedON();
+        delay(100);
+        GlobalVariables().SetLedOFF();
+        delay(100);
+      }
+
+      return false;
+    }
+    GlobalVariables().SetLedON();
+    delay(500);
+    GlobalVariables().SetLedOFF();
+    delay(500);
+    watchdog++;
+  }
+  DebugMessage("Successfully connected!");
+  return true;
+}
+
+void InitializeAP()
+{
+  WiFi.softAP("ConectifyAP");
+  DebugMessage("AP created");
+  Serial.println(WiFi.softAPIP());
+  GlobalVariables().SetLedON();
+}
+
+void ConnectWebsocket()
 {
   DebugMessage("Starting web socket");
   websocketClient = {};
@@ -156,43 +212,8 @@ void SendViaWebSocket(String message)
   else
   {
     DebugMessage("Cannot send message, websocket is not active. Trying to reconnect");
-    SetupWebSocket();
+    ConnectWebsocket();
   }
-}
-
-void OneTimeWifiManagerSetup()
-{
-  wm.setDarkMode(true);
-  wm.addParameter(&thingId);
-  wm.addParameter(&siteName);
-  wm.addParameter(&sitePort);
-  wm.setConfigPortalBlocking(false);
-  wm.setBreakAfterConfig(true);
-  wm.setSaveParamsCallback(saveParamsCallback);
-  wm.setParamsPage(true);
-}
-
-void saveParamsCallback()
-{
-  DebugMessage("Save params called");
-  String(thingId.getValue()).toCharArray(GetGlobalVariables()->baseThing.id, IdStringLength);
-  String(siteName.getValue()).toCharArray(GetGlobalVariables()->baseThing.serverUrl, 40);
-  String(sitePort.getValue()).toCharArray(GetGlobalVariables()->baseThing.port, 6);
-
-  SaveToEEPRom(EEPROM, GetGlobalVariables()->baseThing);
-
-  thingId.setValue(GetGlobalVariables()->baseThing.id, IdStringLength);
-  sitePort.setValue(GetGlobalVariables()->baseThing.port, 6);
-  siteName.setValue(GetGlobalVariables()->baseThing.serverUrl, 35);
-
-  InitializeNetwork(thing);
-  RegisterAllEntities(thing);
-}
-
-void HandleWebSetup()
-{
-  wm.startWebPortal();
-  wm.process();
 }
 
 void ReceiveSerialConnection()
@@ -382,6 +403,7 @@ void RegisterAllEntities(Thing thing)
 }
 void HandleCommand(String commandText, float commandValue, String commandTextParam)
 {
+  HandleCommand("", commandText, commandValue, commandTextParam);
 }
 
 void onMessageCallback(WebsocketsMessage message)
@@ -403,4 +425,29 @@ void RequestActuatorValues()
 void SendSensoricValues()
 {
   sendSensors = true;
+}
+
+void HandleRoot(){
+ DebugMessage("Sending root page");
+ server.send(200, "text/html", GetIndexPage());
+}
+
+void HandleWifi(){
+  if ( server.hasArg( "ssid" ) && server.arg( "ssid" ) != NULL ) {
+    HandleCommand(CommandWifiName, 0, server.arg( "ssid" ));
+  }
+  if ( server.hasArg( "password" ) && server.arg( "password" ) != NULL ) {
+    HandleCommand(CommandWifiPassword, 0, server.arg( "password" ));
+  }
+  SaveToEEPRom(EEPROM, GetGlobalVariables()->baseThing);
+  HandleCommand(CommandReconectWifi, 120, "");
+  HandleRoot();;
+}
+
+void StartWebServer()
+{
+  DebugMessage("Webserver started");
+  server.on("/", HandleRoot);
+  server.on("/wifi", HandleWifi);
+  server.begin();
 }

@@ -9,7 +9,9 @@
 #include "ConstantsDeclarations.h"
 #include "Thing.h"
 #include <ArduinoWebsockets.h>
+#include <WiFiClient.h>
 
+WiFiClient wifiClient;
 using namespace websockets;
 
 String GetServer(BaseThing &baseThing)
@@ -33,7 +35,7 @@ void RegisterBaseThing(BaseThing &baseThing, ESP8266WiFiClass WiFi, Thing thing)
   Serial.print(url);
   DebugMessage("Sending thing to: " + url);
   DebugMessage("Payload:" + serializeThing(baseThing, WiFi, thing));
-  http.begin(url);                                    // Specify request destination
+  http.begin(wifiClient, url);                                    // Specify request destination
   http.addHeader("Content-Type", "application/json"); // Specify content-type header
 
   int httpCode = http.POST(serializeThing(baseThing, WiFi, thing)); // Send the request
@@ -75,7 +77,7 @@ void RegisterSensor(Sensor &sensor, BaseThing &baseThing)
   HTTPClient http;
   String url = httpPrefix + GetServer(baseThing) + inputSensorSuffix;
   DebugMessage("Payload:" + sensor.SerializeSensor(baseThing.id));
-  http.begin(url);                                          // Specify request destination
+  http.begin(wifiClient, url);                                          // Specify request destination
   http.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
 
   int httpCode = http.POST(sensor.SerializeSensor(baseThing.id)); // Send the request
@@ -91,7 +93,7 @@ void RegisterSensor(Sensor &sensor, BaseThing &baseThing)
     DebugMessage("First time did not work. Could not serialize sensor!");
     sensor.isInitialized = false;
       HTTPClient http2;
-      http2.begin(url);                                          // Specify request destination
+      http2.begin(wifiClient, url);                                          // Specify request destination
       http2.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
     DebugMessage("Payload:" + sensor.SerializeSensor(baseThing.id));
     int httpCode2 = http2.POST(sensor.SerializeSensor(baseThing.id)); // Send the request
@@ -129,7 +131,7 @@ void SendSensorValuesToServer(Sensor sensor, BaseThing baseThing, Time dateTime,
   DebugMessage("To adress: " + url);
   HTTPClient http;
 
-  http.begin(url);      //Specify request destination
+  http.begin(wifiClient, url);      //Specify request destination
   http.addHeader(HeaderContentType, HeaderJsonContentType);  //Specify content-type header
 
   int httpCode = http.POST(sensor.SerializeValue(dateTime));   //Send the request
@@ -162,7 +164,7 @@ void RegisterActuator(Actuator &actuator, BaseThing &baseThing)
   String url = httpPrefix + GetServer(baseThing) + inputActuatorSuffix;
   DebugMessage("Payload:" + actuator.SerializeActuator(baseThing.id));
 
-  http.begin(url);                                          // Specify request destination
+  http.begin(wifiClient, url);                                          // Specify request destination
   http.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
 
   int httpCode = http.POST(actuator.SerializeActuator(baseThing.id)); // Send the request
@@ -179,7 +181,7 @@ void RegisterActuator(Actuator &actuator, BaseThing &baseThing)
       actuator.isInitialized = false;
       DebugMessage("Payload:" + actuator.SerializeActuator(baseThing.id));
         HTTPClient http2;
-        http2.begin(url);                                          // Specify request destination
+        http2.begin(wifiClient, url);                                          // Specify request destination
         http2.addHeader(HeaderContentType, HeaderJsonContentType); 
       int httpCode2 = http2.POST(actuator.SerializeActuator(baseThing.id)); // Send the request
       DebugMessage("Got response:" + String(httpCode));
@@ -295,7 +297,7 @@ String RequestTime(BaseThing baseThing)
   String url = httpPrefix + GetServer(baseThing) + timeSuffix;
 
   DebugMessage("Requesting time at: " + url);
-  http.begin(url); // Specify request destination
+  http.begin(wifiClient, url); // Specify request destination
 
   int httpCode = http.GET(); // Send the request
   DebugMessage("Got response with decodingThing:" + String(httpCode));
@@ -323,7 +325,7 @@ void GetValues(
   DebugMessage("To adress: " + url);
   HTTPClient http;
 
-  http.begin(url); // Specify request destination
+  http.begin(wifiClient, url); // Specify request destination
 
   int httpCode = http.GET(); // Send the request
   DebugMessage("Response:" + String(httpCode));
@@ -353,7 +355,7 @@ void SendCommandResponseToServer(String commandId, BaseThing baseThing, Time dat
   DebugMessage("To adress: " + url);
   HTTPClient http;
 
-  http.begin(url);                                          // Specify request destination
+  http.begin(wifiClient, url);                                          // Specify request destination
   http.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
   /*
   int httpCode = http.POST(CreateCommandResponse(baseThing, dateTime));   //Send the request

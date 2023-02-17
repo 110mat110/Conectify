@@ -17,7 +17,7 @@ public:
     BaseThing baseThing;
 
     TickTimer TimeHandler = TickTimer(1);
-    TickTimer WifiTimer = TickTimer(60);
+    TickTimer WifiTimer = TickTimer(120);
     TickTimer SensoricTimer = TickTimer(1);
 
     bool initialized;

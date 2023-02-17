@@ -22,7 +22,7 @@ void HandleCommand(String commandId, String commandText, float commandValue, Str
     ESP.restart();
   }
   if(commandText == CommandTriggerSensor) GetGlobalVariables()->SensoricTimer.SetForceTrigger();
-  if(commandText == CommandReconectWifi)  GetGlobalVariables()->WiFiRestartReq = true;
+  if(commandText == CommandReconectWifi)  GetGlobalVariables()->WifiTimer.SetForceTrigger();
   if(commandText == CommandSaveToEEPRom) GetGlobalVariables()->EEPROMWrteReq = true;
   if(commandText == CommandReboot) ESP.restart();
   //if(commandText == CommandActivityCheck) SendCommandResponseToServer(commandId, GetGlobalVariables() -> baseThing, GetGlobalVariables() -> dateTime);
