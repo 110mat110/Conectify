@@ -25,7 +25,7 @@ bool TickTimer::IsTriggeredNoReset(){
 }
   void TickTimer::ResetTimer(){
     previousTrigger = millis();
-	forceTrigger = false;
+    forceTrigger = false;
   }
 
   void TickTimer::SetForceTrigger(){

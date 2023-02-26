@@ -13,7 +13,6 @@ GlobalVariables* GetGlobalVariables(){
   if(!GlobalsInitialized) {
     globals = new GlobalVariables();
     globals->TimeHandler.intervalMS = 100;
-    DebugMessage("Globals initialized");
     GlobalsInitialized = true;
   }
   return globals;

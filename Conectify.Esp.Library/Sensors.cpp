@@ -4,6 +4,10 @@
 #include "ArduinoJson.h"
 #include "DebugMessageLib.h"
 #include "ConstantsDeclarations.h"
+#include "WebServer.h"
+#include "GlobalVariables.h"
+
+#define PMTXT(textarray) (reinterpret_cast<const __FlashStringHelper *>(textarray))
 
 Sensor::Sensor(String sensorName, String valueName, String valueUnit)
 {
@@ -13,19 +17,21 @@ Sensor::Sensor(String sensorName, String valueName, String valueUnit)
     this->valueUnit = valueUnit;
     DebugMessage("Full constructor");
 }
-Sensor:: Sensor(){
+Sensor::Sensor()
+{
     isInitialized = false;
     DebugMessage("Dummy contructor");
 };
-String Sensor::SerializeSensor(char thingId[IdStringLength]){
+String Sensor::SerializeSensor(char thingId[IdStringLength])
+{
     DynamicJsonDocument doc(256);
-    if(isInitialized)
+    if (isInitialized)
         doc[DTid] = id;
     else
     {
         doc[DTid] = "00000000-0000-0000-0000-000000000000";
     }
-    
+
     doc[type] = SensorType;
     doc[DTSensorName] = sensorName;
     doc[DTSourceThingId] = thingId;
@@ -33,8 +39,9 @@ String Sensor::SerializeSensor(char thingId[IdStringLength]){
     serializeJson(doc, json);
     doc.clear();
     return json;
-  }
-String Sensor::SerializeValue(Time dateTime){
+}
+String Sensor::SerializeValue(Time dateTime)
+{
     DynamicJsonDocument doc(256);
     doc[type] = ValueType;
     doc[DTSourceId] = id;
@@ -42,87 +49,156 @@ String Sensor::SerializeValue(Time dateTime){
     doc[DTvalueName] = valueName;
     doc[DTstringValue] = stringValue;
     doc[DTnumericValue] = numericValue;
-    doc[DTvalueUnit]= valueUnit;
+    doc[DTvalueUnit] = valueUnit;
     String json;
     serializeJson(doc, json);
     doc.clear();
     return json;
-  }
+}
 
-void Sensor::MarkAsRead(){
+String Sensor::ShowHtml()
+{
+    String sensor_html = String(PMTXT(SENSOR_HTML));
+    sensor_html.replace("{{ValueName}}", valueName);
+    sensor_html.replace("{{Value}}", String(numericValue));
+    sensor_html.replace("{{Unit}}", valueUnit);
+    sensor_html.replace("{{deviceID}}", id);
+    sensor_html.replace("{{deviceName}}", sensorName);
+    sensor_html.replace("%", HTMLPercentileSign);
+    sensor_html.replace("°", HTMLDegreeSign);
+
+    String result = "";
+    DebugMessage("Replacing actuator literal");
+    for (int i = 0; i < GetGlobalVariables()->actuatorArrSize; i++)
+    {
+        if (GetGlobalVariables()->actuatorsArr[i].IsSensorOfThis(id)){
+            String currentActuatorHtml = GetGlobalVariables()->actuatorsArr[i].ShowHtml();
+            sensor_html.replace("{{actuators}}", currentActuatorHtml);
+        }
+    }
+    sensor_html.replace("{{actuators}}", "");
+    return sensor_html;
+}
+
+void Sensor::MarkAsRead()
+{
     SetChanged(false, "MarkAsRead");
 }
-    void Sensor::SetSensorName(String val){sensorName = val;}
-    void Sensor::SetValueName(String val){valueName = val;}
-    void Sensor::SetValueUnit(String val){valueUnit = val;}
-
-    void Sensor::SetStringValue(String val){
-        if(val!=stringValue)
-            DebugMessage(val + " != " + stringValue);
-        else
-            DebugMessage(val + " = " + stringValue);
-        
-        DebugMessage("setString " + String(changed) + String(alwaysUpdateValue));
-
-        SetChanged( changed || alwaysUpdateValue || val != stringValue, "SetString");
-        stringValue = val;
-    }
-void Sensor::SetNumericValue(float val){
-
-    DebugMessage("setint " + String(changed) + String(alwaysUpdateValue)+"||" + String(val) + ", "+ String(numericValue));
-
-    SetChanged( changed || alwaysUpdateValue || fabs(val - numericValue) >0.05, "setInt");
+void Sensor::SetSensorName(String val) { sensorName = val; }
+void Sensor::SetValueName(String val) { valueName = val; }
+void Sensor::SetValueUnit(String val) { valueUnit = val; }
+String Sensor::GetName() { return sensorName; }
+String Sensor::GetValueName() { return valueName; }
+String Sensor::GetValueUnit() { return valueUnit; }
+String Sensor::GetStringValue() { return stringValue; }
+float Sensor::GetNumericValue() { return numericValue; }
+void Sensor::SetStringValue(String val)
+{
+    SetChanged(changed || alwaysUpdateValue || val != stringValue, "SetString");
+    stringValue = val;
+}
+void Sensor::SetNumericValue(float val)
+{
+    SetChanged(changed || alwaysUpdateValue || fabs(val - numericValue) > 0.05, "setInt");
     numericValue = val;
 }
 
-bool Sensor::HasChanged(){
+bool Sensor::HasChanged()
+{
     return changed;
 }
 
-void Sensor::SetChanged(bool val, String source){
+void Sensor::SetChanged(bool val, String source)
+{
     changed = val;
-    DebugMessage("Changed set by " + source + " to: " + String(val));
 }
 
-Actuator::Actuator(Sensor* sensor, String ActuatorName){
-    this -> sensor = sensor;
+Actuator::Actuator(Sensor *sensor, String ActuatorName)
+{
+    this->sensor = sensor;
     isInitialized = false;
     actuatorName = ActuatorName;
 }
-Actuator::Actuator(){
+Actuator::Actuator()
+{
     isInitialized = false;
-    DebugMessage("Dummy ctuator created!");
+    DebugMessage("Dummy actuator created!");
 }
-void Actuator::SetActuatorValue(String stringValue,String unit){
-    handleStringFunc(stringValue,unit);
-
+void Actuator::SetActuatorValue(String stringValue, String unit)
+{
+    handleStringFunc(stringValue, unit);
+    changed = true;
     sensor->SetStringValue(stringValue);
 }
-void Actuator::SetActuatorValue(float numericValue, String unit){
+void Actuator::SetActuatorValue(float numericValue, String unit)
+{
     handleNumericFunc(numericValue, unit);
-
+    changed = true;
     sensor->SetNumericValue(numericValue);
 }
 
-
 void Actuator::RegisterFunctionForStringValue(
-        void (*handleFunc)(String commandValue,String Unit)
-    ){
-
-handleStringFunc = handleFunc;
+    void (*handleFunc)(String commandValue, String Unit))
+{
+    handleStringFunc = handleFunc;
 }
 
 void Actuator::RegisterFunctionForNumericValue(
-        void (*handleFunc)(float value, String Unit)
-    ){
-        handleNumericFunc = handleFunc;
-    }
+    void (*handleFunc)(float value, String Unit))
+{
+    handleNumericFunc = handleFunc;
+}
 
-String Actuator::SerializeActuator(char thingId[37]){
+bool Actuator::HasChanged()
+{
+    return changed;
+}
+
+void Actuator::MarkAsRead()
+{
+    changed = false;
+}
+
+bool Actuator::IsSensorOfThis(char id[IdStringLength])
+{
+    return !strcmp(id, sensor->id);
+}
+
+String Actuator::SerializeResponse(Time dateTime)
+{
     DynamicJsonDocument doc(256);
-    if(isInitialized)
+    doc[type] = ActionResponseType;
+    doc[DTSourceId] = id;
+    doc[timeCreated] = dateTime.ToJSONString();
+    doc[DTvalueName] = sensor->GetValueName();
+    doc[DTstringValue] = sensor->GetStringValue();
+    doc[DTnumericValue] = sensor->GetNumericValue();
+    doc[DTvalueUnit] = sensor->GetValueUnit();
+    doc[DTResponseSourceId] = lastActionId;
+    String json;
+    serializeJson(doc, json);
+    doc.clear();
+    return json;
+};
+String Actuator::ShowHtml()
+{
+    String actuator_html = String(PMTXT(ACTUATOR_HTML));
+    actuator_html.replace("{{ValueName}}", sensor->GetValueName());
+    actuator_html.replace("{{Value}}", String(sensor->GetNumericValue()));
+    actuator_html.replace("{{Unit}}", sensor->GetValueUnit());
+    actuator_html.replace("{{actuatorId}}", id);
+    actuator_html.replace("{{deviceName}}", actuatorName);
+    actuator_html.replace("%", HTMLPercentileSign);
+    actuator_html.replace("°", HTMLDegreeSign);
+    return actuator_html;
+}
+
+String Actuator::SerializeActuator(char thingId[IdStringLength])
+{
+    DynamicJsonDocument doc(256);
+    if (isInitialized)
         doc[DTid] = id;
-            else
+    else
     {
         doc[DTid] = "00000000-0000-0000-0000-000000000000";
     }
@@ -134,5 +210,4 @@ String Actuator::SerializeActuator(char thingId[37]){
     serializeJson(doc, json);
     doc.clear();
     return json;
-
-  }
+}

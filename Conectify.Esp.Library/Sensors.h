@@ -27,8 +27,14 @@ public:
     void SetValueUnit(String val);
     void SetStringValue(String val);
     void SetNumericValue(float val);
-    String SerializeSensor(char thingId[37]);
+    String GetName();
+    String GetValueName();
+    String GetValueUnit();
+    String GetStringValue();
+    float GetNumericValue();
+    String SerializeSensor(char thingId[IdStringLength]);
     String SerializeValue(Time dateTime);
+    String ShowHtml();
     void MarkAsRead();
     bool HasChanged();
 };
@@ -40,20 +46,33 @@ private:
     Sensor* sensor;
     void (*handleStringFunc)(String commandValue,String Unit);
     void (*handleNumericFunc)(float value, String Unit);
+    bool changed = false;
 public:
+    String lastActionId;
     char id[IdStringLength];
+    bool isInitialized;
+
     void SetActuatorValue(String stringValue,  String unit);
     void SetActuatorValue(float numericValue, String unit);
+
+    String SerializeActuator(char thingId[IdStringLength]);
+    String SerializeResponse(Time dateTime);
+    String ShowHtml();
+
     Actuator(Sensor* sensor, String ActuatorName);
     Actuator();
+
+    bool HasChanged();
+    bool IsSensorOfThis(char id[IdStringLength]);
+    void MarkAsRead();
     void RegisterFunctionForStringValue(
         void (*handleFunc)(String commandValue,String Unit)
         );
     void RegisterFunctionForNumericValue(
         void (*handleFunc)(float value, String Unit)
     );
-    String SerializeActuator(char thingId[IdStringLength]);
-    bool isInitialized;
+
+
 };
 
 #endif

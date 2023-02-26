@@ -18,7 +18,7 @@ void SaveSensorIDsToEEPROM(EEPROMClass eeprom, Sensor* sensorArray, byte sensorA
     eeprom.put(0,sensorArraySize);
 
     for(int i=0; i<sensorArraySize; i++)
-        eeprom.put(pos + i*37, sensorArray[i].id);
+        eeprom.put(pos + i*IdStringLength, sensorArray[i].id);
 
     eeprom.commit();
     eeprom.end();
@@ -29,10 +29,10 @@ void SaveActuatorIDsToEEPROM(EEPROMClass eeprom, Actuator* actuatorArray, byte a
     eeprom.put(sizeof(byte),actuatorArraySize);
     byte noOfSensors = 0;
     eeprom.get(0,noOfSensors);
-    int pos = (sizeof(byte) *2 )+sizeof(BaseThing) + noOfSensors*37;
+    int pos = (sizeof(byte) *2 )+sizeof(BaseThing) + noOfSensors*IdStringLength;
 
     for(int i=0; i<actuatorArraySize; i++)
-        eeprom.put(pos + i*37, actuatorArray[i].id);
+        eeprom.put(pos + i*IdStringLength, actuatorArray[i].id);
 
     eeprom.commit();
     eeprom.end();
@@ -54,9 +54,8 @@ void LoadSensorsFromEEPROM(EEPROMClass eeprom, Sensor* sensorArray){
     for (int i = 0; i < sizeOfArray; i++)
     {
 
-        eeprom.get(pos + i*37,sensorArray[i].id);
-        DebugMessage("Got sensor ID:");
-        DebugMessage(String(sensorArray[i].id));
+        eeprom.get(pos + i*IdStringLength,sensorArray[i].id);
+        DebugMessage("Got sensor ID: " + String(sensorArray[i].id));
         sensorArray[i].isInitialized = true;
     }
     eeprom.end();
@@ -69,7 +68,7 @@ void LoadActuatorFromEEPROM(EEPROMClass eeprom, Actuator* actuatorArray){
 
     byte noOfSensors = 0;
     eeprom.get(0,noOfSensors);
-    int pos = (sizeof(byte) *2 )+sizeof(BaseThing) + noOfSensors*37;
+    int pos = (sizeof(byte) *2 )+sizeof(BaseThing) + noOfSensors*IdStringLength;
 
     byte sizeOfArray = 0;
     eeprom.get(sizeof(byte),sizeOfArray);
@@ -80,8 +79,8 @@ void LoadActuatorFromEEPROM(EEPROMClass eeprom, Actuator* actuatorArray){
     for (int i = 0; i < sizeOfArray; i++)
     {
 
-        eeprom.get(pos + i*37,actuatorArray[i].id);
-        DebugMessage("Got Actuator ID:");
+        eeprom.get(pos + i*IdStringLength,actuatorArray[i].id);
+        DebugMessage("Got Actuator ID: ");
         DebugMessage(String(actuatorArray[i].id));
         actuatorArray[i].isInitialized = true;
     }
@@ -100,8 +99,7 @@ void ReadFromEEPRom(EEPROMClass eeprom, BaseThing &thing){
     DebugMessage("READING FROM EEPROM");
     eeprom.begin(512);
     eeprom.get((sizeof(byte)*2), thing);
-    DebugMessage("SIZE:");
-    DebugMessage(String(sizeof(BaseThing)));
+    DebugMessage("SIZE: " + String(sizeof(BaseThing)));
     DebugMessage(thing.id);
     DebugMessage(thing.ssid);
     DebugMessage(thing.password);
