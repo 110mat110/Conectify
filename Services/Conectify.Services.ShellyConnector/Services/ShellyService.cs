@@ -5,8 +5,9 @@ namespace Conectify.Services.ShellyConnector.Services;
 
 public interface IShellyService
 {
-    Task<bool> SetSwitch(bool isOn);
-    Task<bool> SendValueToShelly(Database.Models.Values.Action websocketAction);
+    Task<bool> SetSwitch(bool isOn, CancellationToken cancellationToken = default);
+    Task<bool> SendValueToShelly(Database.Models.Values.Action websocketAction, CancellationToken cancellationToken = default);
+    Task<bool> LongPress(CancellationToken cancellationToken = default);
 }
 
 public class ShellyService : IShellyService
@@ -22,7 +23,26 @@ public class ShellyService : IShellyService
         this.logger = logger;
     }
 
-    public async Task<bool> SetSwitch(bool isOn)
+    public async Task<bool> LongPress(CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation($"Registered long press");
+
+        var value = new WebsocketBaseModel()
+        {
+            Name = "Press",
+            NumericValue = configuration.LongPressDefaultValue,
+            SourceId = configuration.LongPressSensorId,
+            TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            Unit = "",
+            Type = "Value",
+        };
+
+        await websocketClient.SendMessageAsync(value, cancellationToken);
+
+        return true;
+    }
+
+    public async Task<bool> SetSwitch(bool isOn, CancellationToken cancellationToken = default)
     {
         logger.LogInformation($"Light was turned {LightState(isOn)}");
         var value = new WebsocketBaseModel()
@@ -35,7 +55,7 @@ public class ShellyService : IShellyService
             Type = "Value",
         };
 
-        await websocketClient.SendMessageAsync(value);
+        await websocketClient.SendMessageAsync(value, cancellationToken);
 
         return true;
     }
@@ -45,7 +65,7 @@ public class ShellyService : IShellyService
         return isOn ? "on" : "off";
     }
 
-    public async Task<bool> SendValueToShelly(Database.Models.Values.Action websocketAction)
+    public async Task<bool> SendValueToShelly(Database.Models.Values.Action websocketAction, CancellationToken cancellationToken = default)
     {
         if (websocketAction.DestinationId != configuration.ActuatorId)
         {
@@ -57,7 +77,9 @@ public class ShellyService : IShellyService
             using (var client = new HttpClient())
             {
                 logger.LogInformation("Turning on light");
-                var c = await client.GetAsync($"{configuration.ShellyIp}/relay/0?turn=on");
+                logger.LogInformation($"Calling address: {configuration.ShellyIp}/relay/0?turn=on");
+                var c = await client.GetAsync($"{configuration.ShellyIp}/relay/0?turn=on", cancellationToken);
+                logger.LogInformation(await c.Content.ReadAsStringAsync());
             }
         }
         else
@@ -65,7 +87,9 @@ public class ShellyService : IShellyService
             using (var client = new HttpClient())
             {
                 logger.LogInformation("Turning off light");
-                var c = await client.GetAsync($"{configuration.ShellyIp}/relay/0?turn=off");
+                logger.LogInformation($"Calling address: {configuration.ShellyIp}/relay/0?turn=off");
+                var c = await client.GetAsync($"{configuration.ShellyIp}/relay/0?turn=off", cancellationToken);
+                logger.LogInformation(await c.Content.ReadAsStringAsync());
             }
         }
 
@@ -80,7 +104,7 @@ public class ShellyService : IShellyService
             Unit = "%",
             ResponseSourceId = websocketAction.Id,
             StringValue = string.Empty
-        });
+        }, cancellationToken);
         return true;
     }
 }

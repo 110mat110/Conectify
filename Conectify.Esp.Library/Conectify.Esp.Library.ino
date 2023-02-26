@@ -48,7 +48,6 @@ void UserLoopRoutines(){
   if(GetGlobalVariables()->SensoricTimer.IsTriggered()){
     GetGlobalVariables()->SensoricTimer.ResetTimer();
     GetGlobalVariables()->sensorsArr[0].SetNumericValue(random(500));
-    SendSensoricValues();
   }
 }
 

@@ -7,12 +7,13 @@
 #include "DebugMessageLib.h"
 
 void HandleCommand(String commandId, String commandText, float commandValue, String commandTextparameter){
-  DebugMessage("Recieved command" + commandText + " with param" + commandTextparameter + " and "+ String(commandValue));
+  DebugMessage("Recieved command " + commandText + " with param" + commandTextparameter + " and "+ String(commandValue));
 
   if(commandText == CommandWifiName) commandTextparameter.toCharArray(GetGlobalVariables()->baseThing.ssid,WiFiLength);
   if(commandText == CommandWifiPassword) commandTextparameter.toCharArray(GetGlobalVariables()->baseThing.password,WiFiLength);
   if(commandText == CommandSetId) commandTextparameter.toCharArray(GetGlobalVariables()->baseThing.id,IdStringLength);
   if(commandText == CommandSetAdress) commandTextparameter.toCharArray(GetGlobalVariables()->baseThing.serverUrl,ServerAdressLength);
+  if(commandText == CommandSetPort) commandTextparameter.toCharArray(GetGlobalVariables()->baseThing.port, PortLength);
   if(commandText == CommandWifiRefreshTimer) GetGlobalVariables()->SetWiFiTimerInSeconds(commandValue);
   if(commandText == CommandSensorTimer) GetGlobalVariables()->SetSensoricTimerInSeconds(commandValue);
   if(commandText == CommandDebugMessage) GetGlobalVariables()->baseThing.debugMessage = commandValue==1;
@@ -22,7 +23,7 @@ void HandleCommand(String commandId, String commandText, float commandValue, Str
     ESP.restart();
   }
   if(commandText == CommandTriggerSensor) GetGlobalVariables()->SensoricTimer.SetForceTrigger();
-  if(commandText == CommandReconectWifi)  GetGlobalVariables()->WiFiRestartReq = true;
+  if(commandText == CommandReconectWifi)  GetGlobalVariables()->WifiTimer.SetForceTrigger();
   if(commandText == CommandSaveToEEPRom) GetGlobalVariables()->EEPROMWrteReq = true;
   if(commandText == CommandReboot) ESP.restart();
   //if(commandText == CommandActivityCheck) SendCommandResponseToServer(commandId, GetGlobalVariables() -> baseThing, GetGlobalVariables() -> dateTime);

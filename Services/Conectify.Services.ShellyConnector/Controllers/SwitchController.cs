@@ -15,17 +15,24 @@ public class SwitchController : ControllerBase
     }
 
     [HttpGet("Off")]
-    public string Off()
+    public async Task<IActionResult> Off()
     {
-        shellyService.SetSwitch(false);
-        return "Hello";
+        await shellyService.SetSwitch(false);
+        return Ok();
     }
 
     [HttpGet("On")]
-    public string On()
+    public async Task<IActionResult> On()
     {
-        shellyService.SetSwitch(true);
+        await shellyService.SetSwitch(true);
 
-        return "Hello";
+        return Ok();
+    }
+
+    [HttpGet("LongPress")]
+    public async Task<IActionResult> LongPress()
+    {
+        await shellyService.LongPress();
+        return Ok();
     }
 }

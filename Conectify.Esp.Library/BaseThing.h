@@ -2,14 +2,15 @@
 #define BaseThing_h
 
 #include "Arduino.h"
+#include "ConstantsDeclarations.h"
 
 struct BaseThing
 {
-    char id[37];
-    char ssid[15];
-    char password[15];
-    char serverUrl[35];
-    char port[6];
+    char id[IdStringLength];
+    char ssid[WiFiLength];
+    char password[WiFiLength];
+    char serverUrl[ServerAdressLength];
+    char port[PortLength];
     bool debugMessage;
     int WiFiTimer;
     int SensorTimer;
