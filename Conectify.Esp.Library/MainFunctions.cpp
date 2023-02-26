@@ -148,7 +148,7 @@ bool ConnectToWifi()
   // WiFi.mode(WIFI_STA);
   // WiFi.enableSTA(true);
   delay(1000);
-  WiFi.hostname("ESP-host");
+  WiFi.hostname(thing.thingName);
   WiFi.begin(GetGlobalVariables()->baseThing.ssid, GetGlobalVariables()->baseThing.password);
 
   DebugMessage("Connecting to WiFi " + String(GetGlobalVariables()->baseThing.ssid) + " with pass: " + String(GetGlobalVariables()->baseThing.password));
