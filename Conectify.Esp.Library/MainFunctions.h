@@ -8,13 +8,8 @@
 #include "GlobalVariables.h"
 #include "Thing.h"
 
-void SendUpdate();
-
 void StartupMandatoryRoutine(int psensorArrSize, int pactuatorArrSize, void(*SensorsDeclarations)(), Thing thing);
 void LoopMandatoryRoutines();
-
-void RequestActuatorValues();
-void SendSensoricValues();
 
 void HandleCommand(String commandText, float commandValue, String commandTextparameter);
 

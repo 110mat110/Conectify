@@ -8,7 +8,8 @@
 #include <ESP8266HTTPClient.h>
 #include <EEPROM.h>
 #include <ArduinoWebsockets.h>
-#include <ESP8266WebServer.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 #include "TickTimer.h"
 #include "Sensors.h"
 #include "BaseThing.h"
@@ -24,10 +25,9 @@
 using namespace websockets;
 
 USBComm usb;
-bool requestAcc = true;
-bool sendSensors = true;
+String lastIP = "";
 WebsocketsClient websocketClient;
-ESP8266WebServer server(80);
+AsyncWebServer server(80);
 
 Thing thing;
 
@@ -47,9 +47,11 @@ bool ConnectToWifi();
 void InitializeAP();
 void StartWebServer();
 bool ReloadNetwork(Thing insertedThing);
+bool IsWiFi();
 
 void StartupMandatoryRoutine(int psensorArrSize, int pactuatorArrSize, void (*SensorsDeclarations)(), Thing insertedThing)
 {
+  WiFi.mode(WIFI_AP_STA);
   Serial.begin(115200);
   delay(5000);
   DebugMessage("Mandatory setup here! Sensors: " + String(psensorArrSize) + " Actuators: " + String(pactuatorArrSize));
@@ -74,11 +76,9 @@ void LoopMandatoryRoutines()
     RegisterAllEntities(thing);
   }
 
-  if (WiFi.status() != WL_CONNECTED && GetGlobalVariables()->WifiTimer.IsTriggeredNoReset())
+  if (!IsWiFi() && GetGlobalVariables()->WifiTimer.IsTriggeredNoReset())
   {
-    if (ReloadNetwork(thing)){
-      GetGlobalVariables()->WifiTimer.ResetTimer();
-    }
+    ReloadNetwork(thing);
   }
 
   if (websocketClient.available())
@@ -88,14 +88,14 @@ void LoopMandatoryRoutines()
   }
   else
   {
-    //DebugMessage("WS not avaliable");
-    if(WiFi.status() == WL_CONNECTED){
+    if (IsWiFi())
+    {
       ConnectWebsocket();
     }
   }
 
-  server.handleClient();
-  // END OF LOOP SERVER ROUTINES
+  // server.handleClient();
+  //  END OF LOOP SERVER ROUTINES
 }
 
 void DeclareSensorArraysInternal(int psensorArrSize, int pactuatorArrSize)
@@ -143,31 +143,28 @@ bool ReloadNetwork(Thing insertedThing)
 
 bool ConnectToWifi()
 {
-
-  if (WiFi.softAPgetStationNum() > 0)
-  {
-    DebugMessage("Cannot check for wifi, there is someone connected to AP");
-    return false;
-  }
-
   GlobalVariables().SetLedOFF();
-  WiFi.mode(WIFI_STA);
-  delay(500);
+
+  // WiFi.mode(WIFI_STA);
+  // WiFi.enableSTA(true);
+  delay(1000);
+  WiFi.hostname("ESP-host");
   WiFi.begin(GetGlobalVariables()->baseThing.ssid, GetGlobalVariables()->baseThing.password);
 
   DebugMessage("Connecting to WiFi " + String(GetGlobalVariables()->baseThing.ssid) + " with pass: " + String(GetGlobalVariables()->baseThing.password));
   int watchdog = 0;
-  while (WiFi.status() != WL_CONNECTED)
+  GetGlobalVariables()->WifiTimer.ResetTimer();
+  do
   {
-    if (watchdog > 10)
+    if (watchdog > 15)
     {
       DebugMessage("Could not connect to wifi");
       for (short i = 0; i < 3; i++)
       {
         GlobalVariables().SetLedON();
-        delay(100);
+        delay(150);
         GlobalVariables().SetLedOFF();
-        delay(100);
+        delay(150);
       }
 
       return false;
@@ -177,14 +174,30 @@ bool ConnectToWifi()
     GlobalVariables().SetLedOFF();
     delay(500);
     watchdog++;
-  }
+  } while (!IsWiFi());
   DebugMessage("Successfully connected!");
+  WiFi.softAPdisconnect(false);
   return true;
+}
+
+bool IsWiFi()
+{
+  bool wifi = (WiFi.localIP().toString().startsWith("192.168.")) && WiFi.SSID() == String(GetGlobalVariables()->baseThing.ssid);
+  // TODO this is only informative to get IP adress
+  if (WiFi.localIP().toString() != lastIP)
+  {
+    DebugMessage("Local ip: " + WiFi.localIP().toString());
+    lastIP = WiFi.localIP().toString();
+  }
+  //-------//
+  return wifi;
+  // return WiFi.status() == WL_CONNECTED;
 }
 
 void InitializeAP()
 {
-  WiFi.softAP("ConectifyAP");
+  delay(500);
+  WiFi.softAP("ConectifyAP", emptyString, 2, 0, 1);
   DebugMessage("AP created");
   Serial.println(WiFi.softAPIP());
   GlobalVariables().SetLedON();
@@ -229,34 +242,34 @@ void ReceiveSerialConnection()
 
 void SendAllSensorsToServerIfNeeded()
 {
-  if (!WiFi.status() == WL_CONNECTED)
+  if (!IsWiFi())
   {
     DebugMessage("trying to connect to server withouth wifi!");
     return;
   }
 
-  if (sendSensors)
+  for (int i = 0; i < GetGlobalVariables()->actuatorArrSize; i++)
   {
-    for (int i = 0; i < GetGlobalVariables()->sensorsArrSize; i++)
+    if (GetGlobalVariables()->actuatorsArr[i].HasChanged())
     {
-      DebugMessage("Has sensor changed?" + String(GetGlobalVariables()->sensorsArr[i].HasChanged()));
-      if (GetGlobalVariables()->sensorsArr[i].HasChanged())
-      {
-        GetGlobalVariables()->sensorsArr[i].MarkAsRead();
-        DebugMessage("Calling SendSensorValuesToServer");
-
-        if (GetGlobalVariables()->sensorsArr[i].isInitialized)
-        {
-          GetGlobalVariables()->sensorsArr[i].MarkAsRead();
-
-          DebugMessage("--------- Sensor Value ------------------------");
-          DebugMessage("Payload: " + GetGlobalVariables()->sensorsArr[i].SerializeValue(GetGlobalVariables()->dateTime));
-          websocketClient.send(GetGlobalVariables()->sensorsArr[i].SerializeValue(GetGlobalVariables()->dateTime));
-        }
-        requestAcc = false;
-      }
+      DebugMessage("--------- Actuator response ------------------------");
+      DebugMessage("Payload: " + GetGlobalVariables()->actuatorsArr[i].SerializeResponse(GetGlobalVariables()->dateTime));
+      websocketClient.send(GetGlobalVariables()->actuatorsArr[i].SerializeResponse(GetGlobalVariables()->dateTime));
+      GetGlobalVariables()->actuatorsArr[i].MarkAsRead();
     }
-    sendSensors = false;
+  }
+  for (int i = 0; i < GetGlobalVariables()->sensorsArrSize; i++)
+  {
+    if (GetGlobalVariables()->sensorsArr[i].HasChanged())
+    {
+      if (GetGlobalVariables()->sensorsArr[i].isInitialized)
+      {
+        DebugMessage("--------- Sensor Value ------------------------");
+        DebugMessage("Payload: " + GetGlobalVariables()->sensorsArr[i].SerializeValue(GetGlobalVariables()->dateTime));
+        websocketClient.send(GetGlobalVariables()->sensorsArr[i].SerializeValue(GetGlobalVariables()->dateTime));
+      }
+      GetGlobalVariables()->sensorsArr[i].MarkAsRead();
+    }
   }
 }
 
@@ -265,7 +278,7 @@ void RegisterSensors()
   for (int i = 0; i < GetGlobalVariables()->sensorsArrSize; i++)
   {
     RegisterSensor(GetGlobalVariables()->sensorsArr[i], GetGlobalVariables()->baseThing);
-    DebugMessage("Sensor registrated with ID:" + String(GetGlobalVariables()->sensorsArr[i].id));
+    DebugMessage("Sensor registrated with ID: " + String(GetGlobalVariables()->sensorsArr[i].id));
   }
 }
 void RegisterActuator()
@@ -273,7 +286,7 @@ void RegisterActuator()
   for (int i = 0; i < GetGlobalVariables()->actuatorArrSize; i++)
   {
     RegisterActuator(GetGlobalVariables()->actuatorsArr[i], GetGlobalVariables()->baseThing);
-    DebugMessage("ActuatorRegistered registrated with ID:" + String(GetGlobalVariables()->actuatorsArr[i].id));
+    DebugMessage("Actuator registrated with ID: " + String(GetGlobalVariables()->actuatorsArr[i].id));
   }
 }
 
@@ -292,8 +305,11 @@ void CreateBaseThing()
   {
     EEPROM.end();
     ReadFromEEPRom(EEPROM, GetGlobalVariables()->baseThing);
+    if (GetGlobalVariables()->baseThing.WiFiTimer > 10)
+    {
+      GetGlobalVariables()->SetWiFiTimerInSeconds(GetGlobalVariables()->baseThing.WiFiTimer);
+    }
     GetGlobalVariables()->SetSensoricTimerInSeconds(GetGlobalVariables()->baseThing.SensorTimer);
-    GetGlobalVariables()->SetWiFiTimerInSeconds(GetGlobalVariables()->baseThing.WiFiTimer);
     GetGlobalVariables()->initialized = true;
     DebugMessage("Loaded data from EEPROM");
   }
@@ -387,7 +403,7 @@ void RecievedMessageRoutine()
 void RegisterAllEntities(Thing thing)
 {
   DebugMessage("Registering entites");
-  if ((WiFi.status() == WL_CONNECTED))
+  if ((IsWiFi()))
   {
     RegisterBaseThing(GetGlobalVariables()->baseThing, WiFi, thing);
     SaveToEEPRom(EEPROM, GetGlobalVariables()->baseThing);
@@ -418,36 +434,141 @@ void onMessageCallback(WebsocketsMessage message)
       GetGlobalVariables()->actuatorArrSize);
 }
 
-void RequestActuatorValues()
+String processor(const String &var)
 {
-  requestAcc = true;
-}
-void SendSensoricValues()
-{
-  sendSensors = true;
-}
-
-void HandleRoot(){
- DebugMessage("Sending root page");
- server.send(200, "text/html", GetIndexPage());
-}
-
-void HandleWifi(){
-  if ( server.hasArg( "ssid" ) && server.arg( "ssid" ) != NULL ) {
-    HandleCommand(CommandWifiName, 0, server.arg( "ssid" ));
+  // Serial.println(var);
+  if (var == "SSID")
+  {
+    return GetGlobalVariables()->baseThing.ssid;
   }
-  if ( server.hasArg( "password" ) && server.arg( "password" ) != NULL ) {
-    HandleCommand(CommandWifiPassword, 0, server.arg( "password" ));
+  if (var == "thingId")
+  {
+    return GetGlobalVariables()->baseThing.id;
   }
-  SaveToEEPRom(EEPROM, GetGlobalVariables()->baseThing);
-  HandleCommand(CommandReconectWifi, 120, "");
-  HandleRoot();;
+  if (var == "serveradress")
+  {
+    return GetGlobalVariables()->baseThing.serverUrl;
+  }
+  if (var == "password")
+  {
+    return GetGlobalVariables()->baseThing.password;
+  }
+  if (var == "wifi")
+  {
+    return IsWiFi() ? "<i class=\"material-icons\">wifi</i>" : "<i class=\"material-icons\">cloud</i>";
+  }
+  if (var == "sensors")
+  {
+    String result = "";
+    DebugMessage("Replacing sensor literal");
+    for (int i = 0; i < GetGlobalVariables()->sensorsArrSize; i++)
+    {
+      String currentSensorHtml = GetGlobalVariables()->sensorsArr[i].ShowHtml();
+      result.concat(currentSensorHtml);
+    }
+    return result;
+  }
+  if (var == CommandWifiRefreshTimer)
+  {
+    return String(GetGlobalVariables()->baseThing.WiFiTimer);
+  }
+  if (var == CommandSensorTimer)
+  {
+    return String(GetGlobalVariables()->baseThing.SensorTimer);
+  }
+  if (var == CommandSetPort)
+  {
+    return String(GetGlobalVariables()->baseThing.port);
+  }
+  if(var == "debugmessage"){
+    if(GetGlobalVariables()->baseThing.debugMessage){
+      return "checked";
+    } else{
+      return "";
+    }
+  }
+  if (var == "thingName"){
+    return thing.thingName;
+  }
+  return String();
 }
 
 void StartWebServer()
 {
   DebugMessage("Webserver started");
-  server.on("/", HandleRoot);
-  server.on("/wifi", HandleWifi);
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send_P(200, "text/html", INDEX_HTML, processor); });
+  server.on("/wifi", HTTP_POST, [](AsyncWebServerRequest *request)
+            {
+    if (request->hasParam(CommandWifiName, true))
+    {
+      HandleCommand(CommandWifiName, 0, request->getParam(CommandWifiName, true)->value());
+    }
+    if (request->hasParam(CommandWifiPassword, true))
+    {
+      HandleCommand(CommandWifiPassword, 0, request->getParam(CommandWifiPassword, true)->value());
+    }
+    SaveToEEPRom(EEPROM, GetGlobalVariables()->baseThing);
+    HandleCommand(CommandReconectWifi, 120, "");
+    request->send_P(200, "text/html", INDEX_HTML, processor); });
+
+    server.on("reboot", HTTP_POST, [](AsyncWebServerRequest *request){
+      HandleCommand(CommandReboot, 0, "");
+    request->send_P(200, "text/html", INDEX_HTML, processor); });
+
+  server.on("/device", HTTP_POST, [](AsyncWebServerRequest *request)
+  {
+    DebugMessage("Device settings");
+    if (request->hasParam(CommandSetId, true))
+    {
+      HandleCommand(CommandSetId, 0, request->getParam(CommandSetId, true)->value());
+    }
+    if (request->hasParam(CommandSetPort, true))
+    {
+      HandleCommand(CommandSetPort, 0, request->getParam(CommandSetPort, true)->value());
+    }
+    if (request->hasParam(CommandWifiRefreshTimer, true))
+    {
+      HandleCommand(CommandWifiRefreshTimer, request->getParam(CommandWifiRefreshTimer, true)->value().toInt(), "");
+    }
+    if (request->hasParam(CommandSensorTimer, true))
+    {
+      HandleCommand(CommandSensorTimer, request->getParam(CommandSensorTimer, true)->value().toInt(), "");
+    }
+    if (request->hasParam(CommandDebugMessage, true)){
+      HandleCommand(CommandDebugMessage, 1, "");
+    } else{
+      HandleCommand(CommandDebugMessage, 0, "");
+    }
+    SaveToEEPRom(EEPROM, GetGlobalVariables()->baseThing);
+    request->send_P(200, "text/html", INDEX_HTML, processor); });
+  server.on("/actuatorSet", HTTP_POST, [](AsyncWebServerRequest *request)
+            {
+    DebugMessage("Actuator set");          
+    if (request->hasParam(DTActuatorId, true) && request->hasParam(DTstringValue, true) )
+    {
+      String strId = request->getParam(DTActuatorId, true)->value();
+      float numericValue = 0;
+      if(request->getParam(DTstringValue, true)->value() == "on") {
+        numericValue = 100;
+      }
+
+      if (!strId.isEmpty())
+      {
+        char id[IdStringLength];
+        strId.toCharArray(id, IdStringLength, 0);
+
+        for (int i = 0; i < GetGlobalVariables()->actuatorArrSize; i++)
+        {
+          DebugMessage("Targer ID" + String(GetGlobalVariables()->actuatorsArr[i].id));
+          if (GetGlobalVariables()->actuatorsArr[i].isInitialized && !strcmp(id, GetGlobalVariables()->actuatorsArr[i].id))
+          {
+            DebugMessage("Found target!");
+            GetGlobalVariables()->actuatorsArr[i].SetActuatorValue(numericValue, "%");
+          }
+        }
+      }
+    }
+    request->send_P(200, "text/html", INDEX_HTML, processor); });
   server.begin();
 }

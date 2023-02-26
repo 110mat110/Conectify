@@ -23,7 +23,6 @@ public:
     bool initialized;
     int ledstate;
 
-    bool debugMessage = true;
     bool WiFiRestartReq = false;
     bool EEPROMWrteReq = false;
 

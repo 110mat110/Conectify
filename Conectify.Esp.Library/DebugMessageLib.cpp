@@ -1,8 +1,9 @@
 #include "Arduino.h"
 #include "DebugMessageLib.h"
+#include "GlobalVariables.h"
 
 int DebugMessage(String message){
-    if(true)
+    if(GetGlobalVariables()->baseThing.debugMessage)
         Serial.println(message);
-        return 1;
+    return 1;
 }

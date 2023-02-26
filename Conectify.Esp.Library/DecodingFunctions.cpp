@@ -8,11 +8,44 @@
 #include "ESP8266WiFi.h"
 #include "ConstantsDeclarations.h"
 #include "Thing.h"
-#include <ArduinoWebsockets.h>
 #include <WiFiClient.h>
 
 WiFiClient wifiClient;
-using namespace websockets;
+
+struct HTTPResponse
+{
+  bool success = false;
+  String payload;
+};
+
+HTTPResponse HTTPPost(String url, String payload)
+{
+  HTTPResponse response;
+  DebugMessage("Sending request to: " + url);
+  DebugMessage("Payload: " + payload);
+  int watchdog = 0;
+  while (watchdog < 3)
+  {
+    HTTPClient http;
+    http.begin(wifiClient, url); // Specify request destination                         
+    http.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
+
+    int httpCode = http.POST(payload); // Send the request
+    DebugMessage("Got response: " + String(httpCode));
+    response.success = httpCode == HttpOKCode;
+    if (response.success)
+    {
+      String responsePayload = http.getString();        // Get the response payload
+      DebugMessage("With payload: " + responsePayload); // Print request response payload
+      response.payload = responsePayload;
+      http.end();
+      break;
+    }
+    watchdog ++;
+    http.end();
+  }
+  return response;
+}
 
 String GetServer(BaseThing &baseThing)
 {
@@ -24,29 +57,18 @@ String GetServer(BaseThing &baseThing)
 void DecodeRegisteredThingValue(String response, BaseThing &baseThing)
 {
   response.toCharArray(baseThing.id, IdStringLength, 1);
-  DebugMessage("Base device id set to :" + String(baseThing.id));
+  DebugMessage("Base device id set to: " + String(baseThing.id));
 }
 
 void RegisterBaseThing(BaseThing &baseThing, ESP8266WiFiClass WiFi, Thing thing)
 {
   // DebugMessage("Registering base thing");
-  HTTPClient http;
   String url = httpPrefix + GetServer(baseThing) + inputThingSuffix;
-  Serial.print(url);
-  DebugMessage("Sending thing to: " + url);
-  DebugMessage("Payload:" + serializeThing(baseThing, WiFi, thing));
-  http.begin(wifiClient, url);                                    // Specify request destination
-  http.addHeader("Content-Type", "application/json"); // Specify content-type header
 
-  int httpCode = http.POST(serializeThing(baseThing, WiFi, thing)); // Send the request
-  DebugMessage("Got response with decodingThing:" + String(httpCode));
-  if (httpCode == HttpOKCode)
-  {
-    String payload = http.getString(); // Get the response payload
-    DebugMessage(payload);             // Print request response payload
-    DecodeRegisteredThingValue(payload, baseThing);
+  HTTPResponse response = HTTPPost(url, serializeThing(baseThing, WiFi, thing));
+  if(response.success){
+    DecodeRegisteredThingValue(response.payload, baseThing);
   }
-  http.end();
 }
 
 String serializeThing(BaseThing &baseThing, ESP8266WiFiClass WiFi, Thing thing)
@@ -71,138 +93,30 @@ String serializeThing(BaseThing &baseThing, ESP8266WiFiClass WiFi, Thing thing)
 #pragma region Sensor
 void RegisterSensor(Sensor &sensor, BaseThing &baseThing)
 {
-
   DebugMessage("-------------Registering sensor-------------------");
-  DebugMessage(baseThing.id);
-  HTTPClient http;
   String url = httpPrefix + GetServer(baseThing) + inputSensorSuffix;
-  DebugMessage("Payload:" + sensor.SerializeSensor(baseThing.id));
-  http.begin(wifiClient, url);                                          // Specify request destination
-  http.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
 
-  int httpCode = http.POST(sensor.SerializeSensor(baseThing.id)); // Send the request
-  DebugMessage("Got response:" + String(httpCode));
-  if (httpCode == HttpOKCode)
+  HTTPResponse response = HTTPPost(url, sensor.SerializeSensor(baseThing.id));
+  //repeat with no ID to ensure that invalid ID is not an issue
+  if (!response.success)
   {
-    String payload = http.getString(); // Get the response payload
-    DebugMessage(payload);             // Print request response payload
-    DecodeRegisteredSensorValue(payload, sensor);
-  }
-  else
-  {
-    DebugMessage("First time did not work. Could not serialize sensor!");
+    DebugMessage("First time did not work. Could not read sensor!");
     sensor.isInitialized = false;
-      HTTPClient http2;
-      http2.begin(wifiClient, url);                                          // Specify request destination
-      http2.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
-    DebugMessage("Payload:" + sensor.SerializeSensor(baseThing.id));
-    int httpCode2 = http2.POST(sensor.SerializeSensor(baseThing.id)); // Send the request
-    DebugMessage("Got response:" + String(httpCode));
-    if (httpCode2 == HttpOKCode)
-    {
-      String payload = http2.getString(); // Get the response payload
-      DebugMessage(payload);             // Print request response payload
-      DecodeRegisteredSensorValue(payload, sensor);
-    }
-    http2.end();
+    response = HTTPPost(url, sensor.SerializeSensor(baseThing.id));
   }
-  http.end();
+
+  if(response.success){
+    DecodeRegisteredSensorValue(response.payload, sensor);
+  }
   DebugMessage("---------------END Reg. SENSOR-------------------");
 }
 
-/*
-//TODO check wth is that?
-void SendSensorValuesToServer(Sensor sensor, BaseThing baseThing, Time dateTime,
-    void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
-    Actuator* actuators,
-    byte actuatorsLength
-){
-
-  if(!sensor.isInitialized)
-  {
-    DebugMessage("Sensor is not initialized!");
-    return;
-  }
-  sensor.MarkAsRead();
-
-  DebugMessage("--------- Sensor Value ------------------------");
-  DebugMessage("Payload: " + sensor.SerializeValue(dateTime) );
-  String url = httpPrefix + GetServer(baseThing)+ inputBareValueSuffix + returnAllValuesSuffix;
-  DebugMessage("To adress: " + url);
-  HTTPClient http;
-
-  http.begin(wifiClient, url);      //Specify request destination
-  http.addHeader(HeaderContentType, HeaderJsonContentType);  //Specify content-type header
-
-  int httpCode = http.POST(sensor.SerializeValue(dateTime));   //Send the request
-  if(httpCode == HttpOKCode){
-    String payload = http.getString();                  //Get the response payload
-
-    DebugMessage("Response: " + payload);    //Print request response payload
-    decodeIncomingJson(payload, handleFunc, dateTime, actuators, actuatorsLength);
-  }
-  http.end();  //Close connection
-}
-*/
-
-void SendSensorValuesToServer(Sensor &sensor, Time &dateTime, WebsocketsClient websocketClient)
-{
-  DebugMessage("Here I shall send sensor value to WS");
-}
 void DecodeRegisteredSensorValue(String payload, Sensor &sensor)
 {
   DebugMessage("Retrieved ID is: " + payload);
   payload.toCharArray(sensor.id, IdStringLength, 1);
   sensor.isInitialized = true;
   DebugMessage("Actuator has saved ID: " + String(sensor.id));
-}
-
-void RegisterActuator(Actuator &actuator, BaseThing &baseThing)
-{
-  DebugMessage("-------------Registering actuator-------------------");
-  HTTPClient http;
-  String url = httpPrefix + GetServer(baseThing) + inputActuatorSuffix;
-  DebugMessage("Payload:" + actuator.SerializeActuator(baseThing.id));
-
-  http.begin(wifiClient, url);                                          // Specify request destination
-  http.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
-
-  int httpCode = http.POST(actuator.SerializeActuator(baseThing.id)); // Send the request
-  DebugMessage("Got response:" + String(httpCode));
-  if (httpCode == HttpOKCode)
-  {
-    String payload = http.getString(); // Get the response payload
-    DebugMessage(payload);             // Print request response payload
-    DecodeRegisteredActuatorValue(payload, actuator);
-  }
-  else
-    {
-      DebugMessage("First time did not work. Could not read actuator!");
-      actuator.isInitialized = false;
-      DebugMessage("Payload:" + actuator.SerializeActuator(baseThing.id));
-        HTTPClient http2;
-        http2.begin(wifiClient, url);                                          // Specify request destination
-        http2.addHeader(HeaderContentType, HeaderJsonContentType); 
-      int httpCode2 = http2.POST(actuator.SerializeActuator(baseThing.id)); // Send the request
-      DebugMessage("Got response:" + String(httpCode));
-      if (httpCode2 == HttpOKCode)
-      {
-        String payload = http2.getString(); // Get the response payload
-        DebugMessage(payload);             // Print request response payload
-        DecodeRegisteredActuatorValue(payload, actuator);
-      }
-      http2.end();
-    }
-  http.end();
-  DebugMessage("-------------End reg. actuator--------------------");
-}
-
-void DecodeRegisteredActuatorValue(String payload, Actuator &actuator)
-{
-  DebugMessage("Retrieved ID is: " + payload);
-  payload.toCharArray(actuator.id, IdStringLength, 1);
-  actuator.isInitialized = true;
-  DebugMessage("Actuator has saved ID: " + String(actuator.id));
 }
 #pragma endregion
 
@@ -264,6 +178,7 @@ void decodeIncomingJson(String incomingJson,
           if (actuators[i].isInitialized && !strcmp(id, actuators[i].id))
           {
             DebugMessage("Found target!");
+            actuators[i].lastActionId = root[DTid].as<String>();
             if (!root[DTstringValue].isNull())
               actuators[i].SetActuatorValue(root[DTstringValue].as<String>(), root[DTvalueUnit].as<String>());
             if (!root[DTnumericValue].isNull())
@@ -300,7 +215,7 @@ String RequestTime(BaseThing baseThing)
   http.begin(wifiClient, url); // Specify request destination
 
   int httpCode = http.GET(); // Send the request
-  DebugMessage("Got response with decodingThing:" + String(httpCode));
+  DebugMessage("Got response with decodingThing: " + String(httpCode));
   if (httpCode == HttpOKCode)
   {
     payload = http.getString(); // Get the response payload
@@ -313,61 +228,37 @@ String RequestTime(BaseThing baseThing)
 
 #pragma region Actuator
 
-void GetValues(
-    BaseThing thing,
-    void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
-    Time dateTime,
-    Actuator *actuators,
-    byte actuatorsLength)
+void RegisterActuator(Actuator &actuator, BaseThing &baseThing)
 {
+  DebugMessage("-------------Registering actuator-------------------");
+  
+  String url = httpPrefix + GetServer(baseThing) + inputActuatorSuffix;
+  int watchdog = 0;
 
-  String url = httpPrefix + String(thing.serverUrl) + outputThingSuffix + String(thing.id);
-  DebugMessage("To adress: " + url);
-  HTTPClient http;
-
-  http.begin(wifiClient, url); // Specify request destination
-
-  int httpCode = http.GET(); // Send the request
-  DebugMessage("Response:" + String(httpCode));
-  if (httpCode == HttpOKCode)
+  HTTPResponse response = HTTPPost(url, actuator.SerializeActuator(baseThing.id));
+  //repeat with no ID to ensure that invalid ID is not an issue
+  if (!response.success)
   {
-    String payload = http.getString(); // Get the response payload
-
-    DebugMessage("Response: " + payload); // Print request response payload
-    decodeIncomingJson(payload, handleFunc, dateTime, actuators, actuatorsLength);
+    DebugMessage("First time did not work. Could not read actuator!");
+    actuator.isInitialized = false;
+    response = HTTPPost(url, actuator.SerializeActuator(baseThing.id));
   }
-  http.end(); // Close connection
+
+  if(response.success){
+    DecodeRegisteredActuatorValue(response.payload, actuator);
+  }
+  DebugMessage("-------------End reg. actuator--------------------");
 }
 
+void DecodeRegisteredActuatorValue(String payload, Actuator &actuator)
+{
+  payload.toCharArray(actuator.id, IdStringLength, 1);
+  actuator.isInitialized = true;
+  DebugMessage("Actuator has saved ID: " + String(actuator.id));
+}
 #pragma endregion
 
 #pragma region CommandResponse
-void SendCommandResponseToServer(String commandId, BaseThing baseThing, Time dateTime
-                                 // void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
-                                 // Actuator* actuators,
-                                 // byte actuatorsLength
-)
-{
-
-  DebugMessage("--------- Command response ------------------------");
-  // DebugMessage("Payload: " + CreateCommandResponse(baseThing, dateTime) );
-  String url = httpPrefix + GetServer(baseThing) + inputBareValueSuffix;
-  DebugMessage("To adress: " + url);
-  HTTPClient http;
-
-  http.begin(wifiClient, url);                                          // Specify request destination
-  http.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
-  /*
-  int httpCode = http.POST(CreateCommandResponse(baseThing, dateTime));   //Send the request
-
-  if(httpCode == HttpOKCode){
-    String payload = http.getString();                  //Get the response payload
-
-    DebugMessage("Response: " + payload);    //Print request response payload
-    decodeIncomingJson(payload, handleFunc, dateTime, actuators, actuatorsLength);
-  }*/
-  http.end(); // Close connection
-}
 
 String CreateCommandResponse(BaseThing thing, Time dateTime)
 {
