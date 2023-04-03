@@ -37,8 +37,6 @@ export class OutputCreatorService {
       macAdress: "xxx",
       iPAdress: "xxx",
       name: "Angular web",
-      positionId: null,
-      position: {description:"server", lat:0, long: 0},
     }
   }
 

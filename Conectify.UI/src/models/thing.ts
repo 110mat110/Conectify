@@ -3,14 +3,6 @@ export interface Device {
     iPAdress: string;
     macAdress: string;
     name: string;
-    positionId: string | null;
-    position: Position;
-}
-
-export interface Position {
-    description: string;
-    lat: number;
-    long: number;
 }
 
 export interface DeviceSelector{
