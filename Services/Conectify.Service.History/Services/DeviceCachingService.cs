@@ -23,9 +23,8 @@ public class DeviceCachingService : IDeviceCachingService
 
 	public DeviceCachingService(IConnectorService connectorService)
 	{
-		ReloadActuators();
-
 		this.connectorService = connectorService;
+		ReloadActuators();
 	}
 
 	public void ObserveSensorFromValue(Value value)
