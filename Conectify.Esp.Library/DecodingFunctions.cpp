@@ -1,13 +1,12 @@
 #include "Arduino.h"
 #include "DecodingFunctions.h"
 #include "ArduinoJson.h"
-#include "BaseThing.h"
+#include "BaseDevice.h"
 #include "ESP8266HTTPClient.h"
 #include "Sensors.h"
 #include "DebugMessageLib.h"
-#include "ESP8266WiFi.h"
+#include <ESP8266WiFi.h>
 #include "ConstantsDeclarations.h"
-#include "Thing.h"
 #include <WiFiClient.h>
 
 WiFiClient wifiClient;
@@ -16,7 +15,42 @@ struct HTTPResponse
 {
   bool success = false;
   String payload;
+  int code = -1;
 };
+
+HTTPResponse HTTPGet(String url)
+{
+  HTTPResponse response;
+  DebugMessage("Sending request to: " + url);
+  int watchdog = 0;
+  while (watchdog < 3)
+  {
+    HTTPClient http;
+    http.begin(wifiClient, url); // Specify request destination
+
+    int httpCode = http.GET(); // Send the request
+    DebugMessage("Got response: " + String(httpCode));
+    response.success = httpCode == HttpOKCode;
+    response.code = httpCode;
+    if (response.success)
+    {
+      String responsePayload = http.getString();        // Get the response payload
+      DebugMessage("With payload: " + responsePayload); // Print request response payload
+      response.payload = responsePayload;
+      http.end();
+      break;
+    }
+    if (response.code == 400 || response.code == 404)
+    {
+      http.end();
+      break;
+    }
+    watchdog++;
+    http.end();
+  }
+
+  return response;
+}
 
 HTTPResponse HTTPPost(String url, String payload)
 {
@@ -27,12 +61,13 @@ HTTPResponse HTTPPost(String url, String payload)
   while (watchdog < 3)
   {
     HTTPClient http;
-    http.begin(wifiClient, url); // Specify request destination                         
+    http.begin(wifiClient, url);                              // Specify request destination
     http.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
 
     int httpCode = http.POST(payload); // Send the request
     DebugMessage("Got response: " + String(httpCode));
     response.success = httpCode == HttpOKCode;
+    response.code = httpCode;
     if (response.success)
     {
       String responsePayload = http.getString();        // Get the response payload
@@ -41,82 +76,96 @@ HTTPResponse HTTPPost(String url, String payload)
       http.end();
       break;
     }
-    watchdog ++;
+    if (response.code == 400 || response.code == 404)
+    {
+      http.end();
+      break;
+    }
+    watchdog++;
     http.end();
   }
+
   return response;
 }
 
-String GetServer(BaseThing &baseThing)
+String GetServer(BaseDevice &baseDevice)
 {
-  return String(baseThing.serverUrl) + ":" + String(baseThing.port);
+  return String(baseDevice.serverUrl) + ":" + String(baseDevice.port);
 }
 
-#pragma region Thing
-
-void DecodeRegisteredThingValue(String response, BaseThing &baseThing)
-{
-  response.toCharArray(baseThing.id, IdStringLength, 1);
-  DebugMessage("Base device id set to: " + String(baseThing.id));
-}
-
-void RegisterBaseThing(BaseThing &baseThing, ESP8266WiFiClass WiFi, Thing thing)
-{
-  // DebugMessage("Registering base thing");
-  String url = httpPrefix + GetServer(baseThing) + inputThingSuffix;
-
-  HTTPResponse response = HTTPPost(url, serializeThing(baseThing, WiFi, thing));
-  if(response.success){
-    DecodeRegisteredThingValue(response.payload, baseThing);
-  }
-}
-
-String serializeThing(BaseThing &baseThing, ESP8266WiFiClass WiFi, Thing thing)
+#pragma region Device
+String SerializeDevice(BaseDevice &baseDevice, bool useId)
 {
   DynamicJsonDocument doc(384);
-  doc[DTid] = baseThing.id;
-  doc[position][description] = thing.thingPositionDescription;
-  doc[position][posLat] = thing.latitude;
-  doc[position][posLong] = thing.longitude;
-  doc[type] = IoTThingType;
+  if(useId){
+    doc[DTid] = baseDevice.id;
+  } else{
+    doc[DTid] = "00000000-0000-0000-0000-000000000000";
+  }
+  doc[type] = IoTDeviceType;
   doc[ipAdress] = WiFi.localIP().toString();
   doc[macAdress] = WiFi.macAddress();
-  doc[thingName] = thing.thingName;
+  doc[deviceName] = baseDevice.Name;
   String json;
   serializeJson(doc, json);
   doc.clear();
   return json;
 }
 
+void DecodeRegisteredDeviceValue(String response, BaseDevice &baseDevice)
+{
+  response.toCharArray(baseDevice.id, IdStringLength, 1);
+  DebugMessage("Base device id set to: " + String(baseDevice.id));
+}
+
+void RegisterBaseDevice(BaseDevice &baseDevice)
+{
+  String url = httpPrefix + GetServer(baseDevice) + inputDeviceSuffix;
+
+  HTTPResponse response = HTTPPost(url, SerializeDevice(baseDevice, true));
+
+  if(response.code == 400){
+      response = HTTPPost(url, SerializeDevice(baseDevice, false));
+
+  }
+  if (response.success)
+  {
+    DecodeRegisteredDeviceValue(response.payload, baseDevice);
+  } else {
+    DebugMessage("Was not able to initialize device!");
+  }
+}
+
 #pragma endregion
 
 #pragma region Sensor
-void RegisterSensor(Sensor &sensor, BaseThing &baseThing)
-{
-  DebugMessage("-------------Registering sensor-------------------");
-  String url = httpPrefix + GetServer(baseThing) + inputSensorSuffix;
-
-  HTTPResponse response = HTTPPost(url, sensor.SerializeSensor(baseThing.id));
-  //repeat with no ID to ensure that invalid ID is not an issue
-  if (!response.success)
-  {
-    DebugMessage("First time did not work. Could not read sensor!");
-    sensor.isInitialized = false;
-    response = HTTPPost(url, sensor.SerializeSensor(baseThing.id));
-  }
-
-  if(response.success){
-    DecodeRegisteredSensorValue(response.payload, sensor);
-  }
-  DebugMessage("---------------END Reg. SENSOR-------------------");
-}
-
 void DecodeRegisteredSensorValue(String payload, Sensor &sensor)
 {
   DebugMessage("Retrieved ID is: " + payload);
   payload.toCharArray(sensor.id, IdStringLength, 1);
   sensor.isInitialized = true;
   DebugMessage("Actuator has saved ID: " + String(sensor.id));
+}
+
+void RegisterSensor(Sensor &sensor, BaseDevice &baseDevice)
+{
+  DebugMessage("-------------Registering sensor-------------------");
+  String url = httpPrefix + GetServer(baseDevice) + inputSensorSuffix;
+
+  HTTPResponse response = HTTPPost(url, sensor.SerializeSensor(baseDevice.id));
+  // repeat with no ID to ensure that invalid ID is not an issue
+  if (response.code == 400)
+  {
+    DebugMessage("Got invalid parameter. Most probably ID, trying with empty id instead!");
+    sensor.isInitialized = false;
+    response = HTTPPost(url, sensor.SerializeSensor(baseDevice.id));
+  }
+
+  if (response.success)
+  {
+    DecodeRegisteredSensorValue(response.payload, sensor);
+  }
+  DebugMessage("---------------END Reg. SENSOR-------------------");
 }
 #pragma endregion
 
@@ -193,7 +242,6 @@ void decodeIncomingJson(String incomingJson,
     }
     String time = root[timeCreated];
     DebugMessage(time);
-    // TODO update system time
     filter.clear();
     root.clear();
     return;
@@ -205,17 +253,17 @@ void decodeIncomingJson(String incomingJson,
   root.clear();
 }
 
-String RequestTime(BaseThing baseThing)
+String RequestTime(BaseDevice baseDevice)
 {
   String payload = "!";
   HTTPClient http;
-  String url = httpPrefix + GetServer(baseThing) + timeSuffix;
+  String url = httpPrefix + GetServer(baseDevice) + timeSuffix;
 
   DebugMessage("Requesting time at: " + url);
   http.begin(wifiClient, url); // Specify request destination
 
   int httpCode = http.GET(); // Send the request
-  DebugMessage("Got response with decodingThing: " + String(httpCode));
+  DebugMessage("Got response with decodingDevice: " + String(httpCode));
   if (httpCode == HttpOKCode)
   {
     payload = http.getString(); // Get the response payload
@@ -227,44 +275,43 @@ String RequestTime(BaseThing baseThing)
 #pragma endregion
 
 #pragma region Actuator
-
-void RegisterActuator(Actuator &actuator, BaseThing &baseThing)
-{
-  DebugMessage("-------------Registering actuator-------------------");
-  
-  String url = httpPrefix + GetServer(baseThing) + inputActuatorSuffix;
-  int watchdog = 0;
-
-  HTTPResponse response = HTTPPost(url, actuator.SerializeActuator(baseThing.id));
-  //repeat with no ID to ensure that invalid ID is not an issue
-  if (!response.success)
-  {
-    DebugMessage("First time did not work. Could not read actuator!");
-    actuator.isInitialized = false;
-    response = HTTPPost(url, actuator.SerializeActuator(baseThing.id));
-  }
-
-  if(response.success){
-    DecodeRegisteredActuatorValue(response.payload, actuator);
-  }
-  DebugMessage("-------------End reg. actuator--------------------");
-}
-
 void DecodeRegisteredActuatorValue(String payload, Actuator &actuator)
 {
   payload.toCharArray(actuator.id, IdStringLength, 1);
   actuator.isInitialized = true;
   DebugMessage("Actuator has saved ID: " + String(actuator.id));
 }
+
+void RegisterActuator(Actuator &actuator, BaseDevice &baseDevice)
+{
+  DebugMessage("-------------Registering actuator-------------------");
+
+  String url = httpPrefix + GetServer(baseDevice) + inputActuatorSuffix;
+
+  HTTPResponse response = HTTPPost(url, actuator.SerializeActuator(baseDevice.id));
+  // repeat with no ID to ensure that invalid ID is not an issue
+  if (response.code == 400)
+  {
+    DebugMessage("Got invalid parameter. Most probably ID, trying with empty id instead!");
+    actuator.isInitialized = false;
+    response = HTTPPost(url, actuator.SerializeActuator(baseDevice.id));
+  }
+
+  if (response.success)
+  {
+    DecodeRegisteredActuatorValue(response.payload, actuator);
+  }
+  DebugMessage("-------------End reg. actuator--------------------");
+}
 #pragma endregion
 
 #pragma region CommandResponse
 
-String CreateCommandResponse(BaseThing thing, Time dateTime)
+String CreateCommandResponse(BaseDevice device, Time dateTime)
 {
   DynamicJsonDocument doc(256);
   doc[type] = CommandResponseType;
-  doc[DTSourceId] = thing.id;
+  doc[DTSourceId] = device.id;
   doc[timeCreated] = dateTime.ToJSONString();
   doc[DTvalueName] = "";
   doc[DTstringValue] = "";

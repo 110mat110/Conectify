@@ -4,6 +4,7 @@ using AutoMapper;
 using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Services;
 using Microsoft.EntityFrameworkCore;
 
 public interface IDeviceService : IUniversalDeviceService<ApiDevice>
@@ -15,8 +16,8 @@ public class DeviceService : UniversalDeviceService<Device, ApiDevice>, IDeviceS
     private readonly ConectifyDb database;
     private readonly ILogger<DeviceService> logger;
 
-    public DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceService> logger) : base(database, mapper, logger)
-    {
+    public DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceService> logger, IHttpFactory httpFactory, Configuration configuration) : base(database, mapper, logger, httpFactory, configuration)
+	{
         this.database = database;
         this.logger = logger;
     }

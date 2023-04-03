@@ -3,7 +3,7 @@
 #include "GlobalVariables.h"
 
 int DebugMessage(String message){
-    if(GetGlobalVariables()->baseThing.debugMessage)
+    if(GetGlobalVariables()->baseDevice.debugMessage)
         Serial.println(message);
     return 1;
 }

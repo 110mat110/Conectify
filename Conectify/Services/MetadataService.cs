@@ -12,6 +12,8 @@ public interface IMetadataService
     public Task<IEnumerable<ApiBasicMetadata>> GetAllMetadata(CancellationToken ct = default);
 
     public Task<bool> AddNewMetadata(ApiBasicMetadata metadata, CancellationToken ct = default);
+
+    public Task<ApiBasicMetadata?> GetMetadataByCode(string code, CancellationToken ct = default);
 }
 
 public class MetadataService : IMetadataService
@@ -42,4 +44,10 @@ public class MetadataService : IMetadataService
     {
         return await database.Set<Metadata>().ProjectTo<ApiBasicMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
     }
+
+	public async Task<ApiBasicMetadata?> GetMetadataByCode(string code, CancellationToken ct = default)
+	{
+		var metadata = await database.Set<Metadata>().FirstOrDefaultAsync(metadata => metadata.Code.ToLower() == code.ToLower(), ct);
+        return mapper.Map<ApiBasicMetadata>(metadata);
+	}
 }

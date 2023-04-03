@@ -4,9 +4,8 @@ import { AnonymousSubject } from 'rxjs/internal/Subject';
 import { Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { MessagesService } from "./messages.service";
+import { environment } from "src/environments/environment";
 
- 
-const CHAT_URL = "ws://server.home:5000/api/websocket/";
 
 export interface Message {
     source: string;
@@ -55,7 +54,7 @@ export class WebsocketService {
       }
 
     public ConnectById(id: string){
-        this.messages = <Subject<string>>this.connect(CHAT_URL + id).pipe(
+        this.messages = <Subject<string>>this.connect(environment.websocketUrl + id).pipe(
             map(
                 (response: MessageEvent): any => {
                     console.log(response.data);

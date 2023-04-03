@@ -16,9 +16,7 @@ public class Device : Serializable, IEntity, IMetadatable<Device>, IDevice
     public string Name { get; set; } = string.Empty;
     public bool SubscribeToAll { get; set; } = false;
     public bool IsKnown { get; set; } = false;
-    public Guid? PositionId { get; set; }
 
-    public virtual Position Position { get; set; } = null!;
     public virtual ICollection<MetadataConnector<Device>> Metadata { get; set; } = new List<MetadataConnector<Device>>();
     public virtual ICollection<Sensor> Sensors { get; set; } = null!;
     public virtual ICollection<Actuator> Actuators { get; set; } = null!;

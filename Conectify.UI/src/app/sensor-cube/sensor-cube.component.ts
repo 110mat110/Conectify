@@ -1,5 +1,6 @@
 import { Overlay, OverlayConfig } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
+import { isNull } from '@angular/compiler/src/output/output_ast';
 import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild, ViewContainerRef } from '@angular/core';
 import { BaseInputType } from 'src/models/extendedValue';
 import { Metadata } from 'src/models/metadata';
@@ -17,28 +18,28 @@ import { WebsocketService } from '../websocket.service';
 })
 export class SensorCubeComponent implements OnInit, OnChanges {
 
-  @Input() sensorInput?: {id:string, visible: boolean};
+  @Input() sensorInput?: { id: string, visible: boolean };
   public sensor?: Sensor;
   public device?: Device;
-  public values: BaseInputType[] = [];
+  //public values: BaseInputType[] = [];
   public latestVal?: BaseInputType;
   public metadatas: Metadata[] = [];
   public valsReady: boolean = false;
-  public mapedValues: number[] = [];
-  
+  mapedValues: (number | number)[][] = [];
+
   mergeOptions = {};
   chartOption: any = {};
 
   constructor(public messenger: MessagesService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef, private websocketService: WebsocketService) {
   }
 
-  HandleIncomingValue(msg: any) : void{
+  HandleIncomingValue(msg: any): void {
     var id = msg.sourceId;
-    if(id && this.sensor && id == this.sensor.id){
+    if (id && this.sensor && id == this.sensor.id) {
       this.messenger.addMessage("Got value from ws:");
       this.latestVal = msg;
-      this.values.push(msg);
-      this.addData(this.latestVal?.numericValue ?? 0);
+      //this.values.push(msg);
+      this.addData(this.latestVal);
     }
   }
 
@@ -59,28 +60,34 @@ export class SensorCubeComponent implements OnInit, OnChanges {
         this.sensor = x
 
         if (this.sensor) {
-          
+
           this.be.getDevice(this.sensor.sourceDeviceId).subscribe(x => this.device = x);
           this.be.getSensorMetadatas(this.sensor.id).subscribe(x => {
             this.metadatas = x;
             var visibilityMetadata = this.metadatas.find(x => x.name === "Visible");
-            if(visibilityMetadata && this.sensorInput){
+            if (visibilityMetadata && this.sensorInput) {
               this.sensorInput.visible = visibilityMetadata.numericValue > 0;
             }
           });
           this.be.getSensorValues(this.sensor.id).subscribe(
-            x => {
-              //this.values = x;
-              this.valsReady = x.length > 0;
+            values => {
+              this.valsReady = values.length > 0;
               if (this.valsReady) {
-                x.forEach(val => {
-                  this.addData(val.numericValue);
+                let previousTick = new Date().getTime() - 86400000;
+                let previousValue = values[0].numericValue;
+                values.forEach(value => {
+                  for (let i = previousTick; i< value.timeCreated; i = i + 30000){
+                    this.mapedValues.push([i, previousValue]);
+                  }
+                  previousValue = value.numericValue;
+                  previousTick = value.timeCreated;
                 });
               }
             });
           this.chartOption = {
             xAxis: {
               type: 'category',
+              show: false
             },
             yAxis: {
               type: 'value',
@@ -88,33 +95,35 @@ export class SensorCubeComponent implements OnInit, OnChanges {
             },
             series: [{
               name: this.sensor?.name,
-              data: this.mapedValues,
+              data: this.mapedValues.map( x => new Date(x[0]).toLocaleDateString()),
               type: 'line',
               symbolKeepAspect: false,
             }]
           }
-          this.be.getLatestSensorValue(this.sensor.id).subscribe(x =>{
+          this.be.getLatestSensorValue(this.sensor.id).subscribe(x => {
             this.latestVal = x;
-            this.addData(this.latestVal.numericValue);
+            this.addData(this.latestVal);
           });
         }
       });
     }
   }
 
-  public klikaj() {
+  public onClick() {
     this.messenger.addMessage("Clicked to div in cube");
     this.openOverlay();
   }
 
-  getChart(): number[] {
-    return this.values.map(x => x.numericValue);
-  }
+  // getChart(): number[] {
+  //   return this.values.map(x => x.numericValue);
+  // }
 
-  addData(newVal: number) {
+  addData(newVal: BaseInputType | undefined) {
+    if (newVal == null) {
+      return;
+    }
     let newData = this.mapedValues;
-
-    newData.push(newVal);
+    newData.push([newVal.timeCreated, newVal.numericValue]);
 
     this.mergeOptions = {
       series: [{

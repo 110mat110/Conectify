@@ -3,7 +3,7 @@ export class AutomatizationBase{
 
     public dragPosition = {x: 0, y: 0};
 
-    public initialPos = {x:0, y:0};
+    public drawingPos = {x: 0, y: 0};
     public behaviorId: string = "";
 
     public getParametersJSon(): string{

@@ -26,4 +26,11 @@ public class MetadataController : ControllerBase
     {
         return await metadataService.AddNewMetadata(metadata) ? Ok() : BadRequest();
     }
+
+    [HttpGet("idByCode/{code}")]
+    public async Task<IActionResult> MetadataByCode(string code)
+    {
+        var metadata = await metadataService.GetMetadataByCode(code);
+        return metadata is null ? NotFound() : Ok(metadata.Id);
+    }
 }

@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 #include "Sensors.h"
-#include "BaseThing.h"
+#include "BaseDevice.h"
 #include "TickTimer.h"
 
 class GlobalVariables{
@@ -14,7 +14,7 @@ public:
     byte actuatorArrSize = 0;
 
     Time dateTime = Time();
-    BaseThing baseThing;
+    BaseDevice baseDevice;
 
     TickTimer TimeHandler = TickTimer(1);
     TickTimer WifiTimer = TickTimer(120);

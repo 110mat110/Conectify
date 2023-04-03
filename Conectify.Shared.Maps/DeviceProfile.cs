@@ -11,17 +11,12 @@ public class DeviceProfile : Profile
         this.CreateMap<ApiDevice, Device>()
             .ForMember(x => x.IsKnown, opt => opt.MapFrom(x => false))
             .ForMember(x => x.SubscribeToAll, opt => opt.MapFrom(x => false))
-            //.ForMember(x => x.Position, opt => opt.Ignore())
             .ForMember(x => x.Metadata, opt => opt.Ignore())
             .ForMember(x => x.Sensors, opt => opt.Ignore())
             .ForMember(x => x.Actuators, opt => opt.Ignore())
             .ForMember(x => x.Preferences, opt => opt.Ignore());
 
         this.CreateMap<Device, ApiDevice>();
-
-        this.CreateMap<ApiPosition, Position>()
-            .ForMember(x => x.Id, opt => opt.Ignore());
-        this.CreateMap<Position, ApiPosition>();
 
         this.CreateMap<ApiSensor, Sensor>()
             .ForMember(x => x.IsKnown, opt => opt.MapFrom(x => false))

@@ -5,6 +5,7 @@ using AutoMapper.QueryableExtensions;
 using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Services;
 using Microsoft.EntityFrameworkCore;
 
 public interface ISensorService : IUniversalDeviceService<ApiSensor>
@@ -20,7 +21,7 @@ public class SensorService : UniversalDeviceService<Sensor, ApiSensor>, ISensorS
     private readonly IDeviceService deviceService;
     private readonly ILogger<SensorService> logger;
 
-    public SensorService(ConectifyDb database, IMapper mapper, IDeviceService deviceService, ILogger<SensorService> logger) : base(database, mapper, logger)
+    public SensorService(ConectifyDb database, IMapper mapper, IDeviceService deviceService, ILogger<SensorService> logger, IHttpFactory httpFactory, Configuration configuration) : base(database, mapper, logger, httpFactory, configuration)
     {
         this.database = database;
         this.mapper = mapper;

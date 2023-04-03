@@ -6,5 +6,5 @@ export interface BaseInputType {
     unit: string;
     stringValue: string;
     numericValue: number;
-    timeCreated: string;  
+    timeCreated: number;  
 }

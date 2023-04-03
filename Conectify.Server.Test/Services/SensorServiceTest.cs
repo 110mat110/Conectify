@@ -3,6 +3,7 @@ using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Server.Services;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Services;
 using Conectify.Shared.Maps;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -13,6 +14,7 @@ public class SensorServiceTest
 {
     private DbContextOptions<ConectifyDb> dbContextoptions;
     private IMapper mapper;
+    private Configuration configuration;
 
     public SensorServiceTest()
     {
@@ -26,12 +28,14 @@ public class SensorServiceTest
             cfg.AddProfile<DeviceProfile>();
             cfg.AddProfile<MetadataProfile>();
         }).CreateMapper();
+
+        configuration = A.Fake<Configuration>();
     }
 
     [Fact]
     public async Task ItShallAddUnknownSensorToDatabase()
     {
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         var SensorId = Guid.NewGuid();
 
         var result = await service.TryAddUnknownDevice(SensorId, Guid.NewGuid());
@@ -46,8 +50,8 @@ public class SensorServiceTest
     [Fact]
     public async Task ItShallNotAddSensorAgainToDatabase()
     {
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
-        var SensorId = Guid.NewGuid();
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
+		var SensorId = Guid.NewGuid();
         var dbs = new ConectifyDb(dbContextoptions);
         var SensorName = "Test known Sensor";
         dbs.Add(new Sensor()
@@ -69,8 +73,8 @@ public class SensorServiceTest
     [Fact]
     public async Task ItShallAddKnownDeviceWithId()
     {
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
-        var SensorId = Guid.NewGuid();
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
+		var SensorId = Guid.NewGuid();
         var SensorName = Guid.NewGuid().ToString();
         var apiSensor = new ApiSensor()
         {
@@ -90,8 +94,8 @@ public class SensorServiceTest
     [Fact]
     public async Task ItShallOverwriteKnownSensor()
     {
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
-        var SensorName = Guid.NewGuid().ToString();
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
+		var SensorName = Guid.NewGuid().ToString();
         var SensorId = Guid.NewGuid();
         var dbs = new ConectifyDb(dbContextoptions);
         dbs.Add(new Sensor()
@@ -119,8 +123,8 @@ public class SensorServiceTest
     [Fact]
     public async Task ItShallAddKnownDeviceWithoutId()
     {
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
-        var SensorName = Guid.NewGuid().ToString();
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
+		var SensorName = Guid.NewGuid().ToString();
         var apiSensor = new ApiSensor()
         {
             Name = SensorName,
@@ -147,7 +151,7 @@ public class SensorServiceTest
         });
         dbs.SaveChanges();
 
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.GetSpecificDevice(SensorId);
 
         Assert.NotNull(result);
@@ -158,7 +162,7 @@ public class SensorServiceTest
     [Fact]
     public async Task ItShallReturnNullWhenSensorIsNotInDb()
     {
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.GetSpecificDevice(Guid.NewGuid());
 
         Assert.Null(result);
@@ -180,7 +184,7 @@ public class SensorServiceTest
         });
         dbs.SaveChanges();
 
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.GetAllDevices();
 
         Assert.NotEmpty(result);
@@ -205,7 +209,7 @@ public class SensorServiceTest
             MetadataId = metadataId,
         };
 
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.AddMetadata(metadataApi);
 
         Assert.False(result);
@@ -229,7 +233,7 @@ public class SensorServiceTest
             MetadataId = Guid.NewGuid(),
         };
 
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.AddMetadata(metadataApi);
 
         Assert.False(result);
@@ -258,7 +262,7 @@ public class SensorServiceTest
             StringValue = stringValue,
         };
 
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.AddMetadata(metadataApi);
 
         Assert.True(result);
@@ -298,7 +302,7 @@ public class SensorServiceTest
             StringValue = stringValue,
         };
 
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.AddMetadata(metadataApi);
 
         Assert.True(result);
@@ -335,7 +339,7 @@ public class SensorServiceTest
         });
         dbs.SaveChanges();
 
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.GetMetadata(SensorId);
 
         Assert.Equal(2, result.Count());
@@ -344,7 +348,7 @@ public class SensorServiceTest
     [Fact]
     public async Task ItShallFailWhenNoDeviceProvided()
     {
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         try
         {
             await service.TryAddUnknownDevice(Guid.NewGuid(), Guid.Empty);
@@ -364,7 +368,7 @@ public class SensorServiceTest
         db.Add(new Sensor() { SourceDeviceId = deviceId });
         db.SaveChanges();
 
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.GetAllSensorsPerDevice(deviceId);
 
         Assert.Equal(2, result.Count());
@@ -380,7 +384,7 @@ public class SensorServiceTest
         db.Add(new Sensor() { Id = sensorId });
         db.SaveChanges();
 
-        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>());
+        var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.GetSensorByActuator(actuatorId);
 
         Assert.Equal(sensorId, result!.Id);

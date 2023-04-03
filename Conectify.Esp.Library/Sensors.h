@@ -32,7 +32,7 @@ public:
     String GetValueUnit();
     String GetStringValue();
     float GetNumericValue();
-    String SerializeSensor(char thingId[IdStringLength]);
+    String SerializeSensor(char deviceId[IdStringLength]);
     String SerializeValue(Time dateTime);
     String ShowHtml();
     void MarkAsRead();
@@ -55,7 +55,7 @@ public:
     void SetActuatorValue(String stringValue,  String unit);
     void SetActuatorValue(float numericValue, String unit);
 
-    String SerializeActuator(char thingId[IdStringLength]);
+    String SerializeActuator(char deviceId[IdStringLength]);
     String SerializeResponse(Time dateTime);
     String ShowHtml();
 

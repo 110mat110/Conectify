@@ -1,12 +1,12 @@
-<div *ngIf="sensor"  class="detailBackground">
-<p>Details of sensor</p>
-{{sensor.name}}
-<div *ngIf="latestVal">
-    <p>{{latestVal.name}} : {{latestVal.numericValue}} {{latestVal.unit}}</p>
-    <div *ngIf="latestVal.stringValue">
-        {{latestVal.stringValue}} {{latestVal.unit}}<br/>
+<div *ngIf="sensor" class="detailBackground">
+    <p>Details of sensor</p>
+    {{sensor.name}}
+    <div *ngIf="latestVal">
+        <p>{{latestVal.name}} : {{latestVal.numericValue}} {{latestVal.unit}}</p>
+        <div *ngIf="latestVal.stringValue">
+            {{latestVal.stringValue}} {{latestVal.unit}}<br />
+        </div>
+        {{latestValTime}}
     </div>
-    {{latestValTime}}
-</div>
-<div echarts [autoResize]="true" [options]="chartOption" class="cube-chart" #cubeChartRef></div>
+    <div echarts [autoResize]="true" [options]="chartOption" class="cube-chart" #cubeChartRef></div>
 </div>

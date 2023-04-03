@@ -20,11 +20,11 @@ GlobalVariables* GetGlobalVariables(){
 
 void GlobalVariables::SetWiFiTimerInSeconds(int secondsPerTimer){
   WifiTimer.intervalMS = secondsPerTimer*1000;
-  baseThing.WiFiTimer = secondsPerTimer;
+  baseDevice.WiFiTimer = secondsPerTimer;
 }
 void GlobalVariables::SetSensoricTimerInSeconds(int secondsPerTimer){
   SensoricTimer.intervalMS = secondsPerTimer*1000;
-  baseThing.SensorTimer = secondsPerTimer;
+  baseDevice.SensorTimer = secondsPerTimer;
 }
 
 void GlobalVariables::InvertLed(){

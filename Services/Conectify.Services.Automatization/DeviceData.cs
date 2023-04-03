@@ -53,5 +53,17 @@ public class DeviceData : IDeviceData
         }
     };
 
-    public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>();
+	public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
+	{
+		new MetadataServiceConnector()
+		{
+			MaxVal = 1,
+			MinVal = 0,
+			MetadataName = "Visible",
+			NumericValue = 0,
+			StringValue = string.Empty,
+			TypeValue = 0,
+			Unit = string.Empty,
+		}
+	};
 }
