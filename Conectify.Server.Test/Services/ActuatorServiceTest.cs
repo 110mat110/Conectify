@@ -3,6 +3,7 @@ using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Server.Services;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Services;
 using Conectify.Shared.Maps;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -13,6 +14,7 @@ public class ActuatorServiceTest
 {
     private DbContextOptions<ConectifyDb> dbContextoptions;
     private IMapper mapper;
+    private Configuration configuration;
 
     public ActuatorServiceTest()
     {
@@ -26,12 +28,14 @@ public class ActuatorServiceTest
             cfg.AddProfile<DeviceProfile>();
             cfg.AddProfile<MetadataProfile>();
         }).CreateMapper();
+
+        configuration = A.Fake<Configuration>();
     }
 
     [Fact]
     public async Task ItShallAddUnknownActuatorToDatabase()
     {
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var actuatorId = Guid.NewGuid();
 
         var result = await service.TryAddUnknownDevice(actuatorId, Guid.NewGuid());
@@ -46,7 +50,7 @@ public class ActuatorServiceTest
     [Fact]
     public async Task ItShallNotAddActuatorAgainToDatabase()
     {
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var actuatorId = Guid.NewGuid();
         var dbs = new ConectifyDb(dbContextoptions);
         var ActuatorName = "Test known Actuator";
@@ -69,7 +73,7 @@ public class ActuatorServiceTest
     [Fact]
     public async Task ItShallAddKnownDeviceWithId()
     {
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var actuatorId = Guid.NewGuid();
         var ActuatorName = Guid.NewGuid().ToString();
         var apiActuator = new ApiActuator()
@@ -90,7 +94,7 @@ public class ActuatorServiceTest
     [Fact]
     public async Task ItShallOverwriteKnownActuator()
     {
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var ActuatorName = Guid.NewGuid().ToString();
         var actuatorId = Guid.NewGuid();
         var dbs = new ConectifyDb(dbContextoptions);
@@ -119,7 +123,7 @@ public class ActuatorServiceTest
     [Fact]
     public async Task ItShallAddKnownDeviceWithoutId()
     {
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var ActuatorName = Guid.NewGuid().ToString();
         var apiActuator = new ApiActuator()
         {
@@ -147,7 +151,7 @@ public class ActuatorServiceTest
         });
         dbs.SaveChanges();
 
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.GetSpecificDevice(actuatorId);
 
         Assert.NotNull(result);
@@ -158,7 +162,7 @@ public class ActuatorServiceTest
     [Fact]
     public async Task ItShallReturnNullWhenActuatorIsNotInDb()
     {
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.GetSpecificDevice(Guid.NewGuid());
 
         Assert.Null(result);
@@ -180,7 +184,7 @@ public class ActuatorServiceTest
         });
         dbs.SaveChanges();
 
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.GetAllDevices();
 
         Assert.NotEmpty(result);
@@ -205,7 +209,7 @@ public class ActuatorServiceTest
             MetadataId = metadataId,
         };
 
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.AddMetadata(metadataApi);
 
         Assert.False(result);
@@ -229,7 +233,7 @@ public class ActuatorServiceTest
             MetadataId = Guid.NewGuid(),
         };
 
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.AddMetadata(metadataApi);
 
         Assert.False(result);
@@ -258,7 +262,7 @@ public class ActuatorServiceTest
             StringValue = stringValue,
         };
 
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.AddMetadata(metadataApi);
 
         Assert.True(result);
@@ -298,7 +302,7 @@ public class ActuatorServiceTest
             StringValue = stringValue,
         };
 
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.AddMetadata(metadataApi);
 
         Assert.True(result);
@@ -335,7 +339,7 @@ public class ActuatorServiceTest
         });
         dbs.SaveChanges();
 
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.GetMetadata(actuatorId);
 
         Assert.Equal(2, result.Count());
@@ -344,7 +348,7 @@ public class ActuatorServiceTest
     [Fact]
     public async Task ItShallFailWhenNoDeviceProvided()
     {
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         try
         {
             await service.TryAddUnknownDevice(Guid.NewGuid(), Guid.Empty);
@@ -364,7 +368,7 @@ public class ActuatorServiceTest
         db.Add(new Actuator() { SourceDeviceId = deviceId });
         db.SaveChanges();
 
-        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>());
+        var service = new ActuatorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<ActuatorService>>(), A.Fake<IHttpFactory>(), configuration);
         var result = await service.GetAllActuatorsPerDevice(deviceId);
 
         Assert.Equal(2, result.Count());

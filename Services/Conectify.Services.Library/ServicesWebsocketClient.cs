@@ -133,13 +133,15 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
 
     public async Task<bool> SendMessageAsync<RequestType>(RequestType message, CancellationToken cancellationToken = default) where RequestType : IWebsocketModel
     {
+        await ConnectAsync();
+
         if (WS is null)
         {
             logger.LogError("Websocket unavaliable");
             return false;
         }
         var msg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));
-        logger.LogInformation("Sending message via websocket: {msg}", msg);
+        logger.LogInformation("Sending message via websocket: {msg}", message);
         await WS.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, cancellationToken);
         return true;
     }

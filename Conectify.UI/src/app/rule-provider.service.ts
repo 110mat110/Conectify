@@ -30,39 +30,15 @@ export class RuleProviderService {
         }
       })
     });
-    /*
-    this.be.getAllInputRules().subscribe((x) =>
-      x.forEach((y) => {
-        var rule = new ValueInitRule(y.id);
-        rule.sourceId = y.sourceId;
-        rule.targets = y.targets;
-        console.warn(y.targets);
-        console.warn(rule.targets);
-        rule.dragPosition = y.dragPosition;
-        this.SaveComponent(rule);
-      })
-    );
-
-    this.be.getAllChangeDestRules().subscribe((x) =>
-      x.forEach((y) => {
-        var rule = new ChangeDestinationRule(y.id);
-        console.warn(rule.id)
-        rule.destinationId = y.destinationId;
-        rule.targets = y.targets;
-        rule.dragPosition = y.dragPosition;
-        this.SaveComponent(rule);
-      })
-    );*/
   }
 
   SaveComponent(component: AutomatizationBase) {
     if (component.dragPosition.x == 0 && component.dragPosition.y == 0) {
-      var ypos = 100;
-      var xpos = 100;
+      var ypos = 150;
+      var xpos = 150;
       component.dragPosition = { x: xpos, y: ypos };
     }
-
-    component.initialPos = component.dragPosition;
+    component.drawingPos = {x: component.dragPosition.x -75, y: component.dragPosition.y -75};
     this.Rules.push(component);
   }
 

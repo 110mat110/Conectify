@@ -25,4 +25,11 @@ public class DeviceController : ControllerBase
     {
         return deviceCachingService.GetActiveActuators();
     }
+
+    [HttpGet("reset")]
+    public IActionResult Reset() 
+    { 
+        deviceCachingService.Reset();
+        return Ok();
+    }
 }

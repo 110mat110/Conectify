@@ -22,7 +22,7 @@ Sensor::Sensor()
     isInitialized = false;
     DebugMessage("Dummy contructor");
 };
-String Sensor::SerializeSensor(char thingId[IdStringLength])
+String Sensor::SerializeSensor(char deviceId[IdStringLength])
 {
     DynamicJsonDocument doc(256);
     if (isInitialized)
@@ -34,7 +34,7 @@ String Sensor::SerializeSensor(char thingId[IdStringLength])
 
     doc[type] = SensorType;
     doc[DTSensorName] = sensorName;
-    doc[DTSourceThingId] = thingId;
+    doc[DTSourceDeviceId] = deviceId;
     String json;
     serializeJson(doc, json);
     doc.clear();
@@ -193,7 +193,7 @@ String Actuator::ShowHtml()
     return actuator_html;
 }
 
-String Actuator::SerializeActuator(char thingId[IdStringLength])
+String Actuator::SerializeActuator(char deviceId[IdStringLength])
 {
     DynamicJsonDocument doc(256);
     if (isInitialized)
@@ -204,7 +204,7 @@ String Actuator::SerializeActuator(char thingId[IdStringLength])
     }
     doc[type] = ActuatorType;
     doc[DTvalueName] = actuatorName;
-    doc[DTSourceThingId] = thingId;
+    doc[DTSourceDeviceId] = deviceId;
     doc[DTSensorId] = sensor->id;
     String json;
     serializeJson(doc, json);

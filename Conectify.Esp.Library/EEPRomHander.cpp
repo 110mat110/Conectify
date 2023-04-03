@@ -1,25 +1,25 @@
 #include "Arduino.h"
 #include "EEPROM.h"
-#include "BaseThing.h"
+#include "BaseDevice.h"
 #include "DebugMessageLib.h"
 #include "EEPRomHandler.h"
 #include "Sensors.h"
+#include "GlobalVariables.h"
 
-void SaveToEEPRom(EEPROMClass eeprom, BaseThing baseThing){
+void SaveToEEPRom(EEPROMClass eeprom, BaseDevice baseDevice){
     eeprom.begin(512);
-    eeprom.put((sizeof(byte)*2),baseThing);
+    eeprom.put((sizeof(byte)*3),baseDevice);
     eeprom.commit();
     eeprom.end();
 }
 
 void SaveSensorIDsToEEPROM(EEPROMClass eeprom, Sensor* sensorArray, byte sensorArraySize){
     eeprom.begin(512);
-    int pos = (sizeof(byte) *2 )+sizeof(BaseThing);
+    int pos = (sizeof(byte) *3)+sizeof(BaseDevice);
     eeprom.put(0,sensorArraySize);
 
     for(int i=0; i<sensorArraySize; i++)
         eeprom.put(pos + i*IdStringLength, sensorArray[i].id);
-
     eeprom.commit();
     eeprom.end();
 }
@@ -29,7 +29,7 @@ void SaveActuatorIDsToEEPROM(EEPROMClass eeprom, Actuator* actuatorArray, byte a
     eeprom.put(sizeof(byte),actuatorArraySize);
     byte noOfSensors = 0;
     eeprom.get(0,noOfSensors);
-    int pos = (sizeof(byte) *2 )+sizeof(BaseThing) + noOfSensors*IdStringLength;
+    int pos = (sizeof(byte) *3)+sizeof(BaseDevice) + noOfSensors*IdStringLength;
 
     for(int i=0; i<actuatorArraySize; i++)
         eeprom.put(pos + i*IdStringLength, actuatorArray[i].id);
@@ -37,7 +37,6 @@ void SaveActuatorIDsToEEPROM(EEPROMClass eeprom, Actuator* actuatorArray, byte a
     eeprom.commit();
     eeprom.end();
 }
-
 void LoadSensorsFromEEPROM(EEPROMClass eeprom, Sensor* sensorArray){
     DebugMessage("Reading sensors from eeprom");
 
@@ -50,7 +49,7 @@ void LoadSensorsFromEEPROM(EEPROMClass eeprom, Sensor* sensorArray){
         DebugMessage("No sensors are saved!");   
         return;
     }
-    int pos = (sizeof(byte)*2) + sizeof(BaseThing);
+    int pos = (sizeof(byte)*3) + sizeof(BaseDevice);
     for (int i = 0; i < sizeOfArray; i++)
     {
 
@@ -68,7 +67,7 @@ void LoadActuatorFromEEPROM(EEPROMClass eeprom, Actuator* actuatorArray){
 
     byte noOfSensors = 0;
     eeprom.get(0,noOfSensors);
-    int pos = (sizeof(byte) *2 )+sizeof(BaseThing) + noOfSensors*IdStringLength;
+    int pos = (sizeof(byte) *3)+sizeof(BaseDevice) + noOfSensors*IdStringLength;
 
     byte sizeOfArray = 0;
     eeprom.get(sizeof(byte),sizeOfArray);
@@ -95,17 +94,18 @@ void ClearEEPROM(EEPROMClass eeprom){
     eeprom.end();
 }
 
-void ReadFromEEPRom(EEPROMClass eeprom, BaseThing &thing){
+void ReadFromEEPRom(EEPROMClass eeprom, BaseDevice &device){
     DebugMessage("READING FROM EEPROM");
     eeprom.begin(512);
-    eeprom.get((sizeof(byte)*2), thing);
-    DebugMessage("SIZE: " + String(sizeof(BaseThing)));
-    DebugMessage(thing.id);
-    DebugMessage(thing.ssid);
-    DebugMessage(thing.password);
-    DebugMessage(thing.serverUrl);
-    DebugMessage(String(thing.SensorTimer));
-    DebugMessage(String(thing.WiFiTimer));
+    eeprom.get((sizeof(byte)*3), device);
+    DebugMessage("SIZE: " + String(sizeof(BaseDevice)));
+    DebugMessage(device.id);
+    DebugMessage(device.ssid);
+    DebugMessage(device.password);
+    DebugMessage(device.serverUrl);
+    DebugMessage(String(device.SensorTimer));
+    DebugMessage(String(device.WiFiTimer));
+    DebugMessage(String(device.Name));
     DebugMessage("--------------------");
     eeprom.end();
 }

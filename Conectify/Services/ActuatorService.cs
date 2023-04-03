@@ -5,6 +5,7 @@ using AutoMapper.QueryableExtensions;
 using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Services;
 using Microsoft.EntityFrameworkCore;
 
 public interface IActuatorService : IUniversalDeviceService<ApiActuator>
@@ -18,8 +19,8 @@ public class ActuatorService : UniversalDeviceService<Actuator, ApiActuator>, IA
     private readonly IMapper mapper;
     private readonly IDeviceService deviceService;
 
-    public ActuatorService(ConectifyDb database, IMapper mapper, IDeviceService deviceService, ILogger<ActuatorService> logger) : base(database, mapper, logger)
-    {
+    public ActuatorService(ConectifyDb database, IMapper mapper, IDeviceService deviceService, ILogger<ActuatorService> logger, IHttpFactory httpFactory, Configuration configuration) : base(database, mapper, logger, httpFactory, configuration)
+	{
         this.database = database;
         this.mapper = mapper;
         this.deviceService = deviceService;

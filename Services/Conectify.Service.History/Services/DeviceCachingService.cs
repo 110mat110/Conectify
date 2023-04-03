@@ -11,22 +11,24 @@ public interface IDeviceCachingService
     void ObserveSensorFromValue(Value value);
 
     void ObserveSensorFromAction(Database.Models.Values.Action action);
+
+    void Reset();
 }
 
 public class DeviceCachingService : IDeviceCachingService
 {
-    private readonly IDictionary<Guid, DateTime> sensorsCache = new Dictionary<Guid, DateTime>();
+    private IDictionary<Guid, DateTime> sensorsCache = new Dictionary<Guid, DateTime>();
     private readonly IDictionary<Guid, DateTime> actuatorCache = new Dictionary<Guid, DateTime>();
+	private readonly IConnectorService connectorService;
 
-    public DeviceCachingService(IConnectorService connectorService)
-    {
-        foreach (var result in connectorService.LoadAllActuators().Result)
-        {
-            actuatorCache.TryAdd(result.Id, DateTime.UtcNow);
-        }
-    }
+	public DeviceCachingService(IConnectorService connectorService)
+	{
+		ReloadActuators();
 
-    public void ObserveSensorFromValue(Value value)
+		this.connectorService = connectorService;
+	}
+
+	public void ObserveSensorFromValue(Value value)
     {
         if (sensorsCache.ContainsKey(value.SourceId))
         {
@@ -51,11 +53,12 @@ public class DeviceCachingService : IDeviceCachingService
     }
 
     public IEnumerable<Guid> GetActiveSensors()
-    {
-        return sensorsCache.Keys;
-    }
+	{
+		ReloadSensors();
+		return sensorsCache.Keys;
+	}
 
-    public IEnumerable<Guid> GetActiveActuators()
+	public IEnumerable<Guid> GetActiveActuators()
     {
         return actuatorCache.Keys;
     }
@@ -71,4 +74,26 @@ public class DeviceCachingService : IDeviceCachingService
             sensorsCache.Add(action.SourceId, DateTime.UtcNow);
         }
     }
+
+	public void Reset()
+	{
+		ReloadSensors();
+		ReloadActuators();
+	}
+
+	private void ReloadActuators()
+	{
+        actuatorCache.Clear();
+
+		foreach (var result in connectorService.LoadAllActuators().Result)
+		{
+			actuatorCache.TryAdd(result.Id, DateTime.UtcNow);
+		}
+	}
+
+	private void ReloadSensors()
+	{
+		var yesterday = DateTime.UtcNow.AddDays(-1);
+		sensorsCache = sensorsCache.Where(sensor => sensor.Value.CompareTo(yesterday) >= 0).ToDictionary(x => x.Key, x => x.Value);
+	}
 }

@@ -4,7 +4,7 @@
 #include "Arduino.h"
 
 const String type = "type";
-const String IoTThingType = "Device";
+const String IoTDeviceType = "Device";
 const String SensorType = "Sensor";
 const String CommandType = "Command";
 const String ActionType = "Action";
@@ -13,32 +13,31 @@ const String ActuatorType = "Actuator";
 const String CommandResponseType = "CommandResponse";
 const String ActionResponseType = "ActionResponse";
 
-const String DTentity = "entity";
-const String entities = "entities";
-const String DTid = "id";
 const String ipAdress = "ipadress";
 const String macAdress = "MacAdress";
 const String position = "position";
 const String description = "description";
-const String posLat = "lat";
-const String posLong = "long";
-const String thingName = "name";
+const String deviceName = "name";
 const String timeCreated = "timecreated";
+const String Code = "code";
 
+const String DTentity = "entity";
+const String DTid = "id";
 const String DTvalueName = "name";
 const String DTvalueUnit = "unit";
 const String DTstringValue = "stringValue";
 const String DTnumericValue = "numericValue";
 const String DTdestinationId = "destinationId";
 const String DTSensorName = "name";
-const String DTSourceThingId = "sourceDeviceId";
-const String DTResponseSourceId = "ResponseSourceId";
+const String DTSourceDeviceId = "sourceDeviceId";
+const String DTResponseSourceId = "responseSourceId";
 const String DTSourceId = "sourceId";
 const String DTSensorId = "sensorId";
 const String DTActuatorId = "actuatorId";
+const String DTDeviceId = "deviceId";
 
 const String httpPrefix = "http://";
-const String inputThingSuffix = "/api/device";
+const String inputDeviceSuffix = "/api/device";
 const String inputSensorSuffix = "/api/sensors";
 const String inputActuatorSuffix = "/api/actuators";
 const String timeSuffix = "/api/system/time";
@@ -55,12 +54,14 @@ const String CommandWifiRefreshTimer = "wifitimer";
 const String CommandSensorTimer = "sensortimer";
 const String CommandReboot = "reboot";
 const String CommandSetId = "setid";
+const String CommandSetName = "setname";
 const String CommandDebugMessage = "setdebugmessage";
 const String CommandClearEEPRom = "cleareeprom";
 const String CommandTriggerSensor = "triggersensor";
 const String CommandReconectWifi = "reconnectwifi";
 const String CommandSaveToEEPRom = "eepromsave";
 const String CommandActivityCheck = "activitycheck";
+const String CommandSaveDevice = "savedevice";
 
 const String HTMLPercentileSign = "&#37;";
 const String HTMLDegreeSign = "&#176;";
@@ -71,4 +72,5 @@ const int IdStringLength = 37;
 const int WiFiLength = 15;
 const int ServerAdressLength = 35;
 const int PortLength = 6;
+const int UserInputStringLength = 30;
 #endif

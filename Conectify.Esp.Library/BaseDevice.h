@@ -1,10 +1,10 @@
-#ifndef BaseThing_h
-#define BaseThing_h
+#ifndef BaseDevice_h
+#define BaseDevice_h
 
 #include "Arduino.h"
 #include "ConstantsDeclarations.h"
 
-struct BaseThing
+struct BaseDevice
 {
     char id[IdStringLength];
     char ssid[WiFiLength];
@@ -14,5 +14,6 @@ struct BaseThing
     bool debugMessage;
     int WiFiTimer;
     int SensorTimer;
+    char Name[UserInputStringLength];
 };
 #endif

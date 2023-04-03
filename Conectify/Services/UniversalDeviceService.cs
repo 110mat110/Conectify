@@ -5,8 +5,8 @@ using AutoMapper.QueryableExtensions;
 using Conectify.Database;
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
-using Conectify.Database.Models.Values;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Services;
 using Microsoft.EntityFrameworkCore;
 
 public interface IUniversalDeviceService<TApi>
@@ -24,37 +24,33 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
     private readonly ConectifyDb database;
     private readonly IMapper mapper;
     private readonly ILogger<UniversalDeviceService<TDbs, TApi>> logger;
+	private readonly IHttpFactory httpProvider;
+	private readonly Configuration configuration;
 
-    public UniversalDeviceService(ConectifyDb database, IMapper mapper, ILogger<UniversalDeviceService<TDbs, TApi>> logger)
+	protected UniversalDeviceService(ConectifyDb database, IMapper mapper, ILogger<UniversalDeviceService<TDbs, TApi>> logger, IHttpFactory httpProvider, Configuration configuration)
     {
         this.database = database;
         this.mapper = mapper;
         this.logger = logger;
-    }
+		this.httpProvider = httpProvider;
+		this.configuration = configuration;
+	}
 
     public async Task<Guid> AddKnownDevice(TApi apiDevice, CancellationToken ct = default)
     {
         var device = mapper.Map<TDbs>(apiDevice);
         device.IsKnown = true;
-        //dataService.InsertJsonModel(CreateNewDeviceCommand(), ct);
-        await database.AddOrUpdateAsync(device);
+        await NotifyAboutNewDevice(ct);
+        await database.AddOrUpdateAsync(device, ct);
         await database.SaveChangesAsync(ct);
         return device.Id;
     }
 
-    private Command CreateNewDeviceCommand()
+    private async Task NotifyAboutNewDevice(CancellationToken ct)
     {
-        return new Command()
-        {
-            Id = Guid.NewGuid(),
-            Name = "New device",
-            NumericValue = 1,
-            StringValue = typeof(TDbs).Name,
-            Unit = "units",
-            TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            SourceId = Guid.NewGuid(), //TODO
-        };
-    }
+		using var client = httpProvider.HttpClient;
+		await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, configuration.HistoryService + "/api/device/reset"), ct);
+	}
 
     public abstract Task<bool> TryAddUnknownDevice(Guid deviceId, Guid parentId = default, CancellationToken ct = default);
 
