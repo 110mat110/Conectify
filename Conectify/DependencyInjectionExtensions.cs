@@ -2,6 +2,7 @@
 
 using Conectify.Server.Caches;
 using Conectify.Server.Services;
+using Conectify.Shared.Library.Services;
 
 public static class DependencyInjectionExtensions
 {
@@ -16,5 +17,7 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<ISubscribersCache, SubscribersCache>();
         services.AddSingleton<IWebsocketCache, WebsocketCache>();
         services.AddTransient<IMetadataService, MetadataService>();
-    }
+		services.AddSingleton<Configuration>();
+		services.AddTransient<IHttpFactory, HttpFactory>();
+	}
 }
