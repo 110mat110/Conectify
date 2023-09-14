@@ -10,7 +10,7 @@ const routes: Routes = [
   {path: 'actuators', component: ActuatorOverviewComponent},
   {path: 'automatization', component: AutomatizationComponent},
   {path: 'metadata', component: MetadataComponent},
-  { path: '', redirectTo: '/sensors', pathMatch: 'full' },
+  { path: '', redirectTo: '/actuators', pathMatch: 'full' },
 ];
 
 @NgModule({
