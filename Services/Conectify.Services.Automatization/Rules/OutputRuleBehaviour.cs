@@ -6,7 +6,7 @@ public class OutputRuleBehaviour : IRuleBehaviour
 {
     public AutomatisationValue Execute(IEnumerable<AutomatisationValue> automationValues, RuleDTO rule)
     {
-        var value = automationValues.First();
+        var value = automationValues.OrderBy(x => x.TimeCreated).Last();
         value.DestinationId = rule.DestinationActuatorId;
         return value;
     }
