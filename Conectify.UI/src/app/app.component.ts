@@ -18,17 +18,18 @@ export class AppComponent {
   @ViewChild("fingerprintIdTextBoxRef") myNameElem?: ElementRef;
   wsStatus: any = this.websocketService.status;
   constructor(private websocketService: WebsocketService, private befetcher: BEFetcherService) {
+    this.onChange();
   }
 
   onChange() {
-    let id = this.myNameElem?.nativeElement.value;
+    let id = "14546e7ff9e147d1b66772033b862706";//this.myNameElem?.nativeElement.value;
     if (id) {
-      console.info(id);
       id = this.fixId(id);
+      console.info(id);
       this.befetcher.register(id);
       console.warn("Connectiong to ws with id " + id);
       this.websocketService.SetId(id);
-      this.websocketService.ConnectById(id);
+      this.websocketService.Connect();
     } else {
       console.warn("fingerprint is not initialized");
     }

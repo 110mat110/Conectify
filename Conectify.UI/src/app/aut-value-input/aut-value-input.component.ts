@@ -19,6 +19,7 @@ export class AutValueInputComponent implements OnInit  {
 
   }
   ngOnInit(): void {
+    
   }
 
   public closeOverlay(){

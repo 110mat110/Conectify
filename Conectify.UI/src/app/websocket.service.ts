@@ -19,15 +19,16 @@ export class WebsocketService {
     private subject?: AnonymousSubject<MessageEvent>;
     public messages?: Subject<any>;
     public receivedMessages: Observable<any>;
-    private id?: string
+    private id?: string;
     public status: boolean = false;
     private subs: any[] = []
     
     constructor(private messageService: MessagesService) {
         this.receivedMessages = new Observable<any>((s) => {
-            console.warn("Subed to websocket");
+            console.warn("Cube subed to websocket");
             this.subs.push(s)
           })
+        //this.Connect();
     }
 
     public SendMessage(message: any){
@@ -40,10 +41,10 @@ export class WebsocketService {
         this.id = id;
     }
     public Connect(){
-        if(this.id){
-            this.ConnectById(this.id);
-        }
-
+        if(this.status) return;
+        if(!this.id)
+            this.id = "14546e7f-f9e1-47d1-b667-72033b862706"; //TODO obtain new fingerprint here
+        this.ConnectById(this.id);
     }
 
     private trigger = (v: any) => {
@@ -53,7 +54,7 @@ export class WebsocketService {
         })
       }
 
-    public ConnectById(id: string){
+    private ConnectById(id: string){
         this.messages = <Subject<string>>this.connect(environment.websocketUrl + id).pipe(
             map(
                 (response: MessageEvent): any => {

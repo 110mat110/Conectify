@@ -12,6 +12,8 @@ public class AutomatizationCache
     private readonly IServiceProvider services;
     private readonly IMapper mapper;
     private IDictionary<Guid, RuleDTO> cache;
+    private DateTime lastReload;
+    private TimeSpan cacheLongevity = new TimeSpan(0, 10, 0);
     public AutomatizationCache(IServiceProvider services, IMapper mapper)
     {
         this.services = services;
@@ -31,19 +33,22 @@ public class AutomatizationCache
         return cache.ContainsKey(id) ? cache[id] : null;
     }
 
-    public IEnumerable<RuleDTO> GetRulesForSource(Guid sourceId)
+    public async Task<IEnumerable<RuleDTO>> GetRulesForSource(Guid sourceId, CancellationToken ct = default)
     {
+        await ReloadIfNeeded(ct);
         return cache.Where(x => x.Value.SourceSensorId == sourceId).Select(x => x.Value);
     }
 
-    public IEnumerable<RuleDTO> GetRulesByTypeId(Guid ruleTypeId)
+    public async Task<IEnumerable<RuleDTO>> GetRulesByTypeId(Guid ruleTypeId, CancellationToken ct = default)
     {
+        await ReloadIfNeeded(ct);
         return cache.Where(x => x.Value.RuleTypeId == ruleTypeId).Select(x => x.Value);
     }
 
 
-    public IEnumerable<RuleDTO> GetNextRules(RuleDTO ruleDTO)
+    public async Task<IEnumerable<RuleDTO>> GetNextRules(RuleDTO ruleDTO, CancellationToken ct = default)
     {
+        await ReloadIfNeeded(ct);
         return cache.Where(x => ruleDTO.NextRules.Contains(x.Value.Id)).Select(x => x.Value);
     }
 
@@ -58,6 +63,14 @@ public class AutomatizationCache
 
         cache.TryAdd(dto.Id, dto);
         return rule.Id;
+    }
+
+    private async Task ReloadIfNeeded(CancellationToken ct = default)
+    {
+        if(DateTime.UtcNow.Subtract(lastReload).CompareTo(cacheLongevity) > 0)
+        {
+            await Reload(ct);
+        }
     }
 
     public async Task Reload(Guid id, CancellationToken ct = default)
@@ -82,6 +95,7 @@ public class AutomatizationCache
 
         var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
         cache = dtos.ToDictionary(x => x.Id);
+        lastReload = DateTime.UtcNow;
     }
 
     private IDictionary<Guid, RuleDTO> SyncReload()
@@ -91,6 +105,7 @@ public class AutomatizationCache
         var dbrules = conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).ToList();
 
         var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
+        lastReload = DateTime.UtcNow;
         return dtos.ToDictionary(x => x.Id);
     }
 }

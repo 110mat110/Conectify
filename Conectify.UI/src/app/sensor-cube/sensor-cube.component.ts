@@ -1,7 +1,7 @@
-import { Overlay, OverlayConfig } from '@angular/cdk/overlay';
+import { Overlay, OverlayConfig, OverlayRef, PositionStrategy } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { isNull } from '@angular/compiler/src/output/output_ast';
-import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, ElementRef, HostListener, Input, OnChanges, OnInit, SimpleChanges, ViewChild, ViewContainerRef } from '@angular/core';
 import { BaseInputType } from 'src/models/extendedValue';
 import { Metadata } from 'src/models/metadata';
 import { Sensor } from 'src/models/sensor';
@@ -21,6 +21,7 @@ export class SensorCubeComponent implements OnInit, OnChanges {
   @Input() sensorInput?: { id: string, visible: boolean };
   public sensor?: Sensor;
   public device?: Device;
+  private overlayRef?: OverlayRef;
   //public values: BaseInputType[] = [];
   public latestVal?: BaseInputType;
   public metadatas: Metadata[] = [];
@@ -135,21 +136,37 @@ export class SensorCubeComponent implements OnInit, OnChanges {
     }
   }
 
+  private setChannelPosition(): PositionStrategy {
+    //return this.overlay.position().global().bottom(`${distanceFromEdge}px`).right(`${distanceFromEdge}px`).centerHorizontally();
+    return this.overlay.position().global().centerHorizontally().centerVertically();
+
+        // config.hasBackdrop = true;
+
+  }
+
+  @HostListener('window:resize')
+  public onResize(): void {
+    if(this.overlayRef){
+      this.overlayRef.updatePosition();
+    }
+  }
+
   openOverlay() {
     let config = new OverlayConfig();
 
-    config.positionStrategy = this.overlay.position()
-      .global().centerHorizontally().centerVertically();
-
+    config.positionStrategy = this.setChannelPosition();
+    const distanceFromEdge = 50;
+    config.width = Math.floor(window.outerHeight - 2 * distanceFromEdge);
+    config.height = Math.floor(window.innerHeight - 2 * distanceFromEdge);
     config.hasBackdrop = true;
-    config.width = "500px";
-
-    let overlayRef = this.overlay.create(config);
-    overlayRef.backdropClick().subscribe(() => {
-      overlayRef.dispose();
+    
+    this.overlayRef = this.overlay.create(config);
+    this.overlayRef.backdropClick().subscribe(() => {
+      if(this.overlayRef)
+        this.overlayRef.dispose();
     });
 
-    let ref = overlayRef.attach(new ComponentPortal(SensorDetailComponent, this.viewContainerRef));
+    let ref = this.overlayRef.attach(new ComponentPortal(SensorDetailComponent, this.viewContainerRef));
     ref.instance.sensor = this.sensor;
   }
 }

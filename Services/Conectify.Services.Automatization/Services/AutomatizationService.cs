@@ -45,7 +45,7 @@ public class AutomatizationService : IAutomatizationService
     {
         if (action.DestinationId != null)
         {
-            var sourceRules = automatizationCache.GetRulesForSource(action.DestinationId.Value);
+            var sourceRules = await automatizationCache.GetRulesForSource(action.DestinationId.Value);
             foreach (var sourceRule in sourceRules)
             {
                 sourceRule.InsertValue(action);
@@ -56,7 +56,7 @@ public class AutomatizationService : IAutomatizationService
 
     private async void WebsocketClient_OnIncomingValue(Value value)
     {
-        var sourceRules = automatizationCache.GetRulesForSource(value.SourceId);
+        var sourceRules = await automatizationCache.GetRulesForSource(value.SourceId);
         foreach (var sourceRule in sourceRules)
         {
             sourceRule.InsertValue(value);
@@ -84,7 +84,7 @@ public class AutomatizationService : IAutomatizationService
 
         SendToActuator(ruleDTO, result);
 
-        foreach (RuleDTO nextRule in automatizationCache.GetNextRules(ruleDTO))
+        foreach (RuleDTO nextRule in await automatizationCache.GetNextRules(ruleDTO))
         {
             await OnValue(nextRule.Id, result);
         }

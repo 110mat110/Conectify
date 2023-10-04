@@ -7,6 +7,7 @@ using Conectify.Services.Automatization.Rules;
 using Conectify.Services.Library;
 using Conectify.Shared.Library.Models;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Services;
 
@@ -29,9 +30,11 @@ public class RuleService
 
     public async Task<Guid> AddNewRule(CreateRuleApiModel apiModel, CancellationToken cancellationToken)
     {
-        var dbsModel = mapper.Map<Rule>(apiModel);
+        var rule = mapper.Map<Rule>(apiModel);
 
-        return await automatizationCache.AddNewRule(dbsModel, cancellationToken);
+        await AddExtraParamsToModel(rule, cancellationToken);
+
+        return await automatizationCache.AddNewRule(rule, cancellationToken);
     }
 
     public async Task<IEnumerable<GetRuleApiModel>> GetAllRules()
@@ -44,7 +47,7 @@ public class RuleService
         return await conectifyDb.Set<RuleConnector>().ProjectTo<ConnectionApiModel>(mapper.ConfigurationProvider).ToListAsync();
     }
 
-    public async Task<bool> EditRule(Guid ruleId, EditRuleApiModel apiRule)
+    public async Task<bool> EditRule(Guid ruleId, EditRuleApiModel apiRule, CancellationToken cancellationToken = default)
     {
         var rule = await conectifyDb.Set<Rule>().FirstOrDefaultAsync(x => x.Id == ruleId);
         if (rule == null)
@@ -55,6 +58,8 @@ public class RuleService
         rule.ParametersJson = apiRule.Parameters;
         rule.X = apiRule.X;
         rule.Y = apiRule.Y;
+
+        await AddExtraParamsToModel(rule, cancellationToken);
         await conectifyDb.SaveChangesAsync();
 
         await automatizationCache.Reload(ruleId);
@@ -141,5 +146,49 @@ public class RuleService
         await automatizationCache.AddNewRule(rule, cancellationToken);
 
         return true;
+    }
+
+    private async Task AddExtraParamsToModel(Rule? rule, CancellationToken cancellationToken)
+    {
+        if (rule is null) return;
+
+        if (rule.RuleType == new OutputRuleBehaviour().GetId())
+        {
+            var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { DestinationId = Guid.Empty })?.DestinationId;
+            if (id == Guid.Empty)
+                return;
+
+            var actuator = await connectorService.LoadActuator(id!.Value, cancellationToken);
+            rule.ParametersJson = JsonConvert.SerializeObject(new { DestinationId = actuator.Id, actuator.Name });
+
+            rule.Name = actuator.Name;
+            rule.Description = actuator.Name;
+        }
+
+        if (rule.RuleType == new UserInputRuleBehaviour().GetId())
+        {
+            var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceActuatorId = Guid.Empty })?.SourceActuatorId;
+            if (id == Guid.Empty)
+                return;
+
+            var actuator = await connectorService.LoadActuator(id!.Value, cancellationToken);
+            rule.ParametersJson = JsonConvert.SerializeObject(new { SourceActuatorId = actuator.Id, actuator.Name });
+
+            rule.Name = actuator.Name;
+            rule.Description = actuator.Name;
+        }
+
+        if (rule.RuleType == new InputRuleBehaviour().GetId())
+        {
+            var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceSensorId = Guid.Empty })?.SourceSensorId;
+            if (id == Guid.Empty)
+                return;
+
+            var sensor = await connectorService.LoadSensor(id!.Value, cancellationToken);
+            rule.ParametersJson = JsonConvert.SerializeObject(new { SourceSensorId = sensor.Id, sensor.Name });
+
+            rule.Name = sensor.Name;
+            rule.Description = sensor.Name;
+        }
     }
 }

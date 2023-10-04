@@ -38,9 +38,6 @@ export class AutomatizationComponentComponent implements OnInit {
 
     if(this.Component instanceof UserInputRule){
       this.UserInputRule = this.Component;
-
-      console.warn("Found userInput rule!")
-
       this.isDestination = false;
       this.isSource = true;
     }

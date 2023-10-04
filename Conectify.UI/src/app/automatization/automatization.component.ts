@@ -57,15 +57,14 @@ export class AutomatizationComponent implements OnInit {
   supportedRules: BehaviourMenuItem[] = [];
 
   ngOnInit(): void {
-    this.be.GetAllBehaviours().subscribe(x => this.supportedRules = x
-      , (err) => {
-        console.error(JSON.stringify(err));
-      });
-
     this.be.GetAllBehaviours().subscribe(x => {
+      console.log("Loaded rules");
       this.supportedRules = x;
       this.DrawConnections();
-    });
+    }, (err) => {
+      console.error(JSON.stringify(err));
+    }
+    );
 
   }
 

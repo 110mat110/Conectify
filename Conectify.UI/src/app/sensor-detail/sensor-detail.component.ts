@@ -53,8 +53,9 @@ export class SensorDetailComponent implements OnInit {
   }
 
   setOptions() {
-
+    const distanceFromEdge = 50;
     this.chartOption = {
+      outerWidth: window.innerWidth - 2 * distanceFromEdge,
       xAxis: {
         type: 'category',
         valueType: 'DateTime',

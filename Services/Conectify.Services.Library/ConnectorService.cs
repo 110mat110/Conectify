@@ -18,6 +18,10 @@ public interface IConnectorService
 
     Task<IEnumerable<Actuator>> LoadAllActuators(CancellationToken ct = default);
 
+    Task<ApiActuator> LoadActuator(Guid id, CancellationToken ct = default);
+
+    Task<ApiSensor> LoadSensor(Guid id, CancellationToken ct = default);
+
     Task<bool> SendMetadataForDevice(Guid deviceId, IEnumerable<MetadataServiceConnector> metadatas, CancellationToken cancellationToken = default);
 
 }
@@ -97,6 +101,16 @@ public class ConnectorService : IConnectorService
     {
         var apiModels = await GetAsync<IEnumerable<ApiActuator>>("{0}/api/actuators/all", ct);
         return mapper.Map<IEnumerable<Actuator>>(apiModels);
+    }
+
+    public async Task<ApiActuator?> LoadActuator(Guid id, CancellationToken ct = default)
+    {
+        return await GetAsync<ApiActuator>("{0}/api/actuators/"+ id.ToString(), ct);
+    }
+
+    public async Task<ApiSensor> LoadSensor(Guid id, CancellationToken ct = default)
+    {
+        return await GetAsync<ApiSensor>("{0}/api/sensors/" + id.ToString(), ct);
     }
 
     private async Task<IEnumerable<ApiBasicMetadata>?> LoadAllMetadata(CancellationToken ct = default)

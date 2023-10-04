@@ -50,8 +50,12 @@ public class SharedDataService
     {
         try
         {
-            var id = JsonConvert.DeserializeAnonymousType(rawJson, new { SourceSensorId = Guid.Empty });
-            return id?.SourceSensorId;
+            var sSensor = JsonConvert.DeserializeAnonymousType(rawJson, new { SourceSensorId = Guid.Empty });
+             if(sSensor != null && sSensor.SourceSensorId != Guid.Empty)
+                return sSensor.SourceSensorId;
+
+            var sActuator = JsonConvert.DeserializeAnonymousType(rawJson, new { SourceActuatorId = Guid.Empty });
+            return sActuator?.SourceActuatorId;
         }
         catch (Exception)
         {
