@@ -11,14 +11,14 @@ public class AutomatizationCache
 {
     private readonly IServiceProvider services;
     private readonly IMapper mapper;
-    private IDictionary<Guid, RuleDTO> cache;
+    private IDictionary<Guid, RuleDTO> cache = new Dictionary<Guid, RuleDTO>();
     private DateTime lastReload;
     private TimeSpan cacheLongevity = new TimeSpan(0, 10, 0);
     public AutomatizationCache(IServiceProvider services, IMapper mapper)
     {
         this.services = services;
         this.mapper = mapper;
-        cache = SyncReload();
+        Reload();
     }
 
     public async Task<RuleDTO?> GetRuleByIdAsync(Guid id)
@@ -33,22 +33,22 @@ public class AutomatizationCache
         return cache.ContainsKey(id) ? cache[id] : null;
     }
 
-    public async Task<IEnumerable<RuleDTO>> GetRulesForSource(Guid sourceId, CancellationToken ct = default)
+    public IEnumerable<RuleDTO> GetRulesForSource(Guid sourceId, CancellationToken ct = default)
     {
-        await ReloadIfNeeded(ct);
+        ReloadIfNeeded();
         return cache.Where(x => x.Value.SourceSensorId == sourceId).Select(x => x.Value);
     }
 
-    public async Task<IEnumerable<RuleDTO>> GetRulesByTypeId(Guid ruleTypeId, CancellationToken ct = default)
+    public IEnumerable<RuleDTO> GetRulesByTypeId(Guid ruleTypeId)
     {
-        await ReloadIfNeeded(ct);
+        ReloadIfNeeded();
         return cache.Where(x => x.Value.RuleTypeId == ruleTypeId).Select(x => x.Value);
     }
 
 
-    public async Task<IEnumerable<RuleDTO>> GetNextRules(RuleDTO ruleDTO, CancellationToken ct = default)
+    public IEnumerable<RuleDTO> GetNextRules(RuleDTO ruleDTO, CancellationToken ct = default)
     {
-        await ReloadIfNeeded(ct);
+        ReloadIfNeeded();
         return cache.Where(x => ruleDTO.NextRules.Contains(x.Value.Id)).Select(x => x.Value);
     }
 
@@ -65,11 +65,11 @@ public class AutomatizationCache
         return rule.Id;
     }
 
-    private async Task ReloadIfNeeded(CancellationToken ct = default)
+    private void ReloadIfNeeded()
     {
         if(DateTime.UtcNow.Subtract(lastReload).CompareTo(cacheLongevity) > 0)
         {
-            await Reload(ct);
+            Reload();
         }
     }
 
@@ -86,26 +86,27 @@ public class AutomatizationCache
         cache.Add(dto.Id, dto);
     }
 
-    public async Task Reload(CancellationToken ct = default)
+    //public async Task Reload(CancellationToken ct = default)
+    //{
+    //    cache.Clear();
+    //    using var scope = services.CreateScope();
+    //    var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
+    //    var dbrules = await conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).ToListAsync(ct);
+
+    //    var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
+    //    cache = dtos.ToDictionary(x => x.Id);
+    //    lastReload = DateTime.UtcNow;
+    //}
+
+    private void  Reload()
     {
         cache.Clear();
-        using var scope = services.CreateScope();
-        var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var dbrules = await conectifyDb.Set<Rule>().ToListAsync(ct);
-
-        var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
-        cache = dtos.ToDictionary(x => x.Id);
-        lastReload = DateTime.UtcNow;
-    }
-
-    private IDictionary<Guid, RuleDTO> SyncReload()
-    {
         using var scope = services.CreateScope();
         var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
         var dbrules = conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).ToList();
 
         var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
+        cache = dtos.ToDictionary(x => x.Id);
         lastReload = DateTime.UtcNow;
-        return dtos.ToDictionary(x => x.Id);
     }
 }
