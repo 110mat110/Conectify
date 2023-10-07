@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ValueInitRule } from 'src/models/Automatization/ValueInitRule';
 import { MessagesService } from '../messages.service';
-import { AutomatizationBase, AutomatizationBaseWithTarget } from 'src/models/automatizationComponent';
+import { AutomatizationBase } from 'src/models/automatizationComponent';
 import { CdkDragEnd } from '@angular/cdk/drag-drop';
 import { ChangeDestinationRule } from 'src/models/Automatization/ChangeDestinationRule';
 import { BefetchAutomatizationService } from '../befetch-automatization.service';
@@ -48,7 +48,7 @@ export class AutomatizationComponent implements OnInit {
   lineToFill: number = 0;
   lineHeight: number = 150;
 
-  source?: AutomatizationBaseWithTarget;
+  source?: AutomatizationBase;
   destination?: AutomatizationBase;
 
   polylines: Polyline[] = [];
@@ -82,7 +82,7 @@ export class AutomatizationComponent implements OnInit {
     this.be.saveRule(apiModel);
   }
 
-  SourceClick(source: AutomatizationBaseWithTarget) {
+  SourceClick(source: AutomatizationBase) {
     this.source = source;
   }
 
@@ -111,7 +111,7 @@ export class AutomatizationComponent implements OnInit {
     this.polylines = [];
     this.ruleService.Rules.forEach(rule => {
       console.log("Drawing line")
-      if (rule instanceof AutomatizationBaseWithTarget && rule.targets) {
+      if (rule.targets) {
         rule.targets.forEach(target => {
           var targetRule = this.ruleService.getRuleByID(target);
           if (targetRule)

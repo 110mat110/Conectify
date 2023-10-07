@@ -43,9 +43,6 @@ export class AutUserInputComponent implements OnInit {
   
     let ref = this.overlayRef.attach(new ComponentPortal(SelectDestinationActuatorOverlayComponent, this.viewContainerRef));
     ref.instance.creatorComponent = this;
-    // if(this.Rule){
-    //   this.Rule.destinationId = "c524bd2f-7124-436b-aa7e-12d8ef5ad8aa";
-    // }
   }
 
 }

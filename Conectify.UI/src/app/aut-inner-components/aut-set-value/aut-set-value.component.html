@@ -1,0 +1,11 @@
+<p>Set value to</p>
+<div>
+<mat-form-field class="string-input" style="margin-bottom: -10px; margin-top: -20px;">
+    <mat-label>String value</mat-label>
+    <input matInput placeholder="String value" value={{stringvalue}} [(ngModel)]="stringvalue" #stringInput (ngModelChange)="onChange()">
+  </mat-form-field>
+  <mat-form-field class="string-input" style="margin-top: -10px; margin-bottom: -20px;">
+    <mat-label>Numeric value</mat-label>
+    <input matInput type="number" placeholder="0" value={{numericvalue}} [(ngModel)]="numericvalue" #numericInput (ngModelChange)="onChange()">
+  </mat-form-field>
+</div>

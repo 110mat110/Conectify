@@ -1,25 +1,9 @@
-import { AutomatizationBaseWithTarget } from "../automatizationComponent";
+import { AutomatizationBaseGeneric } from "../automatizationComponent";
 
-export class ChangeDestinationRule extends AutomatizationBaseWithTarget {
+export class ChangeDestinationRule extends AutomatizationBaseGeneric<ChangeDestinationBehaviour> {
+}
 
-    destinationId: string = "";
-    name: string = "unknown";
-
-    public getParametersJSon(): string {
-        return "{\"DestinationId\" : \"" + this.destinationId + "\"}";
-    };
-
-    constructor(id: string, behaviourId: string, json: string) {
-        super(id, behaviourId)
-        try {
-            let obj = JSON.parse(json);
-            if (obj) {
-                this.destinationId = obj.DestinationId;
-                this.name = obj.Name;
-            }
-        }
-        catch (e) {
-            console.error(e);
-        }
-    }
+interface ChangeDestinationBehaviour{
+    DestinationId : string;
+    Name: string;
 }

@@ -18,14 +18,16 @@ public class RuleService
     private readonly ConectifyDb conectifyDb;
     private readonly IConnectorService connectorService;
     private readonly IDeviceData configuration;
+    private readonly IAutomatizationService automatizationService;
 
-    public RuleService(AutomatizationCache automatizationCache, IMapper mapper, ConectifyDb conectifyDb, IConnectorService connectorService, IDeviceData configuration)
+    public RuleService(AutomatizationCache automatizationCache, IMapper mapper, ConectifyDb conectifyDb, IConnectorService connectorService, IDeviceData configuration, IAutomatizationService automatizationService)
     {
         this.automatizationCache = automatizationCache;
         this.mapper = mapper;
         this.conectifyDb = conectifyDb;
         this.connectorService = connectorService;
         this.configuration = configuration;
+        this.automatizationService = automatizationService;
     }
 
     public async Task<Guid> AddNewRule(CreateRuleApiModel apiModel, CancellationToken cancellationToken)
@@ -34,7 +36,11 @@ public class RuleService
 
         await AddExtraParamsToModel(rule, cancellationToken);
 
-        return await automatizationCache.AddNewRule(rule, cancellationToken);
+        var savedRuleId = await automatizationCache.AddNewRule(rule, cancellationToken);
+
+        await automatizationService.HandleTimerAsync(cancellationToken);
+
+        return savedRuleId;
     }
 
     public async Task<IEnumerable<GetRuleApiModel>> GetAllRules()
@@ -63,6 +69,7 @@ public class RuleService
         await conectifyDb.SaveChangesAsync();
 
         await automatizationCache.Reload(ruleId);
+        await automatizationService.HandleTimerAsync(cancellationToken);
 
         return true;
     }

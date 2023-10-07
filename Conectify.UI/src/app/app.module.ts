@@ -34,7 +34,10 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatSelectModule} from '@angular/material/select';
 import { LastValueComponent } from './last-value/last-value.component';
 import {MatToolbarModule} from '@angular/material/toolbar';
-import { AutUserInputComponent } from './aut-user-input/aut-user-input.component'; 
+import { AutUserInputComponent } from './aut-user-input/aut-user-input.component';
+import { AutSetTimeComponent } from './aut-inner-components/aut-set-time/aut-set-time.component';
+import { AutEachTimeComponent } from './aut-inner-components/aut-each-time/aut-each-time.component';
+import { AutSetValueComponent } from './aut-inner-components/aut-set-value/aut-set-value.component'; 
 
 @NgModule({
   declarations: [
@@ -54,7 +57,10 @@ import { AutUserInputComponent } from './aut-user-input/aut-user-input.component
     SelectDestinationActuatorOverlayComponent,
     MetadataComponent,
     LastValueComponent,
-    AutUserInputComponent
+    AutUserInputComponent,
+    AutSetTimeComponent,
+    AutEachTimeComponent,
+    AutSetValueComponent
   ],
   imports: [
     FormsModule,

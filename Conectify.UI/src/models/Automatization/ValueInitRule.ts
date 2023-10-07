@@ -1,25 +1,9 @@
-import { AutomatizationBaseWithTarget } from "../automatizationComponent";
+import { AutomatizationBaseGeneric } from "../automatizationComponent";
 
-export class ValueInitRule extends AutomatizationBaseWithTarget {
+export class ValueInitRule extends AutomatizationBaseGeneric<ValueInitBehaviour> {
+}
 
-    public sourceId: string = "";
-    public name:string = "unknown";
-
-    public getParametersJSon(): string {
-        return "{\"SourceSensorId\" : \"" + this.sourceId + "\"}";
-    };
-
-    constructor(id: string, behaviourId: string, json: string) {
-        super(id, behaviourId)
-        try {
-            const obj = JSON.parse(json);
-            if (obj) {
-                this.sourceId = obj.SourceSensorId;
-                this.name = obj.Name;
-            }
-        }
-        catch (e) {
-            console.error(e);
-        }
-    }
+interface ValueInitBehaviour{
+    SourceSensorId: string;
+    Name: string;
 }

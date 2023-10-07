@@ -88,15 +88,20 @@ export class ActuatorCubeComponent implements OnInit {
   }
 
   onButtonClick() {
-    this.sendn("", this.maxValue);
+    this.sendn(this.stringvalue, this.maxValue);
   }
 
   offbuttonClick() {
-    this.sendn("", this.minValue);
+    this.sendn(this.stringvalue, this.minValue);
   }
 
   triggerButtonClick(){
     this.sendn("", this.metadataValue);
+  }
+
+  onColorChange(stringvalue: string){
+    this.stringvalue = stringvalue;
+    this.sendn(this.stringvalue, this.maxValue);
   }
 
   sendn(stringValue: string, numericValue: number): void {

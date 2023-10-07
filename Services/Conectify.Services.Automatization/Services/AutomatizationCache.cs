@@ -3,7 +3,6 @@ using Conectify.Database;
 using Conectify.Database.Models.ActivityService;
 using Conectify.Services.Automatization.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Conectify.Services.Automatization.Services;
 
@@ -79,7 +78,7 @@ public class AutomatizationCache
 
         using var scope = services.CreateScope();
         var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var rule = await conectifyDb.Set<Rule>().FirstAsync(x => x.Id == id, ct);
+        var rule = await conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).FirstAsync(x => x.Id == id, ct);
 
         var dto = mapper.Map<RuleDTO>(rule);
 

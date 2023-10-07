@@ -6,9 +6,11 @@ export class AutomatizationBase{
     public drawingPos = {x: 0, y: 0};
     public behaviorId: string = "";
 
-    public getParametersJSon(): string{
+    public targets: string[] = [];
+
+    public getParametersJSon(): string {
         return "{}";
-    }
+    };
 
     constructor(id: string, behaviourId: string){
         this.id = id;
@@ -16,12 +18,24 @@ export class AutomatizationBase{
     }
 }
 
+export class AutomatizationBaseGeneric<T> extends AutomatizationBase{
+    public behaviour: T;
 
-export class AutomatizationBaseWithTarget extends AutomatizationBase{
+    public getParametersJSon(): string {
+        return JSON.stringify(this.behaviour);
+    };
 
-    public targets: string[] = [];
-
-    constructor(id: string, behaviourId: string){
-        super(id, behaviourId);
+    constructor(id: string, behaviourId: string, json: string, defaultT: T){
+    super(id, behaviourId)
+        this.behaviour = defaultT;
+        try {
+            let behaviour: T = JSON.parse(json) as T;
+            if (behaviour) {
+                this.behaviour = behaviour;
+            }
+        }
+        catch (e) {
+            console.error(e);
+        }
     }
 }

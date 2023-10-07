@@ -5,9 +5,11 @@
     <small >{{Component?.dragPosition?.x}}/{{Component?.dragPosition?.y}}</small>
 </div>
 <div style="height: 65%;">
-    <app-aut-value-input *ngIf="ValueInitComponent" [Rule] = "ValueInitComponent"></app-aut-value-input>
+    <app-aut-value-input *ngIf="ValueInitRule" [Rule] = "ValueInitRule"></app-aut-value-input>
     <app-aut-change-destination *ngIf="ChangeDestinationRule" [Rule] = "ChangeDestinationRule"></app-aut-change-destination>
     <app-aut-user-input *ngIf="UserInputRule" [Rule] = "UserInputRule"></app-aut-user-input>
+    <app-aut-set-time *ngIf="SetTimeRule" [Rule] = "SetTimeRule"></app-aut-set-time>
+    <app-aut-set-value *ngIf="SetValueRule" [Rule] = "SetValueRule"></app-aut-set-value>
 </div>
 <div>
     <button class="saveButton" (click)="saveClick()">SubmitChanges</button>

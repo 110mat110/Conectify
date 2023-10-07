@@ -3,13 +3,16 @@ using Conectify.Services.Automatization.Models;
 using Conectify.Services.Automatization.Rules;
 using Conectify.Services.Library;
 using Conectify.Shared.Library.Models.Websocket;
+using Newtonsoft.Json;
+using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
+using System.Timers;
 
 namespace Conectify.Services.Automatization.Services;
 
 public interface IAutomatizationService
 {
     Task ExecuteRule(RuleDTO ruleDTO);
-    void HandleTimerAsync(CancellationToken cancellationToken = default);
+    Task HandleTimerAsync(CancellationToken cancellationToken = default);
     Task OnValue(Guid ruleId, AutomatisationValue value);
 
     void StartServiceAsync();
@@ -21,6 +24,7 @@ public class AutomatizationService : IAutomatizationService
     private readonly AutomatizationConfiguration configuration;
     private readonly IServicesWebsocketClient websocketClient;
     private readonly ILogger<AutomatizationService> logger;
+    private readonly Dictionary<Guid, System.Threading.Timer> timers = new Dictionary<Guid, System.Threading.Timer>();
 
     public AutomatizationService(AutomatizationCache automatizationCache,
                                  AutomatizationConfiguration configuration,
@@ -110,20 +114,128 @@ public class AutomatizationService : IAutomatizationService
         }
     }
 
-    public async void HandleTimerAsync(CancellationToken cancellationToken = default)
+    public async Task HandleTimerAsync(CancellationToken cancellationToken = default)
     {
-        var timer = new PeriodicTimer(TimeSpan.FromSeconds(this.configuration.RefreshIntervalSeconds));
-        /* fuj... co do pici som to stvoril
-        while (!cancellationToken.IsCancellationRequested)
+        foreach(var timer in timers)
         {
-            await timer.WaitForNextTickAsync(cancellationToken);
-            logger.LogWarning("Tick in timer handler");
-            var rules = await automatizationCache.GetRulesByTypeId(new TimeRuleBehaviour().GetId());
+            timer.Value.Dispose();
+        }
 
-            foreach (var rule in rules)
+        timers.Clear();
+
+        var setTimeRules = automatizationCache.GetRulesByTypeId(new TimeRuleBehaviour().GetId());
+
+        foreach (var rule in setTimeRules) {
+            CreateTimingFunction(rule);
+        }
+    }
+
+    private async void ExecuteFunction(object? state)
+    {
+        if (state is not Guid) return;
+
+        await timers[(Guid)state].DisposeAsync();
+        timers.Remove((Guid)state);
+
+        var rule = await automatizationCache.GetRuleByIdAsync((Guid)state);
+
+        if(rule is null) return;
+
+        await ExecuteRule(rule);
+
+        CreateTimingFunction(rule);
+    }
+
+    private void CreateTimingFunction(RuleDTO rule)
+    {
+        var parameters = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { TimeSet = "", Days = "" });
+        if (parameters is null)
+        {
+            return;
+        }
+
+        var timer = new System.Threading.Timer(ExecuteFunction, rule.Id, CalculateNextExecutionOfRule(parameters.TimeSet, parameters.Days), Timeout.Infinite);
+
+        if (timers.ContainsKey(rule.Id))
+        {
+            timers[rule.Id].Dispose();
+            timers.Remove(rule.Id);
+        }
+
+        timers.Add(rule.Id, timer);
+    }
+
+    private long CalculateNextExecutionOfRule(string targetTime, string targetDaysOfWeekAbbreviations)
+    {
+        // Parse the target time string
+        if (!TimeSpan.TryParseExact(targetTime, "hh\\:mm", null, out TimeSpan targetTimeSpan))
+        {
+            throw new ArgumentException("Invalid target time format. Use 'hh:mm' format.");
+        }
+
+        // Parse the target day abbreviations
+        var targetDaysOfWeek = targetDaysOfWeekAbbreviations.Split(',').Select(abbrev => ParseDayAbbreviation(abbrev)).ToList();
+
+        // Get the current date and time
+        DateTime currentTime = DateTime.Now;
+
+        // Find the nearest occurrence of the target day of the week
+        DateTime nearestOccurrence = CalculateNearestDay(currentTime, targetDaysOfWeek);
+
+        // Set the target date and time
+        DateTime targetDateTime = new DateTime(nearestOccurrence.Year, nearestOccurrence.Month, nearestOccurrence.Day, targetTimeSpan.Hours, targetTimeSpan.Minutes, 0);
+
+        if (targetDateTime < currentTime)
+        {
+            // If the target time has already passed for today, calculate for the next occurrence
+            nearestOccurrence = CalculateNearestDay(nearestOccurrence.AddDays(1), targetDaysOfWeek);
+            targetDateTime = new DateTime(nearestOccurrence.Year, nearestOccurrence.Month, nearestOccurrence.Day, targetTimeSpan.Hours, targetTimeSpan.Minutes, 0);
+        }
+
+        // Calculate the time difference in milliseconds
+        long millisecondsUntilTarget = (long)(targetDateTime - currentTime).TotalMilliseconds;
+
+        return millisecondsUntilTarget;
+    }
+
+    private static DayOfWeek ParseDayAbbreviation(string abbreviation)
+    {
+        switch (abbreviation.Trim().ToLower())
+        {
+            case "mo":
+                return DayOfWeek.Monday;
+            case "tu":
+                return DayOfWeek.Tuesday;
+            case "we":
+                return DayOfWeek.Wednesday;
+            case "th":
+                return DayOfWeek.Thursday;
+            case "fr":
+                return DayOfWeek.Friday;
+            case "sa":
+                return DayOfWeek.Saturday;
+            case "su":
+                return DayOfWeek.Sunday;
+            default:
+                throw new ArgumentException($"Invalid day abbreviation: {abbreviation}");
+        }
+    }
+
+    private static DateTime CalculateNearestDay(DateTime currentTime, List<DayOfWeek> targetDaysOfWeek)
+    {
+        DateTime nearestOccurrence = currentTime;
+
+        foreach (var targetDay in targetDaysOfWeek)
+        {
+            int daysUntilTargetDay = ((int)targetDay - (int)currentTime.DayOfWeek + 7) % 7;
+            DateTime nextTargetDay = currentTime.AddDays(daysUntilTargetDay);
+
+            if (nextTargetDay < nearestOccurrence)
             {
-                await ExecuteRule(rule);
+                nearestOccurrence = nextTargetDay;
             }
-        }*/
+        }
+
+        return nearestOccurrence;
     }
 }

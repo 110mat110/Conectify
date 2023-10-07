@@ -25,7 +25,7 @@ export class SelectDestinationActuatorOverlayComponent implements OnInit {
 
   selectedActuator(id: string){
     if(this.creatorComponent && this.creatorComponent.Rule){
-      this.creatorComponent.Rule.destinationId = id as string;
+      this.creatorComponent.Rule.behaviour.DestinationId = id as string;
       this.creatorComponent.closeOverlay();
     }
   }

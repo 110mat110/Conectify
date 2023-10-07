@@ -53,4 +53,10 @@
   <div *ngIf="iotype===2">
     <button class="triggerButton" (click)="triggerButtonClick()">CLICK</button>
   </div>
+
+  <div *ngIf="iotype===3">
+      <input  style="width: 60%; border: 0;" type="color" value="{{stringvalue}}" (input)="onColorChange(colorInput.value)" #colorInput/> <br/>
+      <button class="onButton" (click)="onButtonClick()">ON</button>
+      <button class="offButton" (click)="offbuttonClick()">OFF</button>
+  </div>
 </div>
