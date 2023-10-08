@@ -38,7 +38,7 @@ export class RuleProviderService {
       var xpos = 150;
       component.dragPosition = { x: xpos, y: ypos };
     }
-    component.drawingPos = {x: component.dragPosition.x -75, y: component.dragPosition.y -75};
+    component.drawingPos = {x: component.dragPosition.x -110, y: component.dragPosition.y -75};
     this.Rules.push(component);
   }
 
@@ -58,9 +58,7 @@ export class RuleProviderService {
   RuleFactoryCreateRuleBasedOnBehaviourId(behaviourId: string, id: string, parametersJson: string): AutomatizationBase | undefined
   {
     switch(behaviourId) {
-    case "24ff4530-887b-48d1-a4fa-38cc83925797":{
-      return new ValueInitRule(id, behaviourId,parametersJson, {Name: "Unknown", SourceSensorId: ""});
-    }
+    case "24ff4530-887b-48d1-a4fa-38cc83925797": return new ValueInitRule(id, behaviourId,parametersJson, {Name: "Unknown", SourceSensorId: ""});
     case "d274c7f0-211e-413a-8689-f2543dbfc818": return new ChangeDestinationRule(id, behaviourId, parametersJson, {DestinationId:"", Name:"Unknown"} );
     case "24ff4530-887b-48d1-a4fa-38cc83925798": return new UserInputRule(id, behaviourId, parametersJson, {SourceActuatorId: "", Name: "Unknown"});
     case "3dff4530-887b-48d1-a4fa-38cc8392469a": return new SetTimeRule(id, behaviourId, parametersJson, {TimeSet: "", Name: "Unknown", Days: "Mo,Tu,We,Th,Fr,Sa,Su"});

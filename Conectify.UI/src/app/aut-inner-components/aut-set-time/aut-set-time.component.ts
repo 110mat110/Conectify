@@ -21,7 +21,11 @@ export class AutSetTimeComponent implements OnInit {
   }
   ngOnInit(): void {
     if(this.Rule?.behaviour){
-      this.timeset = this.Rule.behaviour.TimeSet;
+      const utcDate = new Date(this.Rule.behaviour.TimeSet);
+      const hours = utcDate.getHours().toString().padStart(2, '0');
+      const minutes = utcDate.getMinutes().toString().padStart(2, '0');
+      const seconds = utcDate.getSeconds().toString().padStart(2, '0');
+      this.timeset = `${hours}:${minutes}:${seconds}`;
       this.Rule.behaviour.Days.split(',').forEach(day => {
         this.colorMap[day] = true;
       });
@@ -30,7 +34,12 @@ export class AutSetTimeComponent implements OnInit {
 
   onSelectedTimeChange(newTime: string) {
     if(this.Rule?.behaviour){
-      this.Rule.behaviour.TimeSet = newTime;
+      const currentDate = new Date();
+      const timeParts = newTime.split(':');
+      currentDate.setHours(Number(timeParts[0]));
+      currentDate.setMinutes(Number(timeParts[1]));
+      currentDate.setSeconds(Number(timeParts[2]));
+      this.Rule.behaviour.TimeSet = currentDate.toISOString();
     }
   }
 

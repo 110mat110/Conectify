@@ -38,7 +38,7 @@ public class RuleService
 
         var savedRuleId = await automatizationCache.AddNewRule(rule, cancellationToken);
 
-        await automatizationService.HandleTimerAsync(cancellationToken);
+        automatizationService.HandleTimers();
 
         return savedRuleId;
     }
@@ -69,7 +69,7 @@ public class RuleService
         await conectifyDb.SaveChangesAsync();
 
         await automatizationCache.Reload(ruleId);
-        await automatizationService.HandleTimerAsync(cancellationToken);
+        automatizationService.HandleTimers();
 
         return true;
     }

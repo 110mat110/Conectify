@@ -65,7 +65,7 @@ export class AutomatizationComponent implements OnInit {
       console.error(JSON.stringify(err));
     }
     );
-
+    this.DrawConnections();
   }
 
   createRule() {
@@ -121,10 +121,12 @@ export class AutomatizationComponent implements OnInit {
     })
   }
 
-  DrawLine(source: { x: number, y: number }, dest: { x: number, y: number }) {
+  DrawLine(destination: { x: number, y: number }, source: { x: number, y: number }) {
+    const cubeWidth = 170;
     const { x, y } = this.element?.nativeElement.getBoundingClientRect();
     let verticalOffset = - y - window.scrollY;
-    this.polylines.push(new Polyline(source.x, source.y + verticalOffset, dest.x, dest.y + verticalOffset))
+    let horizontalOffset = -x - window.scrollX;
+    this.polylines.push(new Polyline(destination.x - (cubeWidth/2) + horizontalOffset -30, destination.y + verticalOffset, source.x + (cubeWidth/2) +horizontalOffset, source.y + verticalOffset))
   }
 
   AddCustomInput(inputName: string) {

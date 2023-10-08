@@ -54,3 +54,21 @@ app-automatization-component{
     max-width: 100%;
     border: dotted #ccc 2px;
   }
+
+  .arrow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid #007bff; /* Change the color to your desired arrow color */
+  }
+
+  .arrow-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }

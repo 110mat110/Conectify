@@ -12,7 +12,7 @@ namespace Conectify.Services.Automatization.Services;
 public interface IAutomatizationService
 {
     Task ExecuteRule(RuleDTO ruleDTO);
-    Task HandleTimerAsync(CancellationToken cancellationToken = default);
+    void HandleTimers();
     Task OnValue(Guid ruleId, AutomatisationValue value);
 
     void StartServiceAsync();
@@ -42,7 +42,7 @@ public class AutomatizationService : IAutomatizationService
         websocketClient.OnIncomingValue += WebsocketClient_OnIncomingValue;
         websocketClient.OnIncomingAction += WebsocketClient_OnIncomingAction;
         websocketClient.ConnectAsync();
-        HandleTimerAsync();
+        HandleTimers();
     }
 
     private async void WebsocketClient_OnIncomingAction(Database.Models.Values.Action action)
@@ -114,7 +114,7 @@ public class AutomatizationService : IAutomatizationService
         }
     }
 
-    public async Task HandleTimerAsync(CancellationToken cancellationToken = default)
+    public void HandleTimers()
     {
         foreach(var timer in timers)
         {
@@ -165,35 +165,38 @@ public class AutomatizationService : IAutomatizationService
         timers.Add(rule.Id, timer);
     }
 
-    private long CalculateNextExecutionOfRule(string targetTime, string targetDaysOfWeekAbbreviations)
+    private long CalculateNextExecutionOfRule(string targetTimeString, string targetDaysOfWeekAbbreviations)
     {
         // Parse the target time string
-        if (!TimeSpan.TryParseExact(targetTime, "hh\\:mm", null, out TimeSpan targetTimeSpan))
+        
+        if (!DateTime.TryParse(targetTimeString, out DateTime targetTime))
         {
-            throw new ArgumentException("Invalid target time format. Use 'hh:mm' format.");
+            throw new ArgumentException("Invalid target time format");
         }
-
+        targetTime = targetTime.ToUniversalTime();
         // Parse the target day abbreviations
         var targetDaysOfWeek = targetDaysOfWeekAbbreviations.Split(',').Select(abbrev => ParseDayAbbreviation(abbrev)).ToList();
 
         // Get the current date and time
-        DateTime currentTime = DateTime.Now;
+        DateTime currentTime = DateTime.UtcNow;
 
         // Find the nearest occurrence of the target day of the week
         DateTime nearestOccurrence = CalculateNearestDay(currentTime, targetDaysOfWeek);
 
         // Set the target date and time
-        DateTime targetDateTime = new DateTime(nearestOccurrence.Year, nearestOccurrence.Month, nearestOccurrence.Day, targetTimeSpan.Hours, targetTimeSpan.Minutes, 0);
+        DateTime targetDateTime = new DateTime(nearestOccurrence.Year, nearestOccurrence.Month, nearestOccurrence.Day, targetTime.Hour, targetTime.Minute, targetTime.Second);
 
         if (targetDateTime < currentTime)
         {
             // If the target time has already passed for today, calculate for the next occurrence
             nearestOccurrence = CalculateNearestDay(nearestOccurrence.AddDays(1), targetDaysOfWeek);
-            targetDateTime = new DateTime(nearestOccurrence.Year, nearestOccurrence.Month, nearestOccurrence.Day, targetTimeSpan.Hours, targetTimeSpan.Minutes, 0);
+            targetDateTime = new DateTime(nearestOccurrence.Year, nearestOccurrence.Month, nearestOccurrence.Day, targetTime.Hour, targetTime.Minute, targetTime.Second);
         }
 
         // Calculate the time difference in milliseconds
         long millisecondsUntilTarget = (long)(targetDateTime - currentTime).TotalMilliseconds;
+
+        logger.LogWarning("Next occurence will occur at {time}", targetDateTime.ToString());
 
         return millisecondsUntilTarget;
     }

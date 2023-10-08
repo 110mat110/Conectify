@@ -3,3 +3,23 @@
     width: 150px;
     height: 150px;
 }
+
+.SourceButton{
+    position: absolute;
+    right: -20px;
+    top: 45%;
+    border-radius: 50%;
+    background-color: black;
+    border-color: gray;
+    color: aliceblue;
+}
+
+.Dest{
+    position: absolute;
+    left: -20px;
+    top: 45%;
+    border-radius: 50%;
+    background-color: black;
+    border-color: gray;
+    color: aliceblue;
+}

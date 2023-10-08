@@ -1,5 +1,5 @@
 <label for="timeInput">Time of the day:</label>
-<input type="time" id="timeInput" [(ngModel)]="timeset" name="selectedTime" (ngModelChange)="onSelectedTimeChange($event)">
+<input type="time" step="1" id="timeInput" [(ngModel)]="timeset" name="selectedTime" (ngModelChange)="onSelectedTimeChange($event)">
 
 <div>
     <button class="dayButton" *ngFor="let day of days" (click)="toggleColor(day)" [style.color]="getColor(day)">{{ day }}</button>
