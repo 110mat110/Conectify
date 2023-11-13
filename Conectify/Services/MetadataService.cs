@@ -21,10 +21,11 @@ public class MetadataService : IMetadataService
     private readonly ConectifyDb database;
     private readonly IMapper mapper;
 
-    public MetadataService(ConectifyDb database, IMapper mapper)
+    public MetadataService(ConectifyDb database, IMapper mapper, IDeviceStatusService deviceStatusService)
     {
         this.database = database;
         this.mapper = mapper;
+        deviceStatusService.CheckIfAlive();
     }
     public async Task<bool> AddNewMetadata(ApiBasicMetadata metadata, CancellationToken ct = default)
     {

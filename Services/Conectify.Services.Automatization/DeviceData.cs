@@ -27,7 +27,7 @@ public class DeviceData : IDeviceData
             new ApiSensor()
             {
                 Id = configuration.SensorId,
-                Name = "TestSensor",
+                Name = "Automatization Sensor",
                 SourceDeviceId = configuration.DeviceId,
             }
         };
@@ -37,7 +37,7 @@ public class DeviceData : IDeviceData
             new ApiActuator()
             {
                 Id = configuration.ActuatorId,
-                Name = "TestActuator",
+                Name = "Automatization Actuator",
                 SourceDeviceId = configuration.DeviceId,
                 SensorId = configuration.SensorId
             }

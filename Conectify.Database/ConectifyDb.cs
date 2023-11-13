@@ -85,6 +85,21 @@ public class ConectifyDb : DbContext
             .WithMany(c => c.ContinuingRules)
             .HasForeignKey(bc => bc.PreviousRuleId);
 
+        modelBuilder.Entity<RuleParameter>().HasKey(u => new
+        {
+            u.SourceRuleId,
+            u.TargetRuleId,
+        });
+
+        modelBuilder.Entity<RuleParameter>()
+            .HasOne(bc => bc.SourceRule)
+            .WithMany(b => b.TargetParameters)
+            .HasForeignKey(bc => bc.SourceRuleId);
+        modelBuilder.Entity<RuleParameter>()
+            .HasOne(bc => bc.TargetRule)
+            .WithMany(c => c.SourceParameters)
+            .HasForeignKey(bc => bc.TargetRuleId);
+
         modelBuilder.Entity<Preference>()
             .HasOne(bc => bc.Subscriber)
             .WithMany(b => b.Preferences)

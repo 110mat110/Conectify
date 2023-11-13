@@ -35,6 +35,12 @@ public class RuleController : ControllerBase
         return await ruleService.GetAllConnections();
     }
 
+    [HttpGet("parameters")]
+    public async Task<IEnumerable<ConnectionApiModel>> GetAllParameters()
+    {
+        return await ruleService.GetAllParameters();
+    }
+
     [HttpPut("{id}")]
     public async Task<IActionResult> EditRule(Guid id, EditRuleApiModel rule)
     {
@@ -51,6 +57,18 @@ public class RuleController : ControllerBase
     public async Task<IActionResult> RemoveConnection(Guid idSource, Guid idDestination)
     {
         return await ruleService.RemoveConnection(idSource, idDestination) ? Ok() : BadRequest();
+    }
+
+    [HttpPost("parameter/{idSource}/{idDestination}")]
+    public async Task<IActionResult> AddParameter(Guid idSource, Guid idDestination)
+    {
+        return await ruleService.AddParameter(idSource, idDestination) ? Ok() : BadRequest();
+    }
+
+    [HttpDelete("parameter/{idSource}/{idDestination}")]
+    public async Task<IActionResult> RemoveParameter(Guid idSource, Guid idDestination)
+    {
+        return await ruleService.RemoveParameter(idSource, idDestination) ? Ok() : BadRequest();
     }
 
     [HttpPost("input")]

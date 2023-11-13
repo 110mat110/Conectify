@@ -1,4 +1,5 @@
 ﻿using Conectify.Services.Library;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
@@ -40,7 +41,7 @@ public class ValueScraper : BackgroundService
                         NumericValue = powerReading.apower,
                         SourceId = configuration.PowerSensorId,
                         TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                        Type = "Value",
+                        Type = Constants.Types.Value,
                         Unit = "W",
                         StringValue = string.Empty
                     }, stoppingToken);
@@ -72,7 +73,7 @@ public class ValueScraper : BackgroundService
 						NumericValue = powerReading.power,
 						SourceId = configuration.PowerSensorId,
 						TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-						Type = "Value",
+						Type = Constants.Types.Value,
 						Unit = "W",
 						StringValue = string.Empty
 					}, stoppingToken);

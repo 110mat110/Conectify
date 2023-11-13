@@ -33,7 +33,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Conectify.Server.Test", "Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Conectify.Shared.Services.Test", "Conectify.Shared.Services.Test\Conectify.Shared.Services.Test.csproj", "{2C5C37CC-9411-47E6-B08C-FF9F6CB6A8DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Conectify.Services.MQTTTasker", "Conectify.Services.MQTTTasker\Conectify.Services.MQTTTasker.csproj", "{159F50B0-3D72-4D6B-961B-5C9ACAC49543}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Conectify.Services.MQTTTasker", "Conectify.Services.MQTTTasker\Conectify.Services.MQTTTasker.csproj", "{159F50B0-3D72-4D6B-961B-5C9ACAC49543}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Conectify.Services.OccupancyCheck", "Conectify.Services.OccupancyCheck\Conectify.Services.OccupancyCheck.csproj", "{54C6044E-9EF9-4585-8DE8-327D3336FD57}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Conectify.Services.Automatization.Test", "Conectify.Services.Automatization.Test\Conectify.Services.Automatization.Test.csproj", "{6215ED67-7CD6-4E4F-A400-9C1DAB584D9B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,6 +105,14 @@ Global
 		{159F50B0-3D72-4D6B-961B-5C9ACAC49543}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{159F50B0-3D72-4D6B-961B-5C9ACAC49543}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{159F50B0-3D72-4D6B-961B-5C9ACAC49543}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54C6044E-9EF9-4585-8DE8-327D3336FD57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54C6044E-9EF9-4585-8DE8-327D3336FD57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54C6044E-9EF9-4585-8DE8-327D3336FD57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54C6044E-9EF9-4585-8DE8-327D3336FD57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6215ED67-7CD6-4E4F-A400-9C1DAB584D9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6215ED67-7CD6-4E4F-A400-9C1DAB584D9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6215ED67-7CD6-4E4F-A400-9C1DAB584D9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6215ED67-7CD6-4E4F-A400-9C1DAB584D9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -113,6 +125,8 @@ Global
 		{535DA7A2-9D32-41CB-84DA-2DC79DDA5606} = {20FD029C-CB56-429D-A5D0-D82207D2DD93}
 		{45DE3E9D-EFDA-43C0-ABE2-8EB32E81E0F2} = {20FD029C-CB56-429D-A5D0-D82207D2DD93}
 		{159F50B0-3D72-4D6B-961B-5C9ACAC49543} = {20FD029C-CB56-429D-A5D0-D82207D2DD93}
+		{54C6044E-9EF9-4585-8DE8-327D3336FD57} = {20FD029C-CB56-429D-A5D0-D82207D2DD93}
+		{6215ED67-7CD6-4E4F-A400-9C1DAB584D9B} = {20FD029C-CB56-429D-A5D0-D82207D2DD93}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8FA87F6A-B445-42C3-A638-EF179381A732}

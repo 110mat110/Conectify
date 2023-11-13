@@ -19,5 +19,6 @@ public static class DependencyInjectionExtensions
         services.AddTransient<IMetadataService, MetadataService>();
 		services.AddSingleton<Configuration>();
 		services.AddTransient<IHttpFactory, HttpFactory>();
+        services.AddSingleton<IDeviceStatusService, DeviceStatusService>();
 	}
 }

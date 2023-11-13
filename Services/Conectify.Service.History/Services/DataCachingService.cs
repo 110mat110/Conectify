@@ -17,13 +17,13 @@ public interface IDataCachingService
 
 public class DataCachingService : IDataCachingService
 {
-    private readonly object locker = new object();
+    private readonly object locker = new();
     private readonly IDictionary<Guid, CacheItem<Value>> valueCache = new Dictionary<Guid, CacheItem<Value>>(); //TODO check if I should not use Concurency dictionary here
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
     private readonly ILogger<DataCachingService> logger;
     private readonly IDeviceCachingService deviceCachingService;
-    private static double cacheDurationMillis = 1000 * 60 * 15;
+    private static readonly double cacheDurationMillis = 1000 * 60 * 15;
 
     public DataCachingService(IServiceProvider serviceProvider, IMapper mapper, ILogger<DataCachingService> logger, IDeviceCachingService deviceCachingService)
     {
@@ -39,7 +39,7 @@ public class DataCachingService : IDataCachingService
         lock (locker)
         {
             var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
-            logger.LogInformation("Preloading all active sensors to the cache from time " + yesterdayUnixTime);
+            logger.LogInformation("Preloading all active sensors to the cache from time {time}", yesterdayUnixTime);
             using var scope = this.serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
             var groups = db.Set<Value>().Where(x => x.TimeCreated > yesterdayUnixTime).ToList().GroupBy(x => x.SourceId);
@@ -94,7 +94,7 @@ public class DataCachingService : IDataCachingService
         }
 
         var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
-        logger.LogInformation("Preloading cache from time " + yesterdayUnixTime);
+        logger.LogInformation("Preloading cache from time {time}", yesterdayUnixTime);
         using var scope = this.serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
         var values = await db.Set<Value>().Where(x => x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime).ToListAsync(ct);
@@ -114,7 +114,7 @@ public class DataCachingService : IDataCachingService
 
     public async Task<IEnumerable<ApiValue>> GetDataForLast24h(Guid sourceId, CancellationToken ct = default)
     {
-        await ReloadCache(sourceId);
+        await ReloadCache(sourceId, ct);
         return mapper.Map<IEnumerable<ApiValue>>(valueCache[sourceId]);
     }
 

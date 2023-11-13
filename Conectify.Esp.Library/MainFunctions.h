@@ -11,5 +11,5 @@ void StartupMandatoryRoutine(int psensorArrSize, int pactuatorArrSize, void(*Sen
 void LoopMandatoryRoutines();
 
 void HandleCommand(String commandText, float commandValue, String commandTextparameter);
-
+void SendViaWebSocket(String message);
 #endif

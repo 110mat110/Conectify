@@ -2,6 +2,7 @@
     <div>
         <button *ngIf="isSource" class="SourceButton" (click)="SourceClick()"> > </button>
         <button *ngIf="isDestination" class="Dest" (click)="DestinationClick()"> > </button>
+        <button *ngIf="hasParameters" class="Parameter" (click)="ParameterClick()"> P </button>
     </div>
     <div style="height: 83%;">
         <app-aut-value-input *ngIf="ValueInitRule" [Rule]="ValueInitRule"></app-aut-value-input>
@@ -10,6 +11,7 @@
         <app-aut-user-input *ngIf="UserInputRule" [Rule]="UserInputRule"></app-aut-user-input>
         <app-aut-set-time *ngIf="SetTimeRule" [Rule]="SetTimeRule"></app-aut-set-time>
         <app-aut-set-value *ngIf="SetValueRule" [Rule]="SetValueRule"></app-aut-set-value>
+        <app-aut-decision *ngIf="DecisionRule" [Rule]="DecisionRule"></app-aut-decision>
     </div>
     <div>
         <button class="saveButton" (click)="saveClick()">SubmitChanges</button>

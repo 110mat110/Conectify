@@ -4,9 +4,14 @@ namespace Conectify.Services.Automatization.Rules;
 
 public class UserInputRuleBehaviour : IRuleBehaviour
 {
-    public AutomatisationValue Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule)
+    public AutomatisationValue? Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule, IEnumerable<Tuple<Guid, AutomatisationValue>> parameterValues)
     {
-        return automatisationValues.First();
+        return automatisationValues.FirstOrDefault();
+    }
+
+    public AutomatisationValue? InitializationValue(RuleDTO rule)
+    {
+        return null;
     }
 
     public Guid GetId()

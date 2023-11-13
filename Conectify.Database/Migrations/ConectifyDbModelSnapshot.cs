@@ -69,6 +69,21 @@ namespace Conectify.Database.Migrations
                     b.ToTable("RuleConnector");
                 });
 
+            modelBuilder.Entity("Conectify.Database.Models.ActivityService.RuleParameter", b =>
+                {
+                    b.Property<Guid>("SourceRuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TargetRuleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("SourceRuleId", "TargetRuleId");
+
+                    b.HasIndex("TargetRuleId");
+
+                    b.ToTable("RuleParameter");
+                });
+
             modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>
                 {
                     b.Property<Guid>("Id")
@@ -528,6 +543,25 @@ namespace Conectify.Database.Migrations
                     b.Navigation("PreviousRule");
                 });
 
+            modelBuilder.Entity("Conectify.Database.Models.ActivityService.RuleParameter", b =>
+                {
+                    b.HasOne("Conectify.Database.Models.ActivityService.Rule", "SourceRule")
+                        .WithMany("TargetParameters")
+                        .HasForeignKey("SourceRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Conectify.Database.Models.ActivityService.Rule", "TargetRule")
+                        .WithMany("SourceParameters")
+                        .HasForeignKey("TargetRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SourceRule");
+
+                    b.Navigation("TargetRule");
+                });
+
             modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>
                 {
                     b.HasOne("Conectify.Database.Models.Sensor", "Sensor")
@@ -734,6 +768,10 @@ namespace Conectify.Database.Migrations
                     b.Navigation("ContinuingRules");
 
                     b.Navigation("PreviousRules");
+
+                    b.Navigation("SourceParameters");
+
+                    b.Navigation("TargetParameters");
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>

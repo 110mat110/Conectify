@@ -50,6 +50,7 @@ export class AutomatizationComponent implements OnInit {
 
   source?: AutomatizationBase;
   destination?: AutomatizationBase;
+  parameter?: AutomatizationBase;
 
   polylines: Polyline[] = [];
   @ViewChild('rules') element?: ElementRef;
@@ -91,17 +92,43 @@ export class AutomatizationComponent implements OnInit {
     this.SetConnection();
   }
 
+  ParameterClick(param: AutomatizationBase){
+    this.parameter = param;
+    this.SetParameter();
+  }
+
   SetConnection() {
     this.messenger.addMessage("Set connection");
 
     if (this.source && this.destination) {
-      this.source.targets.push(this.destination.id);
+      const index = this.source.targets.indexOf(this.destination.id);
+      if(index !== -1){
+        this.source.targets.splice(index,1);
+        this.be.removeConnection(this.source.id, this.destination.id);
+      } else{
+        this.source.targets.push(this.destination.id);
 
-      this.be.addNewConnection(this.source.id, this.destination.id);
-
+        this.be.addNewConnection(this.source.id, this.destination.id);
+      }
       this.DrawConnections();
     }
   }
+
+  SetParameter(){
+    if (this.source && this.parameter) {
+
+    const index = this.parameter.parameters.indexOf(this.source.id);
+    if(index !== -1){
+      this.parameter.parameters.splice(index,1);
+      this.be.removeParameterConnection(this.source.id, this.parameter.id);
+    } else{
+      this.parameter.parameters.push(this.source.id);
+
+      this.be.addNewParameterConnection(this.source.id, this.parameter.id);
+    }
+    this.DrawConnections();
+  }
+}
 
   MoveComponent() {
     this.DrawConnections();
@@ -118,6 +145,13 @@ export class AutomatizationComponent implements OnInit {
             this.DrawLine(targetRule.dragPosition, rule.dragPosition);
         })
       }
+      if(rule.parameters){
+        rule.parameters.forEach(param => {
+          var paramRule = this.ruleService.getRuleByID(param);
+          if (paramRule)
+            this.DrawParamLine(rule.dragPosition, paramRule.dragPosition);
+        })
+      }
     })
   }
 
@@ -127,6 +161,15 @@ export class AutomatizationComponent implements OnInit {
     let verticalOffset = - y - window.scrollY;
     let horizontalOffset = -x - window.scrollX;
     this.polylines.push(new Polyline(destination.x - (cubeWidth/2) + horizontalOffset -30, destination.y + verticalOffset, source.x + (cubeWidth/2) +horizontalOffset, source.y + verticalOffset))
+  }
+
+  DrawParamLine(destination: { x: number, y: number }, source: { x: number, y: number }) {
+    const cubeHeight = 170;
+    const cubeWidth = 170;
+    const { x, y } = this.element?.nativeElement.getBoundingClientRect();
+    let verticalOffset = - y - window.scrollY;
+    let horizontalOffset = -x - window.scrollX;
+    this.polylines.push(new Polyline(destination.x + horizontalOffset, destination.y - (cubeHeight/2) + verticalOffset, source.x + (cubeWidth/2) +horizontalOffset, source.y + verticalOffset, "blue"))
   }
 
   AddCustomInput(inputName: string) {

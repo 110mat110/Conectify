@@ -44,6 +44,9 @@ ws.OnIncomingActionResponse += ws_IncomingActionResponse =>
 ws.OnIncomingAction += ws_IncomingAciton =>
     app.Services.GetRequiredService<IDeviceCachingService>().ObserveSensorFromAction(ws_IncomingAciton);
 
+ws.OnIncomingCommandResponse += ws_IncomingCommandResponse =>
+    app.Services.GetRequiredService<IDeviceCachingService>().ObserveDeviceFromActivityReport(ws_IncomingCommandResponse, default);
+
 app.MapControllers();
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.Run();

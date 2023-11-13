@@ -1,15 +1,20 @@
+#if defined (ARDUINO_ARCH_ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <HTTPClient.h>
+#else
+#error Architecture unrecognized by this code.
+#endif
+
 #include "Arduino.h"
 #include "DecodingFunctions.h"
 #include "ArduinoJson.h"
 #include "BaseDevice.h"
-#include "ESP8266HTTPClient.h"
 #include "Sensors.h"
 #include "DebugMessageLib.h"
-#include <ESP8266WiFi.h>
 #include "ConstantsDeclarations.h"
-#include <WiFiClient.h>
-
-WiFiClient wifiClient;
 
 struct HTTPResponse
 {
@@ -20,13 +25,15 @@ struct HTTPResponse
 
 HTTPResponse HTTPGet(String url)
 {
+
   HTTPResponse response;
   DebugMessage("Sending request to: " + url);
+  //wifiClient.setTimeout(500);
   int watchdog = 0;
   while (watchdog < 3)
   {
     HTTPClient http;
-    http.begin(wifiClient, url); // Specify request destination
+    http.begin(/*wifiClient,*/ url); // Specify request destination
 
     int httpCode = http.GET(); // Send the request
     DebugMessage("Got response: " + String(httpCode));
@@ -58,12 +65,13 @@ HTTPResponse HTTPPost(String url, String payload)
   DebugMessage("Sending request to: " + url);
   DebugMessage("Payload: " + payload);
   int watchdog = 0;
+  //wifiClient.setTimeout(500);
   while (watchdog < 3)
   {
     HTTPClient http;
-    http.begin(wifiClient, url);                              // Specify request destination
+    http.begin(/*wifiClient,*/ url);                              // Specify request destination
     http.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
-
+    
     int httpCode = http.POST(payload); // Send the request
     DebugMessage("Got response: " + String(httpCode));
     response.success = httpCode == HttpOKCode;
@@ -258,9 +266,9 @@ String RequestTime(BaseDevice baseDevice)
   String payload = "!";
   HTTPClient http;
   String url = httpPrefix + GetServer(baseDevice) + timeSuffix;
-
+  //wifiClient.setTimeout(500);
   DebugMessage("Requesting time at: " + url);
-  http.begin(wifiClient, url); // Specify request destination
+  http.begin(/*wifiClient,*/ url); // Specify request destination
 
   int httpCode = http.GET(); // Send the request
   DebugMessage("Got response with decodingDevice: " + String(httpCode));
@@ -303,24 +311,4 @@ void RegisterActuator(Actuator &actuator, BaseDevice &baseDevice)
   }
   DebugMessage("-------------End reg. actuator--------------------");
 }
-#pragma endregion
-
-#pragma region CommandResponse
-
-String CreateCommandResponse(BaseDevice device, Time dateTime)
-{
-  DynamicJsonDocument doc(256);
-  doc[type] = CommandResponseType;
-  doc[DTSourceId] = device.id;
-  doc[timeCreated] = dateTime.ToJSONString();
-  doc[DTvalueName] = "";
-  doc[DTstringValue] = "";
-  doc[DTnumericValue] = 0;
-  doc[DTvalueUnit] = "";
-  String json;
-  serializeJson(doc, json);
-  doc.clear();
-  return json;
-}
-
 #pragma endregion

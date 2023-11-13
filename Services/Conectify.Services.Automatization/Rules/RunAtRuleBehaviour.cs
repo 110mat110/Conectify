@@ -4,7 +4,7 @@ namespace Conectify.Services.Automatization.Rules;
 
 public class RunAtRuleBehaviour : IRuleBehaviour
 {
-    public AutomatisationValue Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule)
+    public AutomatisationValue? Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule, IEnumerable<Tuple<Guid, AutomatisationValue>> parameterValues)
     {
         return new AutomatisationValue()
         {
@@ -24,5 +24,9 @@ public class RunAtRuleBehaviour : IRuleBehaviour
     private class TimeRuleOptions
     {
         public DateTime TimeSet { get; set; }
+    }
+    public AutomatisationValue? InitializationValue(RuleDTO rule)
+    {
+        return null;
     }
 }

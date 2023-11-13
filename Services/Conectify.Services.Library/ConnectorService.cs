@@ -18,11 +18,15 @@ public interface IConnectorService
 
     Task<IEnumerable<Actuator>> LoadAllActuators(CancellationToken ct = default);
 
-    Task<ApiActuator> LoadActuator(Guid id, CancellationToken ct = default);
+    Task<ApiActuator?> LoadActuator(Guid id, CancellationToken ct = default);
 
-    Task<ApiSensor> LoadSensor(Guid id, CancellationToken ct = default);
+    Task<ApiSensor?> LoadSensor(Guid id, CancellationToken ct = default);
 
     Task<bool> SendMetadataForDevice(Guid deviceId, IEnumerable<MetadataServiceConnector> metadatas, CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<Actuator>> LoadActuatorsPerDevice(Guid deviceId, CancellationToken ct = default);
+
+    Task<IEnumerable<Sensor>> LoadSensorsPerDevice(Guid deviceId, CancellationToken ct = default);
 
 }
 
@@ -108,7 +112,7 @@ public class ConnectorService : IConnectorService
         return await GetAsync<ApiActuator>("{0}/api/actuators/"+ id.ToString(), ct);
     }
 
-    public async Task<ApiSensor> LoadSensor(Guid id, CancellationToken ct = default)
+    public async Task<ApiSensor?> LoadSensor(Guid id, CancellationToken ct = default)
     {
         return await GetAsync<ApiSensor>("{0}/api/sensors/" + id.ToString(), ct);
     }
@@ -116,6 +120,18 @@ public class ConnectorService : IConnectorService
     private async Task<IEnumerable<ApiBasicMetadata>?> LoadAllMetadata(CancellationToken ct = default)
     {
         return await GetAsync<IEnumerable<ApiBasicMetadata>>("{0}/api/metadata/all", ct);
+    }
+
+    public async Task<IEnumerable<Actuator>> LoadActuatorsPerDevice(Guid deviceId, CancellationToken ct = default)
+    {
+        var apiModels = await GetAsync<IEnumerable<ApiActuator>>("{0}/api/actuators/by-device/" + deviceId.ToString(), ct);
+        return mapper.Map<IEnumerable<Actuator>>(apiModels);
+    }
+
+    public async Task<IEnumerable<Sensor>> LoadSensorsPerDevice(Guid deviceId, CancellationToken ct = default)
+    {
+        var apiModels = await GetAsync<IEnumerable<ApiSensor>>("{0}/api/sensors/by-device/" + deviceId.ToString(), ct);
+        return mapper.Map<IEnumerable<Sensor>>(apiModels);
     }
 
     private async Task PostAsync<T>(T objectToSend, string urlSuffix, CancellationToken ct = default) where T : IApiModel

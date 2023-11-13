@@ -21,4 +21,8 @@ public class Rule : IEntity
     public virtual IEnumerable<RuleConnector> ContinuingRules { get; set; } = null!;
 
     public virtual IEnumerable<RuleConnector> PreviousRules { get; set; } = null!;
+
+    public virtual IEnumerable<RuleParameter> TargetParameters { get; set; } = null!;
+
+    public virtual IEnumerable<RuleParameter> SourceParameters { get; set; } = null!;
 }

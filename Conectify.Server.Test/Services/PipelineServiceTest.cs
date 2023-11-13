@@ -17,9 +17,9 @@ namespace Conectify.Server.Test.Services;
 
 public class PipelineServiceTest
 {
-    private DbContextOptions<ConectifyDb> dbContextoptions;
-    private IMapper mapper;
-    private static Guid sourceDeviceId = Guid.NewGuid();
+    private readonly DbContextOptions<ConectifyDb> dbContextoptions;
+    private readonly IMapper mapper;
+    private static readonly Guid sourceDeviceId = Guid.NewGuid();
 
     public PipelineServiceTest()
     {
@@ -383,9 +383,9 @@ public class PipelineServiceTest
     private class TestValue : IBaseInputType
     {
         public Guid SourceId { get; set; }
-        public string Name { get; set; }
-        public string Unit { get; set; }
-        public string StringValue { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Unit { get; set; } = string.Empty;
+        public string StringValue { get; set; } = string.Empty;
         public float? NumericValue { get; set; }
         public long TimeCreated { get; set; }
         public Guid Id { get; set; }

@@ -8,6 +8,8 @@ import { AutomatizationComponent } from './automatization/automatization.compone
 import { BefetchAutomatizationService } from './befetch-automatization.service';
 import { SetTimeRule } from 'src/models/Automatization/SetTimeRule';
 import { SetValueRule } from 'src/models/Automatization/SetValueRule';
+import { DecisionRule } from 'src/models/Automatization/DecisionRule';
+import { AndRule } from 'src/models/Automatization/AndRule';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +28,7 @@ export class RuleProviderService {
         if(createdRule){
           createdRule.dragPosition = {x: rule.x, y: rule.y};
           createdRule.targets = rule.targets;
+          createdRule.parameters = rule.parameters;
           this.SaveComponent(createdRule);
         }
       })
@@ -63,6 +66,8 @@ export class RuleProviderService {
     case "24ff4530-887b-48d1-a4fa-38cc83925798": return new UserInputRule(id, behaviourId, parametersJson, {SourceActuatorId: "", Name: "Unknown"});
     case "3dff4530-887b-48d1-a4fa-38cc8392469a": return new SetTimeRule(id, behaviourId, parametersJson, {TimeSet: "", Name: "Unknown", Days: "Mo,Tu,We,Th,Fr,Sa,Su"});
     case "8c173ffc-7243-4675-9a0d-28c2ce19a18f": return new SetValueRule(id, behaviourId, parametersJson, {NumericValue:-1, StringValue:"", Unit:""});
+    case "62d50548-fff0-44c4-8bf3-b592042b1c2b": return new DecisionRule(id, behaviourId, parametersJson, {Rule:"="});
+    case "28ff4530-887b-48d1-a4fa-38dc839257a4": return new AndRule(id, behaviourId, parametersJson, {});
     default: return;
     }
   }

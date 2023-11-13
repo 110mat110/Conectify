@@ -10,7 +10,7 @@
   <div *ngIf="metadatas">
     <app-metadata-icons [metadatas]="metadatas"></app-metadata-icons>
   </div>
-  <div *ngIf="latestVal">
+  <div *ngIf="latestVal && iotype != 3">
     <br/>
     <div *ngIf="latestVal.numericValue >= 0">
       <mat-form-field class="current-value">
@@ -55,7 +55,7 @@
   </div>
 
   <div *ngIf="iotype===3">
-      <input  style="width: 60%; border: 0;" type="color" value="{{stringvalue}}" (input)="onColorChange(colorInput.value)" #colorInput/> <br/>
+      <input  style="width: 60%; border-width: 6px; padding: 0px;" [style.border-color]="latestVal?.stringValue" type="color" value="{{stringvalue}}" (input)="onColorChange(colorInput.value)" #colorInput/> <br/>
       <button class="onButton" (click)="onButtonClick()">ON</button>
       <button class="offButton" (click)="offbuttonClick()">OFF</button>
   </div>

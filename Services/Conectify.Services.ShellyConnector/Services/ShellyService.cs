@@ -1,4 +1,5 @@
 ﻿using Conectify.Services.Library;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
 
 namespace Conectify.Services.ShellyConnector.Services;
@@ -34,7 +35,7 @@ public class ShellyService : IShellyService
             SourceId = configuration.LongPressSensorId,
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             Unit = "",
-            Type = "Value",
+            Type = Constants.Types.Value,
         };
 
         await websocketClient.SendMessageAsync(value, cancellationToken);
@@ -52,7 +53,7 @@ public class ShellyService : IShellyService
             SourceId = configuration.SensorId,
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             Unit = "%",
-            Type = "Value",
+            Type = Constants.Types.Value,
         };
 
         await websocketClient.SendMessageAsync(value, cancellationToken);
@@ -100,7 +101,7 @@ public class ShellyService : IShellyService
             NumericValue = websocketAction.NumericValue > 0 ? 100 : 0,
             SourceId = configuration.ActuatorId,
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            Type = "ActionResponse",
+            Type = Constants.Types.ActionResponse,
             Unit = "%",
             ResponseSourceId = websocketAction.Id,
             StringValue = string.Empty

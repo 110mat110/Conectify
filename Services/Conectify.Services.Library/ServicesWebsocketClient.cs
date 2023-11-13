@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models.Values;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Interfaces;
+using Conectify.Shared.Library.Models.Websocket;
 using Conectify.Shared.Services.Data;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -115,7 +117,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
                 while (!receiveResult.EndOfMessage);
                 if (receiveResult.MessageType == WebSocketMessageType.Close) break;
                 outputStream.Position = 0;
-                ResponseReceived(outputStream);
+                await ResponseReceived(outputStream, default);
             }
         }
         catch (Exception ex)
@@ -146,7 +148,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         return true;
     }
 
-    private void ResponseReceived(Stream inputStream)
+    private async Task ResponseReceived(Stream inputStream, CancellationToken ct)
     {
         StreamReader stream = new(inputStream);
         string serializedMessage = stream.ReadToEnd();
@@ -154,7 +156,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
 
         logger.LogInformation("WS recieved message {serializedMessage}", serializedMessage);
         var (entity, _) = SharedDataService.DeserializeJson(serializedMessage, this.mapper);
-        NotifyAboutIncomingMessage(entity);
+        await NotifyAboutIncomingMessage(entity, ct);
     }
 
 
@@ -164,7 +166,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
     private readonly IMapper mapper;
     private readonly ILogger<ServicesWebsocketClient> logger;
 
-    private void NotifyAboutIncomingMessage(IBaseInputType inputEntity)
+    private async Task NotifyAboutIncomingMessage(IBaseInputType inputEntity, CancellationToken ct)
     {
         if (inputEntity is Value inputValue)
         {
@@ -178,7 +180,10 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
 
         if (inputEntity is Command command)
         {
-            OnIncomingCommand?.Invoke(command);
+            if (!await HandleInternalCommand(command, ct))
+            {
+                OnIncomingCommand?.Invoke(command);
+            }
         }
 
         if (inputEntity is ActionResponse actionResponse)
@@ -192,4 +197,27 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         }
     }
 
+    private async Task<bool> HandleInternalCommand(Command command, CancellationToken ct)
+    {
+        switch (command.Name.ToLower())
+        {
+            case Constants.Commands.ActivityCheck: await SendActivityResponse(command,ct); return false;
+            default: return true;
+        }
+    }
+
+    private async Task SendActivityResponse(Command command, CancellationToken ct)
+    {
+        var response = new WebsocketBaseModel()
+        {
+            Name = Constants.Commands.Active,
+            NumericValue = 1,
+            SourceId = configuration.DeviceId,
+            StringValue = string.Empty,
+            TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            Type = Constants.Types.CommandResponse,
+            ResponseSourceId = command.Id
+        };
+        await SendMessageAsync(response,ct);
+    }
 }

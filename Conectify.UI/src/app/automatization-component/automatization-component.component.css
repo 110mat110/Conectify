@@ -23,3 +23,13 @@
     border-color: gray;
     color: aliceblue;
 }
+
+.Parameter{
+    position: absolute;
+    left: 50%;
+    top: -20px;
+    border-radius: 50%;
+    background-color: black;
+    border-color: gray;
+    color: aliceblue;
+}

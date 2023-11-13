@@ -5,13 +5,18 @@ namespace Conectify.Services.Automatization.Rules;
 
 public class TimeRuleBehaviour : IRuleBehaviour
 {
-    public AutomatisationValue Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule)
+    public AutomatisationValue? Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule, IEnumerable<Tuple<Guid, AutomatisationValue>> parameterValues)
     {
+        if (string.IsNullOrEmpty(masterRule.ParametersJson))
+        {
+            return null;
+        }
+
         var options = JsonConvert.DeserializeObject<TimeRuleOptions>(masterRule.ParametersJson);
 
         var isNow = false;
 
-        if (options != null && DateTime.UtcNow.Subtract(options.TriggerTime).TotalSeconds < 1)
+        if (options != null && DateTime.UtcNow.Subtract(options.TriggerTime).TotalSeconds > 0)
         {
             isNow = true;
         }
@@ -30,6 +35,11 @@ public class TimeRuleBehaviour : IRuleBehaviour
     public Guid GetId()
     {
         return Guid.Parse("3dff4530-887b-48d1-a4fa-38cc8392469a");
+    }
+
+    public AutomatisationValue? InitializationValue(RuleDTO rule)
+    {
+        return null;
     }
 
     private class TimeRuleOptions

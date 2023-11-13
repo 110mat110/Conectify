@@ -58,7 +58,7 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
     {
         var dbsModel = await database.Set<TDbs>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
 
-        if (dbsModel == null)
+        if (dbsModel is null)
             return default;
 
         return mapper.Map<TApi>(dbsModel);

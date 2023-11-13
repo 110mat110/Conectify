@@ -63,6 +63,8 @@ const String CommandSaveToEEPRom = "eepromsave";
 const String CommandActivityCheck = "activitycheck";
 const String CommandSaveDevice = "savedevice";
 
+const String CommandResponseActive = "active";
+
 const String HTMLPercentileSign = "&#37;";
 const String HTMLDegreeSign = "&#176;";
 

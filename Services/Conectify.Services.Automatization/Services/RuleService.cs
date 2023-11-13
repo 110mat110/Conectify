@@ -45,7 +45,9 @@ public class RuleService
 
     public async Task<IEnumerable<GetRuleApiModel>> GetAllRules()
     {
-        return await conectifyDb.Set<Rule>().Include(i => i.ContinuingRules).ProjectTo<GetRuleApiModel>(mapper.ConfigurationProvider).ToListAsync();
+        var result = await conectifyDb.Set<Rule>().Include(i => i.ContinuingRules).Include(i => i.SourceParameters).ProjectTo<GetRuleApiModel>(mapper.ConfigurationProvider).ToListAsync();
+
+        return result;
     }
 
     public async Task<IEnumerable<ConnectionApiModel>> GetAllConnections()
@@ -53,10 +55,15 @@ public class RuleService
         return await conectifyDb.Set<RuleConnector>().ProjectTo<ConnectionApiModel>(mapper.ConfigurationProvider).ToListAsync();
     }
 
+    public async Task<IEnumerable<ConnectionApiModel>> GetAllParameters()
+    {
+        return await conectifyDb.Set<RuleParameter>().ProjectTo<ConnectionApiModel>(mapper.ConfigurationProvider).ToListAsync();
+    }
+
     public async Task<bool> EditRule(Guid ruleId, EditRuleApiModel apiRule, CancellationToken cancellationToken = default)
     {
-        var rule = await conectifyDb.Set<Rule>().FirstOrDefaultAsync(x => x.Id == ruleId);
-        if (rule == null)
+        var rule = await conectifyDb.Set<Rule>().FirstOrDefaultAsync(x => x.Id == ruleId, cancellationToken: cancellationToken);
+        if (rule is null)
         {
             return false;
         }
@@ -66,9 +73,9 @@ public class RuleService
         rule.Y = apiRule.Y;
 
         await AddExtraParamsToModel(rule, cancellationToken);
-        await conectifyDb.SaveChangesAsync();
+        await conectifyDb.SaveChangesAsync(cancellationToken);
 
-        await automatizationCache.Reload(ruleId);
+        await automatizationCache.Reload(ruleId, cancellationToken);
         automatizationService.HandleTimers();
 
         return true;
@@ -113,13 +120,63 @@ public class RuleService
         sourceRule.NextRules = list;
 
         var sourceRuleDb = await conectifyDb.Set<RuleConnector>().FirstOrDefaultAsync(x => x.PreviousRuleId == sourceId && x.ContinuingRuleId == destinationId);
-        if (sourceRuleDb == null)
+        if (sourceRuleDb is null)
         {
             return false;
         }
 
         conectifyDb.Set<RuleConnector>().Remove(sourceRuleDb);
         await conectifyDb.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> AddParameter(Guid sourceId, Guid destinationId)
+    {
+        var sourceRule = await automatizationCache.GetRuleByIdAsync(sourceId);
+        var destinationRule = await automatizationCache.GetRuleByIdAsync(destinationId);
+
+        if (sourceRule is null || destinationRule is null || destinationRule.NextRules.Contains(destinationId))
+        {
+            return false;
+        }
+
+        var ruleConnector = await conectifyDb.Set<RuleParameter>().FirstOrDefaultAsync(x => x.SourceRuleId == sourceId && x.TargetRuleId == destinationId);
+        if (ruleConnector is not null)
+        {
+            return false;
+        }
+
+        await conectifyDb.Set<RuleParameter>().AddAsync(new RuleParameter() { TargetRuleId = destinationId, SourceRuleId = sourceId });
+        await conectifyDb.SaveChangesAsync();
+
+        destinationRule.Parameters = destinationRule.Parameters.Append(sourceId);
+
+        return true;
+    }
+
+    public async Task<bool> RemoveParameter(Guid sourceId, Guid destinationId)
+    {
+        var sourceRule = await automatizationCache.GetRuleByIdAsync(sourceId);
+        var destinationRule = await automatizationCache.GetRuleByIdAsync(destinationId);
+
+        if (sourceRule is null || destinationRule is null || !destinationRule.Parameters.Contains(sourceId))
+        {
+            return false;
+        }
+
+        var paramDb = await conectifyDb.Set<RuleParameter>().FirstOrDefaultAsync(x => x.SourceRuleId == sourceId && x.TargetRuleId == destinationId);
+        if (paramDb is null)
+        {
+            return false;
+        }
+
+        conectifyDb.Set<RuleParameter>().Remove(paramDb);
+        await conectifyDb.SaveChangesAsync();
+
+        var list = destinationRule.Parameters.ToList();
+        list.Remove(sourceId);
+        destinationRule.Parameters = list;
 
         return true;
     }
@@ -162,10 +219,14 @@ public class RuleService
         if (rule.RuleType == new OutputRuleBehaviour().GetId())
         {
             var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { DestinationId = Guid.Empty })?.DestinationId;
-            if (id == Guid.Empty)
+            if (id is null || id == Guid.Empty)
                 return;
 
             var actuator = await connectorService.LoadActuator(id!.Value, cancellationToken);
+            if(actuator is null)
+            {
+                return;
+            }
             rule.ParametersJson = JsonConvert.SerializeObject(new { DestinationId = actuator.Id, actuator.Name });
 
             rule.Name = actuator.Name;
@@ -175,10 +236,14 @@ public class RuleService
         if (rule.RuleType == new UserInputRuleBehaviour().GetId())
         {
             var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceActuatorId = Guid.Empty })?.SourceActuatorId;
-            if (id == Guid.Empty)
+            if (id is null || id == Guid.Empty)
                 return;
 
             var actuator = await connectorService.LoadActuator(id!.Value, cancellationToken);
+            if (actuator is null)
+            {
+                return;
+            }
             rule.ParametersJson = JsonConvert.SerializeObject(new { SourceActuatorId = actuator.Id, actuator.Name });
 
             rule.Name = actuator.Name;
@@ -188,10 +253,14 @@ public class RuleService
         if (rule.RuleType == new InputRuleBehaviour().GetId())
         {
             var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceSensorId = Guid.Empty })?.SourceSensorId;
-            if (id == Guid.Empty)
+            if (id is null || id == Guid.Empty)
                 return;
 
             var sensor = await connectorService.LoadSensor(id!.Value, cancellationToken);
+            if (sensor is null)
+            {
+                return;
+            }
             rule.ParametersJson = JsonConvert.SerializeObject(new { SourceSensorId = sensor.Id, sensor.Name });
 
             rule.Name = sensor.Name;

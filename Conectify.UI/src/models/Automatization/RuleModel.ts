@@ -5,4 +5,5 @@ export interface RuleModel{
     propertyJson: string;
     behaviourId: string;
     targets: string[];
+    parameters: string[];
 }

@@ -43,6 +43,14 @@ export class BefetchAutomatizationService {
     this.http.delete(this.adresses.connectionChange(source, destination)).subscribe();
   }
 
+  addNewParameterConnection(source: string, destination: string) {
+    this.http.post(this.adresses.parameterChange(source, destination), {}).subscribe();
+  }
+
+  removeParameterConnection(source: string, destination: string) {
+    this.http.delete(this.adresses.parameterChange(source, destination)).subscribe();
+  }
+
   saveRule(rule: EditRule) {
     this.http.put(this.adresses.editRule(rule.id), rule).subscribe();
   }

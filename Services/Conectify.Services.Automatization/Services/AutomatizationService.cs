@@ -2,10 +2,10 @@
 using Conectify.Services.Automatization.Models;
 using Conectify.Services.Automatization.Rules;
 using Conectify.Services.Library;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
 using Newtonsoft.Json;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
-using System.Timers;
 
 namespace Conectify.Services.Automatization.Services;
 
@@ -23,18 +23,15 @@ public class AutomatizationService : IAutomatizationService
     private readonly AutomatizationCache automatizationCache;
     private readonly AutomatizationConfiguration configuration;
     private readonly IServicesWebsocketClient websocketClient;
-    private readonly ILogger<AutomatizationService> logger;
-    private readonly Dictionary<Guid, System.Threading.Timer> timers = new Dictionary<Guid, System.Threading.Timer>();
+    private readonly Dictionary<Guid, System.Threading.Timer> timers = new();
 
     public AutomatizationService(AutomatizationCache automatizationCache,
                                  AutomatizationConfiguration configuration,
-                                 IServicesWebsocketClient websocketClient,
-                                 ILogger<AutomatizationService> logger)
+                                 IServicesWebsocketClient websocketClient)
     {
         this.automatizationCache = automatizationCache;
         this.configuration = configuration;
         this.websocketClient = websocketClient;
-        this.logger = logger;
     }
 
     public void StartServiceAsync()
@@ -71,7 +68,7 @@ public class AutomatizationService : IAutomatizationService
     public async Task OnValue(Guid ruleId, AutomatisationValue value)
     {
         var rule = await automatizationCache.GetRuleByIdAsync(ruleId);
-        if (rule == null)
+        if (rule is null)
             return;
         rule.InsertValue(value);
         await ExecuteRule(rule);
@@ -80,18 +77,36 @@ public class AutomatizationService : IAutomatizationService
     public async Task ExecuteRule(RuleDTO ruleDTO)
     {
         IRuleBehaviour? rule = BehaviourFactory.GetRuleBehaviorByTypeId(ruleDTO.RuleTypeId);
-        var result = rule?.Execute(ruleDTO.Values, ruleDTO);
+        var parameters = await GetRuleParameterValues(ruleDTO);
+
+        var result = rule?.Execute(ruleDTO.Values, ruleDTO, parameters);
         if (result is null)
         {
             return;
         }
-
+        ruleDTO.OutputValue = result;
         SendToActuator(ruleDTO, result);
 
         foreach (RuleDTO nextRule in automatizationCache.GetNextRules(ruleDTO))
         {
             await OnValue(nextRule.Id, result);
         }
+    }
+
+    private async Task<IEnumerable<Tuple<Guid,AutomatisationValue>>> GetRuleParameterValues(RuleDTO ruleDTO)
+    {
+        var results = new List<Tuple<Guid,AutomatisationValue>>();
+        foreach (var parameter in ruleDTO.Parameters)
+        {
+            var dto = await automatizationCache.GetRuleByIdAsync(parameter);
+            
+            if (dto is not null && dto.OutputValue is not null)
+            {
+                results.Add(new Tuple<Guid, AutomatisationValue>(dto.Id, dto.OutputValue));
+            }
+        }
+
+        return results;
     }
 
     private void SendToActuator(RuleDTO ruleDTO, AutomatisationValue automatisationValue)
@@ -107,7 +122,7 @@ public class AutomatizationService : IAutomatizationService
                 TimeCreated = automatisationValue.TimeCreated,
                 Unit = automatisationValue.Unit,
                 SourceId = configuration.SensorId,
-                Type = "Action",
+                Type = Constants.Types.Action,
             };
 
             websocketClient.SendMessageAsync(command);
@@ -165,7 +180,7 @@ public class AutomatizationService : IAutomatizationService
         timers.Add(rule.Id, timer);
     }
 
-    private long CalculateNextExecutionOfRule(string targetTimeString, string targetDaysOfWeekAbbreviations)
+    private static long CalculateNextExecutionOfRule(string targetTimeString, string targetDaysOfWeekAbbreviations)
     {
         // Parse the target time string
         
@@ -174,21 +189,22 @@ public class AutomatizationService : IAutomatizationService
             throw new ArgumentException("Invalid target time format");
         }
         targetTime = targetTime.ToUniversalTime();
+
         // Parse the target day abbreviations
         var targetDaysOfWeek = targetDaysOfWeekAbbreviations.Split(',').Select(abbrev => ParseDayAbbreviation(abbrev)).ToList();
 
         // Get the current date and time
         DateTime currentTime = DateTime.UtcNow;
 
-        // Find the nearest occurrence of the target day of the week
+        // Calculate the nearest occurrence of the target day of the week
         DateTime nearestOccurrence = CalculateNearestDay(currentTime, targetDaysOfWeek);
 
         // Set the target date and time
-        DateTime targetDateTime = new DateTime(nearestOccurrence.Year, nearestOccurrence.Month, nearestOccurrence.Day, targetTime.Hour, targetTime.Minute, targetTime.Second);
+        DateTime targetDateTime = new(nearestOccurrence.Year, nearestOccurrence.Month, nearestOccurrence.Day, targetTime.Hour, targetTime.Minute, targetTime.Second);
 
         if (targetDateTime < currentTime)
         {
-            // If the target time has already passed for today, calculate for the next occurrence
+            // If the target time has already passed for today, calculate for the next occurrence on an active day
             nearestOccurrence = CalculateNearestDay(nearestOccurrence.AddDays(1), targetDaysOfWeek);
             targetDateTime = new DateTime(nearestOccurrence.Year, nearestOccurrence.Month, nearestOccurrence.Day, targetTime.Hour, targetTime.Minute, targetTime.Second);
         }
@@ -196,47 +212,44 @@ public class AutomatizationService : IAutomatizationService
         // Calculate the time difference in milliseconds
         long millisecondsUntilTarget = (long)(targetDateTime - currentTime).TotalMilliseconds;
 
-        logger.LogWarning("Next occurence will occur at {time}", targetDateTime.ToString());
-
         return millisecondsUntilTarget;
     }
 
     private static DayOfWeek ParseDayAbbreviation(string abbreviation)
     {
-        switch (abbreviation.Trim().ToLower())
+        return abbreviation.Trim().ToLower() switch
         {
-            case "mo":
-                return DayOfWeek.Monday;
-            case "tu":
-                return DayOfWeek.Tuesday;
-            case "we":
-                return DayOfWeek.Wednesday;
-            case "th":
-                return DayOfWeek.Thursday;
-            case "fr":
-                return DayOfWeek.Friday;
-            case "sa":
-                return DayOfWeek.Saturday;
-            case "su":
-                return DayOfWeek.Sunday;
-            default:
-                throw new ArgumentException($"Invalid day abbreviation: {abbreviation}");
-        }
+            "mo" => DayOfWeek.Monday,
+            "tu" => DayOfWeek.Tuesday,
+            "we" => DayOfWeek.Wednesday,
+            "th" => DayOfWeek.Thursday,
+            "fr" => DayOfWeek.Friday,
+            "sa" => DayOfWeek.Saturday,
+            "su" => DayOfWeek.Sunday,
+            _ => throw new ArgumentException($"Invalid day abbreviation: {abbreviation}"),
+        };
     }
 
     private static DateTime CalculateNearestDay(DateTime currentTime, List<DayOfWeek> targetDaysOfWeek)
     {
         DateTime nearestOccurrence = currentTime;
+        bool isNextDay = false;
 
         foreach (var targetDay in targetDaysOfWeek)
         {
             int daysUntilTargetDay = ((int)targetDay - (int)currentTime.DayOfWeek + 7) % 7;
             DateTime nextTargetDay = currentTime.AddDays(daysUntilTargetDay);
 
-            if (nextTargetDay < nearestOccurrence)
+            if (nextTargetDay > nearestOccurrence)
             {
                 nearestOccurrence = nextTargetDay;
+                isNextDay = true;
             }
+        }
+
+        if (!isNextDay)
+        {
+            nearestOccurrence = CalculateNearestDay(nearestOccurrence.AddDays(1), targetDaysOfWeek);
         }
 
         return nearestOccurrence;

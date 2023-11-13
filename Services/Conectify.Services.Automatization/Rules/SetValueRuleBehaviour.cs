@@ -1,40 +1,49 @@
 ﻿using Conectify.Services.Automatization.Models;
 using Newtonsoft.Json;
 
-namespace Conectify.Services.Automatization.Rules
+namespace Conectify.Services.Automatization.Rules;
+
+public class SetValueRuleBehaviour : IRuleBehaviour
 {
-    public class SetValueRuleBehaviour : IRuleBehaviour
+    public AutomatisationValue? Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule, IEnumerable<Tuple<Guid, AutomatisationValue>> parameterValues)
     {
-        public AutomatisationValue Execute(IEnumerable<AutomatisationValue> automationValues, RuleDTO ruleDTO)
+        return InitializationValue(masterRule);
+    }
+
+    public AutomatisationValue? InitializationValue(RuleDTO rule)
+    {
+        if (string.IsNullOrEmpty(rule.ParametersJson))
         {
-            var value  = JsonConvert.DeserializeObject<SetValueOptions>(ruleDTO.ParametersJson);
-
-            if(value == null)
-            {
-                return automationValues.First();
-            }
-
-            return new AutomatisationValue()
-            {
-                Name = "Static value",
-                NumericValue = value.NumericValue,
-                StringValue = value.StringValue,
-                Unit = value.Unit,
-                TimeCreated = automationValues.First().TimeCreated,
-                SourceId = automationValues.First().SourceId,
-            };
+            return null;
         }
 
-        public Guid GetId()
+        var value = JsonConvert.DeserializeObject<SetValueOptions>(rule.ParametersJson);
+
+        if (value is null)
         {
-            return Guid.Parse("8c173ffc-7243-4675-9a0d-28c2ce19a18f");
+            return null;
         }
 
-        private record SetValueOptions
+        return new AutomatisationValue()
         {
-            public string StringValue = string.Empty;
-            public float NumericValue = 0;
-            public string Unit = string.Empty;
-        }
+            Name = "Static value",
+            NumericValue = value.NumericValue,
+            StringValue = value.StringValue,
+            Unit = value.Unit,
+            TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            SourceId = rule.Id,
+        };
+    }
+
+    public Guid GetId()
+    {
+        return Guid.Parse("8c173ffc-7243-4675-9a0d-28c2ce19a18f");
+    }
+
+    private record SetValueOptions
+    {
+        public string StringValue = string.Empty;
+        public float NumericValue = 0;
+        public string Unit = string.Empty;
     }
 }

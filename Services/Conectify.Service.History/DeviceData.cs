@@ -50,6 +50,7 @@ public class DeviceData : IDeviceData
             SubToValues = true,
             SubToActionResponse = true,
             SubToActions = true,
+            SubToCommandResponse = true,
         }
     };
 

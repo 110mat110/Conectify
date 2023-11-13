@@ -1,5 +1,6 @@
 ﻿using Conectify.Database.Models.Values;
 using Conectify.Services.Automatization.Rules;
+using Conectify.Services.Automatization.Services;
 
 namespace Conectify.Services.Automatization.Models;
 
@@ -22,6 +23,10 @@ public class RuleDTO
     public Guid? DestinationActuatorId { get; set; }
 
     public IEnumerable<Guid> NextRules { get; set; } = new List<Guid>();
+
+    public IEnumerable<Guid> Parameters { get; set; } = new List<Guid>();
+
+    public AutomatisationValue? OutputValue { get; set; }
 
     public void InsertValue(Value value)
     {
@@ -68,4 +73,10 @@ public class RuleDTO
     }
 
     public IEnumerable<AutomatisationValue> Values => cachedValues.Select(x => x.Value);
+
+    public void Initialize()
+    {
+       var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(RuleTypeId);
+       this.OutputValue = behaviour?.InitializationValue(this);
+    }
 }

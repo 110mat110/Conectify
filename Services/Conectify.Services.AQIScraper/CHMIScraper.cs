@@ -1,4 +1,5 @@
 ﻿using Conectify.Services.Library;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
 using HtmlAgilityPack;
 using System.Globalization;
@@ -31,11 +32,10 @@ public class CHMIScraper
         HtmlDocument pageDocument = new();
         pageDocument.LoadHtml(res);
         float AQI;
-        string status = string.Empty;
         try
         {
             var x = pageDocument.DocumentNode.SelectSingleNode("//body");
-            status = pageDocument.DocumentNode.SelectSingleNode("//body//div[@id='main']//div[@id='content']//table[2]//tr[last()]//td[2]//span").InnerText;
+            var status = pageDocument.DocumentNode.SelectSingleNode("//body//div[@id='main']//div[@id='content']//table[2]//tr[last()]//td[2]//span").InnerText;
             string aqi = pageDocument.DocumentNode.SelectSingleNode("//body//div[@id='main']//div[@id='content']//table[2]//tr[last()]//td[5]").InnerText;
 
             AQI = float.Parse(aqi.Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator));
@@ -48,7 +48,7 @@ public class CHMIScraper
                 SourceId = this.configuration.SensorId,
                 TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 Unit = "PM10",
-                Type = "Value",
+                Type = Constants.Types.Value,
             };
             logger.LogInformation($"Got values! AQI is {AQI}");
             await websocketClient.SendMessageAsync(value);

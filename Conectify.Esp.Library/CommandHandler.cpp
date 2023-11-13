@@ -1,12 +1,21 @@
+#if defined (ARDUINO_ARCH_ESP8266)
+#include <ESP8266WiFi.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#else
+#error Architecture unrecognized by this code.
+#endif
+#include <EEPROM.h>
 #include "CommandHanlder.h"
 #include "ConstantsDeclarations.h"
 #include "Arduino.h"
-#include <EEPROM.h>
 #include "EEPRomHandler.h"
 #include "GlobalVariables.h"
 #include "DebugMessageLib.h"
-#include <ESP8266WiFi.h>
 #include "DecodingFunctions.h"
+#include "MainFunctions.h"
+
+void SendCommandResponseToServer(String commandId);
 
 void HandleCommand(String commandId, String commandText, float commandValue, String commandTextparameter){
   DebugMessage("Recieved command " + commandText + " with param" + commandTextparameter + " and "+ String(commandValue));
@@ -37,5 +46,22 @@ void HandleCommand(String commandId, String commandText, float commandValue, Str
         RegisterBaseDevice(GetGlobalVariables()->baseDevice);
 
   }
-  //if(commandText == CommandActivityCheck) SendCommandResponseToServer(commandId, GetGlobalVariables() -> baseDevice, GetGlobalVariables() -> dateTime);
+  if(commandText == CommandActivityCheck) SendCommandResponseToServer(commandId);
+}
+
+void SendCommandResponseToServer(String commandId){
+    DynamicJsonDocument doc(256);
+    doc[type] = CommandResponseType;
+    doc[DTSourceId] = GetGlobalVariables() -> baseDevice.id;
+    doc[timeCreated] = GetGlobalVariables() -> dateTime.ToJSONString();
+    doc[DTvalueName] = CommandResponseActive;
+    doc[DTstringValue] = "";
+    doc[DTnumericValue] = 0;
+    doc[DTvalueUnit] = "";
+    doc[DTResponseSourceId] = commandId;
+    String json;
+    serializeJson(doc, json);
+    doc.clear();
+
+    SendViaWebSocket(json);
 }

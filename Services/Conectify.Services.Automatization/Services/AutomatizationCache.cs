@@ -22,6 +22,8 @@ public class AutomatizationCache
 
     public async Task<RuleDTO?> GetRuleByIdAsync(Guid id)
     {
+        ReloadIfNeeded();
+
         if (cache.ContainsKey(id))
         {
             return cache[id];
@@ -78,10 +80,10 @@ public class AutomatizationCache
 
         using var scope = services.CreateScope();
         var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var rule = await conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).FirstAsync(x => x.Id == id, ct);
+        var rule = await conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).Include(x => x.SourceParameters).FirstAsync(x => x.Id == id, ct);
 
         var dto = mapper.Map<RuleDTO>(rule);
-
+        dto.Initialize();
         cache.Add(dto.Id, dto);
     }
 
@@ -102,9 +104,13 @@ public class AutomatizationCache
         cache.Clear();
         using var scope = services.CreateScope();
         var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var dbrules = conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).ToList();
+        var dbrules = conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).Include(x => x.SourceParameters).ToList();
 
         var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
+        foreach(var dto in dtos)
+        {
+            dto.Initialize();
+        }
         cache = dtos.ToDictionary(x => x.Id);
         lastReload = DateTime.UtcNow;
     }

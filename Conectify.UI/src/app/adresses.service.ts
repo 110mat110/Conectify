@@ -103,6 +103,10 @@ export class AdressesService {
   connectionChange(source: string, destination: string){
     return this.automatizationURL + "rule/connection/"+source+"/"+destination;
   }
+
+  parameterChange(source: string, destination: string){
+    return this.automatizationURL + "rule/parameter/"+source+"/"+destination;
+  }
   
   allConnections(){
     return this.automatizationURL + "rule/connections"

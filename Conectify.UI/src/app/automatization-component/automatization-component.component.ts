@@ -9,6 +9,8 @@ import { BefetchAutomatizationService } from '../befetch-automatization.service'
 import { MessagesService } from '../messages.service';
 import { SetTimeRule } from 'src/models/Automatization/SetTimeRule';
 import { SetValueRule } from 'src/models/Automatization/SetValueRule';
+import { DecisionRule } from 'src/models/Automatization/DecisionRule';
+import { AndRule } from 'src/models/Automatization/AndRule';
 
 @Component({
   selector: 'app-automatization-component',
@@ -24,8 +26,11 @@ export class AutomatizationComponentComponent implements OnInit {
   UserInputRule?: UserInputRule;
   SetTimeRule?: SetTimeRule;
   SetValueRule?: SetValueRule;
+  DecisionRule?: DecisionRule;
+  AndRule?: AndRule;
   isSource: boolean = false;
   isDestination: boolean = false;
+  hasParameters: boolean = false;
   constructor(public messenger: MessagesService, public be: BefetchAutomatizationService) { }
 
   ngOnInit(): void {
@@ -57,18 +62,35 @@ export class AutomatizationComponentComponent implements OnInit {
       this.isDestination = true;
       this.isSource = true;
     }
+
+    if(this.Component instanceof DecisionRule){
+      this.DecisionRule = this.Component;
+      this.isDestination = true;
+      this.isSource = true;
+      this.hasParameters = true;
+    }
+
+    if(this.Component instanceof AndRule){
+      this.AndRule = this.Component;
+      this.isDestination = true;
+      this.isSource = true;
+      this.hasParameters = false;
+    }
   }
 
   SourceClick(){
-    this.messenger.addMessage("sourceClick");
     if(this.ComponentCage && this.Component )//&& this.Component instanceof AutomatizationBaseWithTargetGeneric ) //Check this twice!
       this.ComponentCage.SourceClick(this.Component);
   }
 
   DestinationClick(){
-    this.messenger.addMessage("Dest click");
     if(this.ComponentCage && this.Component)
     this.ComponentCage.DestinationClick(this.Component);
+  }
+
+  ParameterClick(){
+    if(this.ComponentCage && this.Component)
+    this.ComponentCage.ParameterClick(this.Component);
   }
 
   public saveClick(){

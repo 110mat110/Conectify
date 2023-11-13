@@ -61,7 +61,7 @@ public class ActuatorService : UniversalDeviceService<Actuator, ApiActuator>, IA
     public override async Task<IEnumerable<ApiMetadata>> GetMetadata(Guid actuatorId, CancellationToken ct = default)
     {
         var actuator = await database.Set<Actuator>().FirstOrDefaultAsync(x => x.Id == actuatorId, ct);
-        if (actuator == null)
+        if (actuator is null)
         {
             return new List<ApiMetadata>();
         }

@@ -5,11 +5,14 @@
 #include "BaseDevice.h"
 #include "Sensors.h"
 #include "ArduinoJson.h"
+#if defined (ARDUINO_ARCH_ESP8266)
 #include "ESP8266WiFi.h"
+#elif defined(ESP32)
+#include "WiFi.h"
+#else
+#error Architecture unrecognized by this code.
+#endif
 #include "ConstantsDeclarations.h"
-#include <ArduinoWebsockets.h>
-
-using namespace websockets;
 
 void RegisterBaseDevice(BaseDevice &baseDevice);
 

@@ -1,15 +1,25 @@
+#if defined (ARDUINO_ARCH_ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#include <ESP8266HTTPClient.h>
+#include <ESPAsyncTCP.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <ESPmDNS.h>
+#include <HTTPClient.h>
+#include <AsyncTCP.h>
+#else
+#error Architecture unrecognized by this code.
+#endif
+
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
+#include <EEPROM.h>
+#include <ArduinoWebsockets.h>
+#include <ESPAsyncWebServer.h>
 #include "MainFunctions.h"
 #include "Arduino.h"
 #include "EEPRomHandler.h"
-#include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
-#include <ESP8266HTTPClient.h>
-#include <EEPROM.h>
-#include <ArduinoWebsockets.h>
-#include <ESPAsyncTCP.h>
-#include <ESPAsyncWebServer.h>
 #include "TickTimer.h"
 #include "Sensors.h"
 #include "BaseDevice.h"
@@ -82,6 +92,7 @@ void LoopMandatoryRoutines()
   {
     SendAllSensorsToServerIfNeeded();
     websocketClient.poll();
+    ArduinoOTA.handle();
   }
   else
   {
@@ -118,7 +129,8 @@ void InitializeDevice(int psensorArrSize, int pactuatorArrSize, void (*SensorsDe
 bool InitializeNetwork()
 {
   StartWebServer();
-  // StartOTA("Conectify");  TODO play with OTA later
+  String otaName = String("Conectify - ") + String(GetGlobalVariables() -> baseDevice.Name);
+  StartOTA(otaName);  //TODO play with OTA later
   return ReloadNetwork();
 }
 
@@ -249,7 +261,7 @@ void SendAllSensorsToServerIfNeeded()
     {
       DebugMessage("--------- Actuator response ------------------------");
       DebugMessage("Payload: " + GetGlobalVariables()->actuatorsArr[i].SerializeResponse(GetGlobalVariables()->dateTime));
-      websocketClient.send(GetGlobalVariables()->actuatorsArr[i].SerializeResponse(GetGlobalVariables()->dateTime));
+      SendViaWebSocket(GetGlobalVariables()->actuatorsArr[i].SerializeResponse(GetGlobalVariables()->dateTime));
       GetGlobalVariables()->actuatorsArr[i].MarkAsRead();
     }
   }
@@ -261,7 +273,7 @@ void SendAllSensorsToServerIfNeeded()
       {
         DebugMessage("--------- Sensor Value ------------------------");
         DebugMessage("Payload: " + GetGlobalVariables()->sensorsArr[i].SerializeValue(GetGlobalVariables()->dateTime));
-        websocketClient.send(GetGlobalVariables()->sensorsArr[i].SerializeValue(GetGlobalVariables()->dateTime));
+        SendViaWebSocket(GetGlobalVariables()->sensorsArr[i].SerializeValue(GetGlobalVariables()->dateTime));
       }
       GetGlobalVariables()->sensorsArr[i].MarkAsRead();
     }
@@ -367,7 +379,7 @@ void StartOTA(String OTAName)
     // NOTE: if updating FS this would be the place to unmount FS using FS.end()
     DebugMessage("Start updating " + type); });
   ArduinoOTA.onEnd([]()
-                   { DebugMessage("\nEnd"); });
+                   { DebugMessage("OTA Failed"); });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total)
                         { Serial.printf("Progress: %u%%\r", (progress / (total / 100))); });
   ArduinoOTA.onError([](ota_error_t error)

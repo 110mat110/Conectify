@@ -29,7 +29,7 @@ public class MetadataServiceTest
     [Fact]
     public async Task ItShallAddNewMetadataWithId()
     {
-        var service = new MetadataService(new ConectifyDb(dbContextoptions), mapper);
+        var service = new MetadataService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceStatusService>());
         var id = Guid.NewGuid();
         var apiMetadta = new ApiBasicMetadata()
         {
@@ -47,7 +47,7 @@ public class MetadataServiceTest
     [Fact]
     public async Task ItShallAddNewMetadataWithoutId()
     {
-        var service = new MetadataService(new ConectifyDb(dbContextoptions), mapper);
+        var service = new MetadataService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceStatusService>());
         var apiMetadta = new ApiBasicMetadata()
         {
             Name = "Name",
@@ -68,7 +68,7 @@ public class MetadataServiceTest
         db.Metadatas.Add(new Database.Models.Metadata() { Id = Guid.NewGuid() });
         db.SaveChanges();
 
-        var service = new MetadataService(new ConectifyDb(dbContextoptions), mapper);
+        var service = new MetadataService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceStatusService>());
 
         var metadatas = await service.GetAllMetadata();
         Assert.Equal(2, metadatas.Count());

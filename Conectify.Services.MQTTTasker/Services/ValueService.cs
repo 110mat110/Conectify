@@ -1,4 +1,5 @@
 ﻿using Conectify.Services.Library;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
 
 namespace Conectify.Services.MQTTTasker.Services;
@@ -30,7 +31,7 @@ internal class ValueService : IValueService
 			SourceId = deviceData.Sensors.First().Id,
 			TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
 			Unit = string.Empty,
-			Type = "Action",
+			Type = Constants.Types.Action,
 			StringValue = string.Empty
 		};
 

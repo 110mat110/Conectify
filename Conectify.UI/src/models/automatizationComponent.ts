@@ -7,6 +7,7 @@ export class AutomatizationBase{
     public behaviorId: string = "";
 
     public targets: string[] = [];
+    public parameters: string[] = [];
 
     public getParametersJSon(): string {
         return "{}";

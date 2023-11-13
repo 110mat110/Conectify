@@ -10,9 +10,11 @@ public class GetRuleApiModel
 
     public string PropertyJson { get; set; } = string.Empty;
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     public Guid BehaviourId { get; set; }
 
     public IEnumerable<Guid> Targets { get; set; } = new List<Guid>();
+
+    public IEnumerable<Guid> Parameters { get; set; } = new List<Guid>();
 }

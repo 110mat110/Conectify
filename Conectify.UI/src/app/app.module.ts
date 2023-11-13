@@ -37,7 +37,9 @@ import {MatToolbarModule} from '@angular/material/toolbar';
 import { AutUserInputComponent } from './aut-user-input/aut-user-input.component';
 import { AutSetTimeComponent } from './aut-inner-components/aut-set-time/aut-set-time.component';
 import { AutEachTimeComponent } from './aut-inner-components/aut-each-time/aut-each-time.component';
-import { AutSetValueComponent } from './aut-inner-components/aut-set-value/aut-set-value.component'; 
+import { AutSetValueComponent } from './aut-inner-components/aut-set-value/aut-set-value.component';
+import { AutDecisionComponent } from './aut-inner-components/aut-decision/aut-decision.component';
+import { AutAndComponent } from './aut-inner-components/aut-and/aut-and.component'; 
 
 @NgModule({
   declarations: [
@@ -60,7 +62,9 @@ import { AutSetValueComponent } from './aut-inner-components/aut-set-value/aut-s
     AutUserInputComponent,
     AutSetTimeComponent,
     AutEachTimeComponent,
-    AutSetValueComponent
+    AutSetValueComponent,
+    AutDecisionComponent,
+    AutAndComponent
   ],
   imports: [
     FormsModule,
