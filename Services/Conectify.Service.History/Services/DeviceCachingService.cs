@@ -121,9 +121,13 @@ public class DeviceCachingService : IDeviceCachingService
     }
 
     private void ReloadActuators()
-	{
-        var yesterday = DateTime.UtcNow.AddDays(-1);
-        actuatorCache = actuatorCache.Where(sensor => sensor.Value.CompareTo(yesterday) >= 0).ToDictionary(x => x.Key, x => x.Value);
+    {
+        actuatorCache.Clear();
+
+        foreach (var result in connectorService.LoadAllActuators().Result)
+        {
+            actuatorCache.TryAdd(result.Id, DateTime.UtcNow);
+        }
     }
 
     private void ReloadSensors()
