@@ -2,6 +2,7 @@
 using Conectify.Server.Caches;
 using Conectify.Server.Services;
 using FakeItEasy;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -10,13 +11,13 @@ namespace Conectify.Server.Test.Services;
 
 public class DeviceStatusServiceTests
 {
-    private IPipelineService fakePipelineService;
     private ISubscribersCache fakeSubscribersCache;
     private Configuration fakeConfiguration;
+    private IServiceScopeFactory fakeDataService;
 
     public DeviceStatusServiceTests()
     {
-        this.fakePipelineService = A.Fake<IPipelineService>();
+        this.fakeDataService = A.Fake<IServiceScopeFactory>();
         this.fakeSubscribersCache = A.Fake<ISubscribersCache>();
         this.fakeConfiguration = A.Fake<Configuration>();
     }
@@ -24,7 +25,7 @@ public class DeviceStatusServiceTests
     private DeviceStatusService CreateService()
     {
         return new DeviceStatusService(
-            this.fakePipelineService,
+            this.fakeDataService,
             this.fakeSubscribersCache,
             this.fakeConfiguration);
     }
