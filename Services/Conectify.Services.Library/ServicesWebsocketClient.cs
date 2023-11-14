@@ -28,8 +28,9 @@ public interface IServicesWebsocketClient
 
 public class ServicesWebsocketClient : IServicesWebsocketClient
 {
-    public ServicesWebsocketClient(Configuration configuration, IMapper mapper, ILogger<ServicesWebsocketClient> logger)
+    public ServicesWebsocketClient(IInternalCommandService internalCommandService, Configuration configuration, IMapper mapper, ILogger<ServicesWebsocketClient> logger)
     {
+        this.internalCommandService = internalCommandService;
         this.configuration = configuration;
         this.mapper = mapper;
         this.logger = logger;
@@ -162,6 +163,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
 
     private ClientWebSocket? WS;
     private CancellationTokenSource? CTS;
+    private readonly IInternalCommandService internalCommandService;
     private readonly Configuration configuration;
     private readonly IMapper mapper;
     private readonly ILogger<ServicesWebsocketClient> logger;
@@ -171,53 +173,34 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         if (inputEntity is Value inputValue)
         {
             OnIncomingValue?.Invoke(inputValue);
+            return;
         }
 
         if (inputEntity is Database.Models.Values.Action action)
         {
             OnIncomingAction?.Invoke(action);
+            return;
         }
 
         if (inputEntity is Command command)
         {
-            if (!await HandleInternalCommand(command, ct))
+            if (!await internalCommandService.HandleInternalCommand(command, ct))
             {
                 OnIncomingCommand?.Invoke(command);
             }
+            return;
         }
 
         if (inputEntity is ActionResponse actionResponse)
         {
             OnIncomingActionResponse?.Invoke(actionResponse);
+            return;
         }
 
         if (inputEntity is CommandResponse commandResponse)
         {
             OnIncomingCommandResponse?.Invoke(commandResponse);
+            return;
         }
-    }
-
-    private async Task<bool> HandleInternalCommand(Command command, CancellationToken ct)
-    {
-        switch (command.Name)
-        {
-            case Constants.Commands.ActivityCheck: await SendActivityResponse(command,ct); return false;
-            default: return true;
-        }
-    }
-
-    private async Task SendActivityResponse(Command command, CancellationToken ct)
-    {
-        var response = new WebsocketBaseModel()
-        {
-            Name = Constants.Commands.Active,
-            NumericValue = 1,
-            SourceId = configuration.DeviceId,
-            StringValue = string.Empty,
-            TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            Type = Constants.Types.CommandResponse,
-            ResponseSourceId = command.Id
-        };
-        await SendMessageAsync(response,ct);
     }
 }

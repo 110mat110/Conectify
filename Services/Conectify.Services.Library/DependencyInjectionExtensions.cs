@@ -15,6 +15,7 @@ public static class DependencyInjectionExtensions
         services.AddTransient<IConnectorService, ConnectorService>();
         services.AddTransient<IDeviceData, TDeviceData>();
         services.AddTransient<IHttpFactory, HttpFactory>();
+        services.AddTransient<IInternalCommandService, InternalCommandService>();
         return services;
     }
 
