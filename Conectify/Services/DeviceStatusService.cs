@@ -1,6 +1,8 @@
 ﻿using Conectify.Database.Models.Values;
 using Conectify.Server.Caches;
 using Conectify.Shared.Library;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using System.Timers;
 
 namespace Conectify.Server.Services;
@@ -12,14 +14,14 @@ public interface IDeviceStatusService
 
 public class DeviceStatusService : IDeviceStatusService, IDisposable
 {
-    private readonly IPipelineService pipelineService;
+    private readonly IServiceScopeFactory serviceScopeFactory;
     private readonly ISubscribersCache subscribersCache;
     private readonly Configuration configuration;
     private readonly System.Timers.Timer aTimer;
 
-    public DeviceStatusService(IPipelineService pipelineService, ISubscribersCache subscribersCache, Configuration configuration)
+    public DeviceStatusService(IServiceScopeFactory serviceScopeFactory, ISubscribersCache subscribersCache, Configuration configuration)
     {
-        this.pipelineService = pipelineService;
+        this.serviceScopeFactory = serviceScopeFactory;
         this.subscribersCache = subscribersCache;
         this.configuration = configuration;
 
@@ -54,7 +56,11 @@ public class DeviceStatusService : IDeviceStatusService, IDisposable
                 StringValue = string.Empty
             };
 
-            await pipelineService.ResendValueToSubscribers(command);
+            using var scope = serviceScopeFactory.CreateAsyncScope();
+
+            var dataService = scope.ServiceProvider.GetRequiredService<IDataService>();
+
+            await dataService.ProcessEntity(command, configuration.DeviceId, default);
        }
     }
 

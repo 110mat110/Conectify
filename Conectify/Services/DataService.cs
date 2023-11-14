@@ -9,6 +9,7 @@ using Database.Models.Values;
 public interface IDataService
 {
     Task InsertJsonModel(string rawJson, Guid deviceId, CancellationToken ct = default);
+    Task ProcessEntity(IBaseInputType mapedEntity, Guid deviceId, CancellationToken ct = default);
 }
 
 public class DataService : IDataService
@@ -38,11 +39,7 @@ public class DataService : IDataService
         {
             var (mapedEntity, _) = SharedDataService.DeserializeJson(rawJson, mapper);
 
-            if (await ValidateAndRepairEntity(mapedEntity, deviceId, ct))
-            {
-                await SaveToDatabase(mapedEntity);
-                await pipelineService.ResendValueToSubscribers(mapedEntity);
-            }
+            await ProcessEntity(mapedEntity, deviceId, ct);
         }
         catch (Exception ex)
         {
@@ -50,6 +47,15 @@ public class DataService : IDataService
             logger.LogInformation(ex.Message);
             logger.LogDebug(ex.StackTrace);
             database.ChangeTracker.Clear();
+        }
+    }
+
+    public async Task ProcessEntity(IBaseInputType mapedEntity, Guid deviceId, CancellationToken ct = default)
+    {
+        if (await ValidateAndRepairEntity(mapedEntity, deviceId, ct))
+        {
+            await SaveToDatabase(mapedEntity);
+            await pipelineService.ResendValueToSubscribers(mapedEntity);
         }
     }
 

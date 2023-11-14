@@ -13,7 +13,6 @@ public interface ISubscribersCache
     IEnumerable<Subscriber> AllSubscribers();
 
     Task<Subscriber?> UpdateSubscriber(Guid deviceId, CancellationToken ct = default);
-
 }
 
 public class SubscribersCache : ISubscribersCache

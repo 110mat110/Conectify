@@ -56,24 +56,22 @@ public class OccupancyService
 
                     Console.WriteLine(result);
 
-                    if (!result)
+                    var value = new WebsocketBaseModel()
                     {
-                        var value = new WebsocketBaseModel()
-                        {
-                            Name = "Occupancy",
-                            NumericValue = 0,
-                            StringValue = "no one home",
-                            SourceId = this.configuration.SensorId,
-                            TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                            Unit = "",
-                            Type = Constants.Types.Value,
-                        };
-                        await websocketClient.SendMessageAsync(value);
-                    }
+                        Name = "Occupancy",
+                        NumericValue = result ? 1 : 0,
+                        StringValue = !result ? "no one home" : "",
+                        SourceId = this.configuration.SensorId,
+                        TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                        Unit = "",
+                        Type = Constants.Types.Value,
+                    };
+                    await websocketClient.SendMessageAsync(value);
 
                     await Task.Delay(new TimeSpan(0, 0, 59));
 
                     driver.Navigate().Refresh();
+                    await Task.Delay(new TimeSpan(0, 0, 1));
                 } while (true);
             }
             catch (Exception ex)
@@ -86,5 +84,5 @@ public class OccupancyService
             }
         } while (true);
     }
-      
+
 }

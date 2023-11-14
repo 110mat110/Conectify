@@ -1,6 +1,7 @@
 using Conectify.Database;
 using Conectify.Server;
 using Conectify.Server.Mapper;
+using Conectify.Server.Services;
 using Conectify.Shared.Maps;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +27,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+var service = app.Services.GetRequiredService<IDeviceStatusService>();
+await service.CheckIfAlive();
 app.UseHttpsRedirection();
 app.UseWebSockets();
 app.UseAuthorization();

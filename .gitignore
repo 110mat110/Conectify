@@ -356,3 +356,4 @@ MigrationBackup/
 *Development.json
 /Services/Conectify.Services.ShellyConnector/.config/dotnet-tools.json
 *appsettings.Development.json
+/Services/Conectify.Services.Automatization/appsettings.Development.json
