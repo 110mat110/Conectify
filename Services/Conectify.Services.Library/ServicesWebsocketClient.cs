@@ -199,7 +199,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
 
     private async Task<bool> HandleInternalCommand(Command command, CancellationToken ct)
     {
-        switch (command.Name.ToLower())
+        switch (command.Name)
         {
             case Constants.Commands.ActivityCheck: await SendActivityResponse(command,ct); return false;
             default: return true;

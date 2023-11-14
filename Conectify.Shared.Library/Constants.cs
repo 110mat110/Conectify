@@ -13,6 +13,6 @@ public static class Constants
         public const string Value = "Value";
         public const string Action = "Action";
         public const string ActionResponse = "ActionResponse";
-        public const string CommandResponse = "Error";
+        public const string CommandResponse = "CommandResponse";
     }
 }
