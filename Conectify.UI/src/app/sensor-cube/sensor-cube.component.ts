@@ -1,6 +1,5 @@
 import { Overlay, OverlayConfig, OverlayRef, PositionStrategy } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { isNull } from '@angular/compiler/src/output/output_ast';
 import { Component, ElementRef, HostListener, Input, OnChanges, OnInit, SimpleChanges, ViewChild, ViewContainerRef } from '@angular/core';
 import { BaseInputType } from 'src/models/extendedValue';
 import { Metadata } from 'src/models/metadata';
