@@ -1,46 +1,36 @@
 <!-- <span class="toolbar"> -->
-  <mat-toolbar>
+<mat-toolbar>
   <div style="width: 20px;"></div>
   <h1> Conectify </h1>
 
   <div style="width: 20px;"></div>
   <span class="buttonBar">
 
-<button class="navbar-button" routerLink="/sensors">Sensors</button>
-<button class="navbar-button" routerLink="/actuators">Actuators</button>
-<button class="navbar-button" routerLink="/automatization">Automatization</button>
-<button class="navbar-button" routerLink="/metadata">Metadata</button>
-<button *ngIf="showDasboard" class="navbar-button" routerLink="/dashboard">Dashboard</button>
+    <button class="navbar-button" routerLink="/sensors">Sensors</button>
+    <button class="navbar-button" routerLink="/actuators">Actuators</button>
+    <button class="navbar-button" routerLink="/automatization">Automatization</button>
+    <button class="navbar-button" routerLink="/metadata">Metadata</button>
+    <button *ngIf="showDasboard" class="navbar-button" routerLink="/dashboard">Dashboard</button>
   </span>
-  <!-- </span> -->
-  <div id="g_id_onload"
-  data-client_id="308933013111-iufd1lpojc2ngirukrf4mt953ri0lnd8.apps.googleusercontent.com"
-  data-context="signin"
-  data-ux_mode="popup"
-  data-callback="handleCredentialResponse"
-  data-auto_select="true"
-  data-close_on_tap_outside="false"
-  data-itp_support="true">
+  <span class="example-spacer"></span>
+  <mat-card style="background-color: var(--color5);">
+    <mat-card-content>
+      <form *ngIf="!isLoggedIn; else loggedInTemplate" (submit)="login()">
+        <mat-form-field>
+          <input matInput placeholder="Username" [(ngModel)]="username" name="username" required>
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="submit">Login</button>
+      </form>
 
-</div>
-
-<div
-  id="google_btn"
-  class="g_id_signin"
-  style="margin-left: auto; 
-  margin-right: 0;"
-  data-type="standard"
-  data-shape="rectangular"
-  data-theme="filled_black"
-  data-text="signin"
-  data-size="large"
-  data-auto_select="true"
-  data-logo_alignment="left">
-</div>
+      <ng-template #loggedInTemplate>
+        <span>
+        <label >Welcome, {{ username }}!&nbsp;</label>
+        <button mat-raised-button color="warn" (click)="logout()">Logout</button>
+         </span>
+      </ng-template>
+    </mat-card-content>
+  </mat-card>
 </mat-toolbar>
-<div style="margin: 25px">
+<div>
   <router-outlet></router-outlet>
-  <button hidden="true" name="triggerMail" (click)="onChangeMail()"></button>
-  <input hidden="true" type="text" name="mailTextBoxRef" #mailTextBoxRef />
-
 </div>

@@ -29,6 +29,11 @@
     --inputBackground: var(--color2);
     --cubeborders: rgb(88, 88, 88);
 }
+
+.example-spacer {
+  flex: 1 1 auto;
+}
+
 input[type=number]::-webkit-inner-spin-button {
   -webkit-appearance: none;
 }
@@ -55,7 +60,7 @@ input[type=number]::-webkit-inner-spin-button {
   .toolbar {
     height: 60px;
     align-items: center;
-    background-color: #001224;
+    background-color: var(--color5);
     font-weight: 600;
   }
 

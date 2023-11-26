@@ -5,6 +5,7 @@ import { OnChanges } from '@angular/core';
 import { Input } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { BEFetcherService } from './befetcher.service';
+import { CookieService } from 'ngx-cookie-service';
 
 @Component({
   selector: 'app-root',
@@ -15,30 +16,44 @@ import { BEFetcherService } from './befetcher.service';
 export class AppComponent {
   title = 'Conectify';
   received: string[] = [];
-  @ViewChild("fingerprintIdTextBoxRef") myNameElem?: ElementRef;
-  @ViewChild("mailTextBoxRef") mail?: ElementRef;
-  currentUser: string = "anonymous";
+  username: string = "anonymous";
   showDasboard: boolean = false;
+  isLoggedIn: boolean = false;
   wsStatus: any = this.websocketService.status;
-  constructor(private websocketService: WebsocketService, private befetcher: BEFetcherService) {
+  constructor(private websocketService: WebsocketService, private befetcher: BEFetcherService, private cookieService: CookieService) {
+  }
+
+  ngOnInit() {
+    const token = this.cookieService.get('userToken');
+
+    if (token) {
+      this.username = token;
+    }
+
     this.initilize();
   }
 
   initilize(){
-    this.showDasboard = this.currentUser != "anonymous";
-      this.befetcher.getUserId(this.currentUser).subscribe(id => {
-        console.warn("User " + this.currentUser + "has id " + id);
+    this.showDasboard = this.username != "anonymous";
+      this.befetcher.getUserId(this.username).subscribe(id => {
+        console.warn("User " + this.username + "has id " + id);
         
-
-        this.befetcher.register(id,this.currentUser);
+        this.befetcher.register(id,this.username);
         this.websocketService.SetId(id);
         this.websocketService.Connect();
       });
+    this.isLoggedIn = this.username != "anonymous";
   }
 
-  onChangeMail() {
-    this.currentUser = this.mail?.nativeElement.value;
+  login() {
+    this.cookieService.set('userToken', this.username, 365);
 
+    this.initilize();
+  }
+
+  logout() {
+    this.cookieService.delete('userToken');
+    this.username = "anonymous";
     this.initilize();
   }
 }

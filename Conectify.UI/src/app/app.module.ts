@@ -47,6 +47,7 @@ import {MatDialogModule} from '@angular/material/dialog';
 import { DasboardAddDeviceDialogComponent } from './dashboard/dasboard-add-device-dialog/dasboard-add-device-dialog.component'; 
 import {MatCheckboxModule} from '@angular/material/checkbox'; 
 import {MatDividerModule} from '@angular/material/divider'; 
+import {MatCardModule} from '@angular/material/card';
 
 @NgModule({
   declarations: [
@@ -99,7 +100,8 @@ import {MatDividerModule} from '@angular/material/divider';
     MatTabsModule,
     MatDialogModule,
     MatCheckboxModule,
-    MatDividerModule
+    MatDividerModule,
+    MatCardModule
   ],  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],
   bootstrap: [AppComponent]
 })
