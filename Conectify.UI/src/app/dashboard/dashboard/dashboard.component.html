@@ -1,0 +1,11 @@
+<mat-tab-group>
+    <mat-tab *ngFor="let dashboard of dashboards" label="{{ dashboard }}">
+      <app-dashboardcontent [id] =  "dashboard"></app-dashboardcontent>
+    </mat-tab>
+  </mat-tab-group>
+  
+  
+<button style="position: absolute; left: 80%; right: 10%; bottom: 5%;" mat-mini-fab color="primary" aria-label="Create New dashboard" (click)="create()">
+    <mat-icon>add</mat-icon>
+</button>
+

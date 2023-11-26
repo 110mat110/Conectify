@@ -2,7 +2,8 @@
 
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
-using Conectify.Database.Models.ActivityService;
+using Conectify.Database.Models.Automatization;
+using Conectify.Database.Models.Dashboard;
 using Conectify.Database.Models.Values;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,6 +36,12 @@ public class ConectifyDb : DbContext
 
     //Rules
     public DbSet<Rule> Rules { get; set; } = null!;
+
+    //Dashboard
+    public DbSet<Dashboard> Dashboards { get; set; }
+    public DbSet<User> Users { get; set; }
+
+    public DbSet<DashboardDevice> DashboardsDevice { get; set; }
 
     public async Task<T> AddOrUpdateAsync<T>(T entity, CancellationToken ct = default) where T : class, IEntity
     {

@@ -86,4 +86,11 @@ public class DeviceControllerBase<TApi> : ControllerBase where TApi : IApiModel
             return this.Problem("Cannot download device");
         }
     }
+
+    [HttpGet("filter")]
+    public async Task<IActionResult> Filter([FromBody] ApiFilter filter, CancellationToken ct = default)
+    {
+        var result = await service.Filter(filter, ct);
+        return result != null ? new ObjectResult(result) : NotFound();
+    }
 }

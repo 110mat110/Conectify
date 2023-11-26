@@ -39,7 +39,14 @@ import { AutSetTimeComponent } from './aut-inner-components/aut-set-time/aut-set
 import { AutEachTimeComponent } from './aut-inner-components/aut-each-time/aut-each-time.component';
 import { AutSetValueComponent } from './aut-inner-components/aut-set-value/aut-set-value.component';
 import { AutDecisionComponent } from './aut-inner-components/aut-decision/aut-decision.component';
-import { AutAndComponent } from './aut-inner-components/aut-and/aut-and.component'; 
+import { AutAndComponent } from './aut-inner-components/aut-and/aut-and.component';
+import { DashboardComponent } from './dashboard/dashboard/dashboard.component'; 
+import {MatTabsModule} from '@angular/material/tabs';
+import { DashboardcontentComponent } from './dashboard/dashboardcontent/dashboardcontent.component'; 
+import {MatDialogModule} from '@angular/material/dialog';
+import { DasboardAddDeviceDialogComponent } from './dashboard/dasboard-add-device-dialog/dasboard-add-device-dialog.component'; 
+import {MatCheckboxModule} from '@angular/material/checkbox'; 
+import {MatDividerModule} from '@angular/material/divider'; 
 
 @NgModule({
   declarations: [
@@ -64,7 +71,10 @@ import { AutAndComponent } from './aut-inner-components/aut-and/aut-and.componen
     AutEachTimeComponent,
     AutSetValueComponent,
     AutDecisionComponent,
-    AutAndComponent
+    AutAndComponent,
+    DashboardComponent,
+    DashboardcontentComponent,
+    DasboardAddDeviceDialogComponent
   ],
   imports: [
     FormsModule,
@@ -85,7 +95,11 @@ import { AutAndComponent } from './aut-inner-components/aut-and/aut-and.componen
     MatIconModule,
     MatListModule,
     MatButtonModule,
-    MatSelectModule
+    MatSelectModule,
+    MatTabsModule,
+    MatDialogModule,
+    MatCheckboxModule,
+    MatDividerModule
   ],  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],
   bootstrap: [AppComponent]
 })

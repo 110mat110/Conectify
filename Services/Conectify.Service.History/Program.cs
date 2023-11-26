@@ -12,7 +12,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.UseConectifyWebsocket<Conectify.Service.History.Configuration, DeviceData>();
+builder.Services.UseConectifyWebsocket<Configuration, DeviceData>();
 builder.Services.AddSingleton<IDataCachingService, DataCachingService>();
 builder.Services.AddSingleton<IDeviceCachingService, DeviceCachingService>();
 builder.Services.AddDbContext<ConectifyDb>(options =>

@@ -1,6 +1,6 @@
 ﻿namespace Conectify.Services.ShellyConnector;
 
-public class Configuration : Conectify.Services.Library.Configuration
+public class Configuration : Library.ConfigurationBase
 {
     public Configuration(IConfiguration configuration) : base(configuration)
     {

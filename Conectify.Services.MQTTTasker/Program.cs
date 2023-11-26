@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.UseConectifyWebsocket<Conectify.Services.MQTTTasker.Configuration, DeviceData>();
+builder.Services.UseConectifyWebsocket<Configuration, DeviceData>();
 builder.Services.AddSingleton<IMQTTSender, MQTTSender>();
 builder.Services.AddTransient<IValueService, ValueService>();
 builder.Services.AddSwaggerGen();

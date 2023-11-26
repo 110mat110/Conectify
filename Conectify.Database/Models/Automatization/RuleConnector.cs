@@ -1,4 +1,4 @@
-﻿namespace Conectify.Database.Models.ActivityService;
+﻿namespace Conectify.Database.Models.Automatization;
 
 public class RuleConnector
 {

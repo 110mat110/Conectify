@@ -5,9 +5,11 @@ using AutoMapper.QueryableExtensions;
 using Conectify.Database;
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata;
 
 public interface IUniversalDeviceService<TApi>
 {
@@ -17,6 +19,7 @@ public interface IUniversalDeviceService<TApi>
     Task<TApi?> GetSpecificDevice(Guid id, CancellationToken ct = default);
     Task<bool> AddMetadata(ApiMetadataConnector apiModel, CancellationToken ct = default);
     Task<IEnumerable<ApiMetadata>> GetMetadata(Guid deviceId, CancellationToken ct = default);
+    Task<IEnumerable<TApi>> Filter(ApiFilter filter, CancellationToken ct = default);
 }
 
 public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceService<TApi> where TDbs : class, IEntity, IDevice
@@ -99,4 +102,6 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
     {
         return await database.Set<MetadataConnector<TDbs>>().Where(x => x.DeviceId == deviceId).AsNoTracking().ProjectTo<ApiMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
     }
+
+    public abstract Task<IEnumerable<TApi>> Filter(ApiFilter filter, CancellationToken ct = default);
 }

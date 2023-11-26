@@ -4,7 +4,7 @@ using System.Timers;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.UseConectifyWebsocket<Conectify.Services.AQIScraper.Configuration, DeviceData>();
+builder.Services.UseConectifyWebsocket<Configuration, DeviceData>();
 builder.Services.AddTransient<CHMIScraper>();
 // Add services to the container.
 

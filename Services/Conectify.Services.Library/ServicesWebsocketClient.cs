@@ -28,7 +28,7 @@ public interface IServicesWebsocketClient
 
 public class ServicesWebsocketClient : IServicesWebsocketClient
 {
-    public ServicesWebsocketClient(IInternalCommandService internalCommandService, Configuration configuration, IMapper mapper, ILogger<ServicesWebsocketClient> logger)
+    public ServicesWebsocketClient(IInternalCommandService internalCommandService, ConfigurationBase configuration, IMapper mapper, ILogger<ServicesWebsocketClient> logger)
     {
         this.internalCommandService = internalCommandService;
         this.configuration = configuration;
@@ -164,7 +164,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
     private ClientWebSocket? WS;
     private CancellationTokenSource? CTS;
     private readonly IInternalCommandService internalCommandService;
-    private readonly Configuration configuration;
+    private readonly ConfigurationBase configuration;
     private readonly IMapper mapper;
     private readonly ILogger<ServicesWebsocketClient> logger;
 

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Conectify.Database.Models.ActivityService;
+using Conectify.Database.Models.Automatization;
 using Conectify.Services.Automatization.Models;
 using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Shared.Services.Data;

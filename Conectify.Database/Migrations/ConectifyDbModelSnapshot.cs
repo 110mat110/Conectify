@@ -22,7 +22,35 @@ namespace Conectify.Database.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Conectify.Database.Models.ActivityService.Rule", b =>
+            modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsKnown")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SensorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SourceDeviceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SensorId");
+
+                    b.HasIndex("SourceDeviceId");
+
+                    b.ToTable("Actuators");
+                });
+
+            modelBuilder.Entity("Conectify.Database.Models.Automatization.Rule", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -54,7 +82,7 @@ namespace Conectify.Database.Migrations
                     b.ToTable("Rules");
                 });
 
-            modelBuilder.Entity("Conectify.Database.Models.ActivityService.RuleConnector", b =>
+            modelBuilder.Entity("Conectify.Database.Models.Automatization.RuleConnector", b =>
                 {
                     b.Property<Guid>("PreviousRuleId")
                         .HasColumnType("uuid");
@@ -69,7 +97,7 @@ namespace Conectify.Database.Migrations
                     b.ToTable("RuleConnector");
                 });
 
-            modelBuilder.Entity("Conectify.Database.Models.ActivityService.RuleParameter", b =>
+            modelBuilder.Entity("Conectify.Database.Models.Automatization.RuleParameter", b =>
                 {
                     b.Property<Guid>("SourceRuleId")
                         .HasColumnType("uuid");
@@ -84,32 +112,76 @@ namespace Conectify.Database.Migrations
                     b.ToTable("RuleParameter");
                 });
 
-            modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>
+            modelBuilder.Entity("Conectify.Database.Models.Dashboard.Dashboard", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("IsKnown")
-                        .HasColumnType("boolean");
+                    b.Property<string>("Background")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("SensorId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
 
-                    b.Property<Guid>("SourceDeviceId")
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SensorId");
+                    b.HasIndex("UserId");
 
-                    b.HasIndex("SourceDeviceId");
+                    b.ToTable("Dashboards");
+                });
 
-                    b.ToTable("Actuators");
+            modelBuilder.Entity("Conectify.Database.Models.Dashboard.DashboardDevice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DashBoardId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("PosX")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PosY")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DashboardsDevice");
+                });
+
+            modelBuilder.Entity("Conectify.Database.Models.Dashboard.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserMail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Device", b =>
@@ -524,44 +596,6 @@ namespace Conectify.Database.Migrations
                     b.ToTable("Values");
                 });
 
-            modelBuilder.Entity("Conectify.Database.Models.ActivityService.RuleConnector", b =>
-                {
-                    b.HasOne("Conectify.Database.Models.ActivityService.Rule", "ContinuingRule")
-                        .WithMany("PreviousRules")
-                        .HasForeignKey("ContinuingRuleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Conectify.Database.Models.ActivityService.Rule", "PreviousRule")
-                        .WithMany("ContinuingRules")
-                        .HasForeignKey("PreviousRuleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ContinuingRule");
-
-                    b.Navigation("PreviousRule");
-                });
-
-            modelBuilder.Entity("Conectify.Database.Models.ActivityService.RuleParameter", b =>
-                {
-                    b.HasOne("Conectify.Database.Models.ActivityService.Rule", "SourceRule")
-                        .WithMany("TargetParameters")
-                        .HasForeignKey("SourceRuleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Conectify.Database.Models.ActivityService.Rule", "TargetRule")
-                        .WithMany("SourceParameters")
-                        .HasForeignKey("TargetRuleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SourceRule");
-
-                    b.Navigation("TargetRule");
-                });
-
             modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>
                 {
                     b.HasOne("Conectify.Database.Models.Sensor", "Sensor")
@@ -579,6 +613,55 @@ namespace Conectify.Database.Migrations
                     b.Navigation("Sensor");
 
                     b.Navigation("SourceDevice");
+                });
+
+            modelBuilder.Entity("Conectify.Database.Models.Automatization.RuleConnector", b =>
+                {
+                    b.HasOne("Conectify.Database.Models.Automatization.Rule", "ContinuingRule")
+                        .WithMany("PreviousRules")
+                        .HasForeignKey("ContinuingRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Conectify.Database.Models.Automatization.Rule", "PreviousRule")
+                        .WithMany("ContinuingRules")
+                        .HasForeignKey("PreviousRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ContinuingRule");
+
+                    b.Navigation("PreviousRule");
+                });
+
+            modelBuilder.Entity("Conectify.Database.Models.Automatization.RuleParameter", b =>
+                {
+                    b.HasOne("Conectify.Database.Models.Automatization.Rule", "SourceRule")
+                        .WithMany("TargetParameters")
+                        .HasForeignKey("SourceRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Conectify.Database.Models.Automatization.Rule", "TargetRule")
+                        .WithMany("SourceParameters")
+                        .HasForeignKey("TargetRuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SourceRule");
+
+                    b.Navigation("TargetRule");
+                });
+
+            modelBuilder.Entity("Conectify.Database.Models.Dashboard.Dashboard", b =>
+                {
+                    b.HasOne("Conectify.Database.Models.Dashboard.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.MetadataConnector<Conectify.Database.Models.Actuator>", b =>
@@ -763,7 +846,12 @@ namespace Conectify.Database.Migrations
                     b.Navigation("Source");
                 });
 
-            modelBuilder.Entity("Conectify.Database.Models.ActivityService.Rule", b =>
+            modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>
+                {
+                    b.Navigation("Metadata");
+                });
+
+            modelBuilder.Entity("Conectify.Database.Models.Automatization.Rule", b =>
                 {
                     b.Navigation("ContinuingRules");
 
@@ -772,11 +860,6 @@ namespace Conectify.Database.Migrations
                     b.Navigation("SourceParameters");
 
                     b.Navigation("TargetParameters");
-                });
-
-            modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>
-                {
-                    b.Navigation("Metadata");
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Device", b =>

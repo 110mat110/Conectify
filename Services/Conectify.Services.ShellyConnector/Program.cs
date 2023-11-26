@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.UseConectifyWebsocket<Conectify.Services.ShellyConnector.Configuration, DeviceData>();
+builder.Services.UseConectifyWebsocket<Configuration, DeviceData>();
 builder.Services.AddTransient<IShellyService, ShellyService>();
 builder.Services.AddHostedService<ValueScraper>();
 var app = builder.Build();

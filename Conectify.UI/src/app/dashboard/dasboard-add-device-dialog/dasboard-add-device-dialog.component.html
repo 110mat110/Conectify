@@ -1,0 +1,26 @@
+<mat-dialog-content class="mat-typography" style="width: 80%;">
+    <mat-list>
+
+        <mat-list-item>
+            <span>
+                <mat-checkbox class="example-margin" [(ngModel)]="edit"> Edit&nbsp;</mat-checkbox>
+            </span>
+            <div style="width: 10px;"></div>
+            <span>
+                <mat-form-field class="example-full-width">
+                    <mat-label>Dashboard name</mat-label>
+                    <input matInput value="Test">
+
+                </mat-form-field>
+            </span>
+            <br />
+        </mat-list-item>
+        <mat-divider></mat-divider>
+        <mat-list-item>
+            <button mat-raised-button><mat-icon>add</mat-icon>Sensor</button>
+        </mat-list-item>
+        <mat-list-item>
+            <button mat-raised-button><mat-icon>add</mat-icon>Actuator</button>
+        </mat-list-item>
+    </mat-list>
+</mat-dialog-content>

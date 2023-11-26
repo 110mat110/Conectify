@@ -15,4 +15,9 @@ public static class Constants
         public const string ActionResponse = "ActionResponse";
         public const string CommandResponse = "CommandResponse";
     }
+
+    public static class Metadatas
+    {
+        public const string Visible = "Visible";
+    }
 }

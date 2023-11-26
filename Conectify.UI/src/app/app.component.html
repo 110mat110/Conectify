@@ -1,18 +1,46 @@
 <!-- <span class="toolbar"> -->
-<mat-toolbar>
+  <mat-toolbar>
   <div style="width: 20px;"></div>
   <h1> Conectify </h1>
+
   <div style="width: 20px;"></div>
   <span class="buttonBar">
-    <button class="navbar-button" routerLink="/sensors">Sensors</button>
-    <button class="navbar-button" routerLink="/actuators">Actuators</button>
-    <button class="navbar-button" routerLink="/automatization">Automatization</button>
-    <button class="navbar-button" routerLink="/metadata">Metadata</button>
+
+<button class="navbar-button" routerLink="/sensors">Sensors</button>
+<button class="navbar-button" routerLink="/actuators">Actuators</button>
+<button class="navbar-button" routerLink="/automatization">Automatization</button>
+<button class="navbar-button" routerLink="/metadata">Metadata</button>
+<button *ngIf="showDasboard" class="navbar-button" routerLink="/dashboard">Dashboard</button>
   </span>
   <!-- </span> -->
+  <div id="g_id_onload"
+  data-client_id="308933013111-iufd1lpojc2ngirukrf4mt953ri0lnd8.apps.googleusercontent.com"
+  data-context="signin"
+  data-ux_mode="popup"
+  data-callback="handleCredentialResponse"
+  data-auto_select="true"
+  data-close_on_tap_outside="false"
+  data-itp_support="true">
+
+</div>
+
+<div
+  id="google_btn"
+  class="g_id_signin"
+  style="margin-left: auto; 
+  margin-right: 0;"
+  data-type="standard"
+  data-shape="rectangular"
+  data-theme="filled_black"
+  data-text="signin"
+  data-size="large"
+  data-auto_select="true"
+  data-logo_alignment="left">
+</div>
 </mat-toolbar>
 <div style="margin: 25px">
   <router-outlet></router-outlet>
-  <input hidden="true" type="text" name="fingerprintIdTextBox" #fingerprintIdTextBoxRef />
-  <button hidden="true" name="triggerWs" (click)="onChange()"></button>
+  <button hidden="true" name="triggerMail" (click)="onChangeMail()"></button>
+  <input hidden="true" type="text" name="mailTextBoxRef" #mailTextBoxRef />
+
 </div>

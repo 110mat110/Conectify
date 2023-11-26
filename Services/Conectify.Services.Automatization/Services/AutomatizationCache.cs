@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Conectify.Database;
-using Conectify.Database.Models.ActivityService;
+using Conectify.Database.Models.Automatization;
 using Conectify.Services.Automatization.Models;
 using Microsoft.EntityFrameworkCore;
 

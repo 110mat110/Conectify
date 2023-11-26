@@ -13,27 +13,26 @@
 <body class="mat-typography">
   <app-root></app-root>
 </body>
-<script>
-  console.log("This is start of script");
-  // Initialize the agent at application startup.
-  const fpPromise = import('https://openfpcdn.io/fingerprintjs/v3')
-    .then(FingerprintJS => FingerprintJS.load())
 
-  const delay = (delayInms) => {
-    return new Promise(resolve => setTimeout(resolve, delayInms));
+<script src="https://accounts.google.com/gsi/client">
+</script>
+<script>
+  window.onload = function () {
   }
 
-  // Get the visitor identifier when you need it.
-  fpPromise
-    .then(fp => fp.get())
-    .then(async (result) => {
-      // This is the visitor identifier:
-      const visitorId = result.visitorId
-      console.log(visitorId)
-      document.getElementsByName('fingerprintIdTextBox')[0].value = visitorId;
+
+function handleCredentialResponse(response) {
+  console.log("Matejovi smrdia nohy");
+  console.log(response);
+  // const parent = document.getElementById('google_btn');
+  // google.accounts.id.renderButton(parent, {theme: "filled_black"});
+  var tokens = response.credential.split(".");
+
+ var mail = JSON.parse(atob(tokens[1])).email;
+      document.getElementsByName('mailTextBoxRef')[0].value = mail;
       //let delayres = await delay(3000);
-      document.getElementsByName('triggerWs')[0].click();
-    })
-    .catch(error => console.error(error))
+      document.getElementsByName('triggerMail')[0].click();
+}
 </script>
+
 </html>

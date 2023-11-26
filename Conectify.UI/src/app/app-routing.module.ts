@@ -4,12 +4,14 @@ import { ActuatorOverviewComponent } from './actuator-overview/actuator-overview
 import { AutomatizationComponent } from './automatization/automatization.component';
 import { MetadataComponent } from './metadata/metadata.component';
 import { SensorOverviewComponent } from './sensor-overview/sensor-overview.component';
+import { DashboardComponent } from './dashboard/dashboard/dashboard.component';
 
 const routes: Routes = [
   {path: 'sensors', component: SensorOverviewComponent},
   {path: 'actuators', component: ActuatorOverviewComponent},
   {path: 'automatization', component: AutomatizationComponent},
   {path: 'metadata', component: MetadataComponent},
+  {path: 'dashboard', component: DashboardComponent},
   { path: '', redirectTo: '/actuators', pathMatch: 'full' },
 ];
 

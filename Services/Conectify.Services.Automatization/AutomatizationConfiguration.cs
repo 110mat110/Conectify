@@ -2,7 +2,7 @@
 
 namespace Conectify.Services.Automatization;
 
-public class AutomatizationConfiguration : Configuration
+public class AutomatizationConfiguration : ConfigurationBase
 {
     public AutomatizationConfiguration(IConfiguration configuration) : base(configuration)
     {

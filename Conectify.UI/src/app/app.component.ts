@@ -16,39 +16,29 @@ export class AppComponent {
   title = 'Conectify';
   received: string[] = [];
   @ViewChild("fingerprintIdTextBoxRef") myNameElem?: ElementRef;
+  @ViewChild("mailTextBoxRef") mail?: ElementRef;
+  currentUser: string = "anonymous";
+  showDasboard: boolean = false;
   wsStatus: any = this.websocketService.status;
   constructor(private websocketService: WebsocketService, private befetcher: BEFetcherService) {
-    this.onChange();
+    this.initilize();
   }
 
-  onChange() {
-    let id = "14546e7ff9e147d1b66772033b862706";//this.myNameElem?.nativeElement.value;
-    if (id) {
-      id = this.fixId(id);
-      console.info(id);
-      this.befetcher.register(id);
-      console.warn("Connectiong to ws with id " + id);
-      this.websocketService.SetId(id);
-      this.websocketService.Connect();
-    } else {
-      console.warn("fingerprint is not initialized");
-    }
+  initilize(){
+    this.showDasboard = this.currentUser != "anonymous";
+      this.befetcher.getUserId(this.currentUser).subscribe(id => {
+        console.warn("User " + this.currentUser + "has id " + id);
+        
+
+        this.befetcher.register(id,this.currentUser);
+        this.websocketService.SetId(id);
+        this.websocketService.Connect();
+      });
   }
 
-  fixId(id: string): string {
-    const k ="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";
-    let result = "";
-    let i = 0;
-    let j = 0;
-    while (j < 36) {
-      if (k[j] == 'X') {
-        result += id[i];
-        i++
-      } else {
-        result += '-';
-      }
-      j++;
-    }
-    return result;
+  onChangeMail() {
+    this.currentUser = this.mail?.nativeElement.value;
+
+    this.initilize();
   }
 }

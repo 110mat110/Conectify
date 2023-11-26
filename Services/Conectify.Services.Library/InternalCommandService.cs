@@ -11,10 +11,10 @@ public interface IInternalCommandService
 }
 internal class InternalCommandService : IInternalCommandService
 {
-    private readonly Configuration configuration;
+    private readonly ConfigurationBase configuration;
     private readonly IServiceProvider serviceProvider;
 
-    public InternalCommandService(Configuration configuration, IServiceProvider serviceProvider)
+    public InternalCommandService(ConfigurationBase configuration, IServiceProvider serviceProvider)
     {
         this.configuration = configuration;
         this.serviceProvider = serviceProvider;

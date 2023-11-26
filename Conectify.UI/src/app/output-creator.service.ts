@@ -30,13 +30,13 @@ export class OutputCreatorService {
     }
   }
 
-  createDevice(id: string): Device{
+  createDevice(id: string, usernName: string): Device{
     this.deviceId = id;
     return{
       id: id,
-      macAdress: "xxx",
-      iPAdress: "xxx",
-      name: "Angular web",
+      macAdress: "",
+      iPAdress: "",
+      name: "Angular@" + usernName,
     }
   }
 

@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Conectify.Database;
-using Conectify.Database.Models.ActivityService;
+using Conectify.Database.Models.Automatization;
 using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Rules;
 using Conectify.Services.Library;

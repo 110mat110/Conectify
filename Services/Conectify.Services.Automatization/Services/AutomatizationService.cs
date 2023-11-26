@@ -23,7 +23,7 @@ public class AutomatizationService : IAutomatizationService
     private readonly AutomatizationCache automatizationCache;
     private readonly AutomatizationConfiguration configuration;
     private readonly IServicesWebsocketClient websocketClient;
-    private readonly Dictionary<Guid, System.Threading.Timer> timers = new();
+    private readonly Dictionary<Guid, Timer> timers = new();
 
     public AutomatizationService(AutomatizationCache automatizationCache,
                                  AutomatizationConfiguration configuration,
@@ -169,7 +169,7 @@ public class AutomatizationService : IAutomatizationService
             return;
         }
 
-        var timer = new System.Threading.Timer(ExecuteFunction, rule.Id, CalculateNextExecutionOfRule(parameters.TimeSet, parameters.Days), Timeout.Infinite);
+        var timer = new Timer(ExecuteFunction, rule.Id, CalculateNextExecutionOfRule(parameters.TimeSet, parameters.Days), Timeout.Infinite);
 
         if (timers.ContainsKey(rule.Id))
         {

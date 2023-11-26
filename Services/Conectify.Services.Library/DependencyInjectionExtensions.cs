@@ -6,12 +6,12 @@ namespace Conectify.Services.Library;
 
 public static class DependencyInjectionExtensions
 {
-    public static IServiceCollection UseConectifyWebsocket<TConfiguration, TDeviceData>(this IServiceCollection services) where TConfiguration : Configuration where TDeviceData : class, IDeviceData
+    public static IServiceCollection UseConectifyWebsocket<TConfiguration, TDeviceData>(this IServiceCollection services) where TConfiguration : ConfigurationBase where TDeviceData : class, IDeviceData
     {
         services.AddAutoMapper(typeof(TDeviceData).Assembly, typeof(DeviceProfile).Assembly);
         services.AddSingleton<IServicesWebsocketClient, ServicesWebsocketClient>();
         services.AddTransient<TConfiguration>();
-        services.AddTransient<Configuration, TConfiguration>();
+        services.AddTransient<ConfigurationBase, TConfiguration>();
         services.AddTransient<IConnectorService, ConnectorService>();
         services.AddTransient<IDeviceData, TDeviceData>();
         services.AddTransient<IHttpFactory, HttpFactory>();

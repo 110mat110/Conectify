@@ -10,7 +10,7 @@ namespace Conectify.Services.AQIScraper;
 public class CHMIScraper
 {
     private readonly IServicesWebsocketClient websocketClient;
-    private readonly Conectify.Services.AQIScraper.Configuration configuration;
+    private readonly Configuration configuration;
     private readonly ILogger<CHMIScraper> logger;
 
     public CHMIScraper(IServicesWebsocketClient websocketClient, Configuration configuration, ILogger<CHMIScraper> logger)

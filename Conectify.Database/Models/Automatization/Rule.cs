@@ -1,6 +1,6 @@
 ﻿using Conectify.Database.Interfaces;
 
-namespace Conectify.Database.Models.ActivityService;
+namespace Conectify.Database.Models.Automatization;
 
 public class Rule : IEntity
 {

@@ -9,6 +9,7 @@ export class AdressesService {
   private serverURL: string = environment.serverUrl + "/api/"
   private automatizationURL: string = environment.automatizationURL + "/api/"
   private historyURL: string = environment.historyUrl + "/api/"
+  private dashboardURL: string = environment.dashboardUrl + "/api/"
 
   constructor() { }
 
@@ -114,5 +115,20 @@ export class AdressesService {
 
   customInput(){
     return this.automatizationURL + "rule/input"
+  }
+
+  getUserId(username: string){
+    return this.dashboardURL + "user/"+username;
+  }
+  getDashboards(userId: string){
+    return this.dashboardURL + "dashboard/all/" + userId;
+  }
+
+  getDashboard(dashboardId: string){
+    return this.dashboardURL + "dashboard/" + dashboardId;
+  }
+
+  addDashboard(){
+    return this.dashboardURL + "dashboard";
   }
 }

@@ -2,9 +2,9 @@
 
 namespace Conectify.Services.Library;
 
-public class Configuration
+public class ConfigurationBase
 {
-    public Configuration(IConfiguration configuration)
+    public ConfigurationBase(IConfiguration configuration)
     {
         configuration.Bind(this);
     }

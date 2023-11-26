@@ -10,6 +10,8 @@ import { WebsocketAction } from 'src/models/InputBareValue';
 import { OutputCreatorService } from './output-creator.service';
 import { Device } from 'src/models/thing';
 import { ApiMetadata, ApiMetadataConnector, Metadata } from 'src/models/metadata';
+import { AddDashboardApi } from 'src/models/Dashboard/addDashboardApi';
+import { DashboardApi } from 'src/models/Dashboard/DashboardApi';
 
 @Injectable({
   providedIn: 'root'
@@ -92,8 +94,24 @@ export class BEFetcherService {
     this.messenger.addMessage("Creating new metadata {" + JSON.stringify(metadata) + "} to adress: " + this.adresses.postMetadata());
   }
 
-  register(id: string): void {
-    this.postDevice(this.ocs.createDevice(id)).subscribe(x => {
+  getUserId(userMail: string): Observable<string> {
+    return this.http.get<string>(this.adresses.getUserId(userMail));
+  }
+
+  getDasboards(userId: string) : Observable<string[]> {
+    return this.http.get<string[]>(this.adresses.getDashboards(userId));
+  }
+
+  getDashboard(dashboardId: string) : Observable<DashboardApi>{
+    return this.http.get<DashboardApi>(this.adresses.getDashboard(dashboardId));
+  }
+
+  addDashboard(dashboard: AddDashboardApi) : Observable<string>{
+    return this.http.post<string>(this.adresses.addDashboard(),dashboard, this.httpOptions);
+  } 
+
+  register(id: string, name: string): void {
+    this.postDevice(this.ocs.createDevice(id, name)).subscribe(x => {
       console.error("I am inside post device sub!");
       this.http.get<any>(this.adresses.subscribeToAll(id)).subscribe();
       this.postSensor(this.ocs.createSensor(id));

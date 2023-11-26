@@ -33,11 +33,11 @@ public interface IConnectorService
 public class ConnectorService : IConnectorService
 {
     private readonly ILogger<ConnectorService> logger;
-    private readonly Configuration configuration;
+    private readonly ConfigurationBase configuration;
     private readonly IMapper mapper;
     private readonly IHttpFactory httpProvider;
 
-    public ConnectorService(ILogger<ConnectorService> logger, Configuration configuration, IMapper mapper, IHttpFactory httpProvider)
+    public ConnectorService(ILogger<ConnectorService> logger, ConfigurationBase configuration, IMapper mapper, IHttpFactory httpProvider)
     {
         this.logger = logger;
         this.configuration = configuration;

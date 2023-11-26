@@ -28,7 +28,7 @@ public class ConnectorServiceTest
         var client = A.Fake<HttpClient>();
         var provider = A.Fake<IHttpFactory>();
         A.CallTo(() => provider.HttpClient).Returns(client);
-        var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new Configuration(Configuration), A.Fake<IMapper>(), provider);
+        var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
 
         await service.RegisterDevice(new ApiDevice(), new List<ApiSensor>(), new List<ApiActuator>());
 
@@ -42,7 +42,7 @@ public class ConnectorServiceTest
         var client = A.Fake<HttpClient>();
         var provider = A.Fake<IHttpFactory>();
         A.CallTo(() => provider.HttpClient).Returns(client);
-        var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new Configuration(Configuration), A.Fake<IMapper>(), provider);
+        var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
 
         await service.RegisterDevice(new ApiDevice(), new List<ApiSensor>() { new ApiSensor(), new ApiSensor(), new ApiSensor() }, new List<ApiActuator>() { new ApiActuator(), new ApiActuator() });
 
@@ -58,7 +58,7 @@ public class ConnectorServiceTest
     public async Task ItShallSetNonePreferences()
     {
         var provider = A.Fake<IHttpFactory>();
-        var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new Configuration(Configuration), A.Fake<IMapper>(), provider);
+        var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
 
         var result = await service.SetPreferences(Guid.NewGuid(), new List<ApiPreference>());
 
@@ -71,7 +71,7 @@ public class ConnectorServiceTest
         var client = A.Fake<HttpClient>();
         var provider = A.Fake<IHttpFactory>();
         A.CallTo(() => provider.HttpClient).Returns(client);
-        var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new Configuration(Configuration), A.Fake<IMapper>(), provider);
+        var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
         var deviceId = Guid.NewGuid();
 
         var result = await service.SetPreferences(deviceId, new List<ApiPreference>() { new ApiPreference(), new ApiPreference() });
@@ -86,7 +86,7 @@ public class ConnectorServiceTest
     public async Task ItShallNotFailWhenNoMetadatas()
     {
         var provider = A.Fake<IHttpFactory>();
-        var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new Configuration(Configuration), A.Fake<IMapper>(), provider);
+        var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
 
         var result = await service.SendMetadataForDevice(Guid.NewGuid(), new List<MetadataServiceConnector>());
 

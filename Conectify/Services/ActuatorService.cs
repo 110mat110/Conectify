@@ -4,6 +4,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Conectify.Database;
 using Conectify.Database.Models;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Services;
 using Microsoft.EntityFrameworkCore;
@@ -70,5 +71,21 @@ public class ActuatorService : UniversalDeviceService<Actuator, ApiActuator>, IA
         var deviceMetadata = await database.Set<MetadataConnector<Device>>().Where(x => x.DeviceId == actuator.SourceDeviceId).AsNoTracking().ProjectTo<ApiMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
 
         return actuatorMetadatas.Concat(deviceMetadata.Where(x => !actuatorMetadatas.Select(x => x.Name).Contains(x.Name)));
+    }
+
+    public override async Task<IEnumerable<ApiActuator>> Filter(ApiFilter filter, CancellationToken ct = default)
+    {
+        var exclude = new List<Guid>();
+        if (filter.IsVisible)
+        {
+            exclude.AddRange(await database.Set<MetadataConnector<Actuator>>().AsNoTracking().Include(x => x.Metadata).Where(x => x.Metadata.Name == Constants.Metadatas.Visible && x.NumericValue == 0).Select(x => x.DeviceId).ToListAsync(ct));
+        }
+
+        if (!string.IsNullOrEmpty(filter.Name))
+        {
+            return await database.Set<Actuator>().AsNoTracking().Where(x => x.Name.Contains(filter.Name) && !exclude.Contains(x.Id)).ProjectTo<ApiActuator>(mapper.ConfigurationProvider).ToListAsync(ct);
+        }
+
+        return await database.Set<Actuator>().AsNoTracking().Where(x => !exclude.Contains(x.Id)).ProjectTo<ApiActuator>(mapper.ConfigurationProvider).ToListAsync(ct);
     }
 }
