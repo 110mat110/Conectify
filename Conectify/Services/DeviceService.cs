@@ -1,4 +1,6 @@
-﻿namespace Conectify.Server.Services;
+﻿/* This code is defining a C# class called `DeviceService` that implements the `IDeviceService`
+interface. */
+namespace Conectify.Server.Services;
 
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
