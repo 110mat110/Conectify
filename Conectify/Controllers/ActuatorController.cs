@@ -17,6 +17,12 @@ public class ActuatorsController : DeviceControllerBase<ApiActuator>
         this.logger = logger;
     }
 
+    /// <summary>
+    /// Mintly test
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
     [HttpGet("by-device/{id}")]
     public async Task<IActionResult> GetAllDevices(Guid id, CancellationToken ct = default)
     {
