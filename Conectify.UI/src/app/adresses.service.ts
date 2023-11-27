@@ -118,7 +118,7 @@ export class AdressesService {
   }
 
   getUserId(username: string){
-    return this.dashboardURL + "user/"+username;
+    return this.serverURL + "user/"+username;
   }
   getDashboards(userId: string){
     return this.dashboardURL + "dashboard/all/" + userId;
@@ -130,5 +130,14 @@ export class AdressesService {
 
   addDashboard(){
     return this.dashboardURL + "dashboard";
+  }
+
+  addDashboardDevice(idDashboard: string){
+    return this.dashboardURL + "dashboard/"+ idDashboard + "/device";
+  }
+
+  removeDashboardDevice(dashboardId: string, deviceId: string){
+    return this.dashboardURL + "dashboard/"+ dashboardId + "/device/" + deviceId;
+
   }
 }

@@ -1,9 +1,10 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnInit } from '@angular/core';
 import { BaseInputType } from 'src/models/extendedValue';
 import { Sensor } from 'src/models/sensor';
 import { Device } from 'src/models/thing';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-sensor-detail',
@@ -12,20 +13,16 @@ import { MessagesService } from '../messages.service';
 })
 export class SensorDetailComponent implements OnInit {
 
-  @Input() sensor?: Sensor;
-  @Input() device?: Device;
   chartOption: any;
   mapedValues: (string | number)[][] = [];
   public latestVal?: BaseInputType;
   public latestValTime?: string;
 
-  constructor(public messenger: MessagesService, private be: BEFetcherService,) { }
+  constructor(public messenger: MessagesService, private be: BEFetcherService,@Inject(MAT_DIALOG_DATA) public data: {sensor: Sensor}) { }
 
   ngOnInit(): void {
-
-
-    if (this.sensor) {
-      this.be.getSensorValues(this.sensor.id).subscribe(
+    if (this.data.sensor) {
+      this.be.getSensorValues(this.data.sensor.id).subscribe(
         values => {
           if (values.length > 0) {
             let startOfGraph = new Date().getTime() - 86400000;
@@ -43,7 +40,7 @@ export class SensorDetailComponent implements OnInit {
             this.setOptions();
           }
         });
-      this.be.getLatestSensorValue(this.sensor.id).subscribe(
+      this.be.getLatestSensorValue(this.data.sensor.id).subscribe(
         x => {
           this.latestVal = x;
           this.latestValTime = new Date(x.timeCreated).toLocaleTimeString()

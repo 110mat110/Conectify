@@ -1,9 +1,9 @@
 .overlayDiv{
-    width: 500px;
+    width: 100%;
 }
 
 mat-grid-tile {
-    background: darkblue;
+    /* background: darkblue; */
     border: black, 10px, solid;
     border-radius: 3px;
   }

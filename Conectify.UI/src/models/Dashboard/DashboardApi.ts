@@ -1,11 +1,8 @@
+import { DashboardDeviceApi } from "./DashboardDevice";
+
 export interface DashboardApi {
+    id:string;
+    name:string;
     background: string;
     dashboardDevices: DashboardDeviceApi[];
-}
-
-export interface DashboardDeviceApi {
-    deviceId: string;
-    posX: number;
-    posY: number;
-    sourceType: string;
 }

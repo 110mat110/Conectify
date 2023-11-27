@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BEFetcherService } from 'src/app/befetcher.service';
 import { WebsocketService } from 'src/app/websocket.service';
 import {MatTabsModule} from '@angular/material/tabs';
+import { DashboardApi } from 'src/models/Dashboard/DashboardApi';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,8 +11,7 @@ import {MatTabsModule} from '@angular/material/tabs';
 })
 export class DashboardComponent implements OnInit {
 
-  public dashboards : string[] = [];
-  public tabs = this.dashboards.map((_, index) => `Tab ${index}`);
+  public dashboards : DashboardApi[] = [];
 
   constructor(private befetcher: BEFetcherService, private websocketService: WebsocketService) { }
 

@@ -1,7 +1,7 @@
 ﻿using Conectify.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace Conectify.Services.Dashboard.Services;
+namespace Conectify.Server.Services;
 
 public class UserService
 {
@@ -16,7 +16,7 @@ public class UserService
     {
         var existingUser = await conectifyDb.Users.FirstOrDefaultAsync(x => x.UserMail == userMail);
 
-        if(existingUser is null)
+        if (existingUser is null)
         {
             var id = Guid.NewGuid();
             await conectifyDb.Users.AddAsync(new Database.Models.Dashboard.User() { UserMail = userMail, Id = id });

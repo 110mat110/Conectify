@@ -3,24 +3,26 @@
 
         <mat-list-item>
             <span>
-                <mat-checkbox class="example-margin" [(ngModel)]="edit"> Edit&nbsp;</mat-checkbox>
+                <mat-checkbox class="example-margin" [(ngModel)]="data.params.editable"> Edit&nbsp;</mat-checkbox>
             </span>
             <div style="width: 10px;"></div>
             <span>
-                <mat-form-field class="example-full-width">
-                    <mat-label>Dashboard name</mat-label>
-                    <input matInput value="Test">
-
-                </mat-form-field>
+                <form (submit)="save()">
+                    <mat-form-field class="example-full-width">
+                        <mat-label>Dashboard name</mat-label>
+                        <input matInput [(ngModel)]="data.dashboard.name" name="username">
+                    </mat-form-field>
+                    <button mat-raised-button (click)="save()"><mat-icon>save</mat-icon></button>
+                  </form>
             </span>
             <br />
         </mat-list-item>
         <mat-divider></mat-divider>
         <mat-list-item>
-            <button mat-raised-button><mat-icon>add</mat-icon>Sensor</button>
+            <button mat-raised-button (click)="sensor()"><mat-icon>add</mat-icon>Sensor</button>
         </mat-list-item>
         <mat-list-item>
-            <button mat-raised-button><mat-icon>add</mat-icon>Actuator</button>
+            <button mat-raised-button (click)="actuator()"><mat-icon>add</mat-icon>Actuator</button>
         </mat-list-item>
     </mat-list>
 </mat-dialog-content>

@@ -9,6 +9,8 @@ import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 import { SensorDetailComponent } from '../sensor-detail/sensor-detail.component';
 import { WebsocketService } from '../websocket.service';
+import { DashboardParams } from 'src/models/Dashboard/DashboardParams';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-sensor-cube',
@@ -18,10 +20,9 @@ import { WebsocketService } from '../websocket.service';
 export class SensorCubeComponent implements OnInit, OnChanges {
 
   @Input() sensorInput?: { id: string, visible: boolean };
+  @Input() params?: DashboardParams;
   public sensor?: Sensor;
   public device?: Device;
-  private overlayRef?: OverlayRef;
-  //public values: BaseInputType[] = [];
   public latestVal?: BaseInputType;
   public metadatas: Metadata[] = [];
   public valsReady: boolean = false;
@@ -30,15 +31,13 @@ export class SensorCubeComponent implements OnInit, OnChanges {
   mergeOptions = {};
   chartOption: any = {};
 
-  constructor(public messenger: MessagesService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef, private websocketService: WebsocketService) {
+  constructor(public messenger: MessagesService, private be: BEFetcherService, public dialog: MatDialog,private websocketService: WebsocketService) {
   }
 
   HandleIncomingValue(msg: any): void {
     var id = msg.sourceId;
     if (id && this.sensor && id == this.sensor.id) {
-      this.messenger.addMessage("Got value from ws:");
       this.latestVal = msg;
-      //this.values.push(msg);
       this.addData(this.latestVal);
     }
   }
@@ -51,7 +50,6 @@ export class SensorCubeComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.websocketService.receivedMessages.subscribe(msg => {
-      this.messenger.addMessage("cube has value");
       this.HandleIncomingValue(msg);
     });
 
@@ -110,13 +108,11 @@ export class SensorCubeComponent implements OnInit, OnChanges {
   }
 
   public onClick() {
-    this.messenger.addMessage("Clicked to div in cube");
+    if(this.params?.editable){
+      return;
+    }
     this.openOverlay();
   }
-
-  // getChart(): number[] {
-  //   return this.values.map(x => x.numericValue);
-  // }
 
   addData(newVal: BaseInputType | undefined) {
     if (newVal == null) {
@@ -135,37 +131,12 @@ export class SensorCubeComponent implements OnInit, OnChanges {
     }
   }
 
-  private setChannelPosition(): PositionStrategy {
-    //return this.overlay.position().global().bottom(`${distanceFromEdge}px`).right(`${distanceFromEdge}px`).centerHorizontally();
-    return this.overlay.position().global().centerHorizontally().centerVertically();
-
-        // config.hasBackdrop = true;
-
-  }
-
-  @HostListener('window:resize')
-  public onResize(): void {
-    if(this.overlayRef){
-      this.overlayRef.updatePosition();
-    }
-  }
-
   openOverlay() {
-    let config = new OverlayConfig();
-
-    config.positionStrategy = this.setChannelPosition();
-    const distanceFromEdge = 50;
-    config.width = Math.floor(window.outerHeight - 2 * distanceFromEdge);
-    config.height = Math.floor(window.innerHeight - 2 * distanceFromEdge);
-    config.hasBackdrop = true;
-    
-    this.overlayRef = this.overlay.create(config);
-    this.overlayRef.backdropClick().subscribe(() => {
-      if(this.overlayRef)
-        this.overlayRef.dispose();
+    const dialogRef = this.dialog.open(SensorDetailComponent, {
+      width: '70%',
+      height: '80%',
+      data: {sensor: this.sensor},
+      panelClass: "sensor-detail-panel"
     });
-
-    let ref = this.overlayRef.attach(new ComponentPortal(SensorDetailComponent, this.viewContainerRef));
-    ref.instance.sensor = this.sensor;
   }
 }

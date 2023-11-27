@@ -9,6 +9,7 @@ import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 import { OutputCreatorService } from '../output-creator.service';
 import { WebsocketService } from '../websocket.service';
+import { DashboardParams } from 'src/models/Dashboard/DashboardParams';
 
 @Component({
   selector: 'app-actuator-cube',
@@ -18,6 +19,7 @@ import { WebsocketService } from '../websocket.service';
 export class ActuatorCubeComponent implements OnInit {
 
   @Input() actuatorId?: {id: string, visible: boolean};
+  @Input() params?: DashboardParams;
   public actuator?: Actuator;
   public device?: Device;
   public latestVal?: BaseInputType;

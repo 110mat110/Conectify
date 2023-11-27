@@ -18,7 +18,7 @@ public class DashboardController : ControllerBase
 
     // GET: api/<DashboardController>
     [HttpGet("all/{userId}")]
-    public async Task<IEnumerable<Guid>> GetAll(Guid userId)
+    public async Task<IEnumerable<DashboardApi>> GetAll(Guid userId)
     {
         return await dashboardService.GetDashboards(userId);
     }
@@ -32,7 +32,7 @@ public class DashboardController : ControllerBase
 
     // POST api/<DashboardController>
     [HttpPost]
-    public async Task<Guid> Post([FromBody] AddDashboardApi dashboard)
+    public async Task<DashboardApi> Post([FromBody] AddDashboardApi dashboard)
     {
         return await dashboardService.Add(dashboard);
     }

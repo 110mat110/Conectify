@@ -5,6 +5,7 @@ import { AutomatizationComponent } from './automatization/automatization.compone
 import { MetadataComponent } from './metadata/metadata.component';
 import { SensorOverviewComponent } from './sensor-overview/sensor-overview.component';
 import { DashboardComponent } from './dashboard/dashboard/dashboard.component';
+import { LoadingComponent } from './dashboard/loading/loading.component';
 
 const routes: Routes = [
   {path: 'sensors', component: SensorOverviewComponent},
@@ -12,7 +13,8 @@ const routes: Routes = [
   {path: 'automatization', component: AutomatizationComponent},
   {path: 'metadata', component: MetadataComponent},
   {path: 'dashboard', component: DashboardComponent},
-  { path: '', redirectTo: '/actuators', pathMatch: 'full' },
+  {path: 'loading', component: LoadingComponent},
+  { path: '', redirectTo: '/loading', pathMatch: 'full' },
 ];
 
 @NgModule({

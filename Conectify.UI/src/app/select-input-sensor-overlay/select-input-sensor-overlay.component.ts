@@ -18,28 +18,28 @@ import { MessagesService } from '../messages.service';
 })
 export class SelectInputSensorOverlayComponent implements OnInit {
   @Input() creatorComponent?: AutValueInputComponent;
-  sensors: Sensor[] = [];
+  selectedSensor: Sensor|null = null;
+  sensors: {sensor: Sensor, color: string}[] = [];
   columnNum: number = 4;
-  tileSize: number = 400;
+  tileSize: number = 150;
   @ViewChild('theContainer') theContainer: any;
 
   constructor(
     private be: BEFetcherService,
-    private messanger: MessagesService,
-    private inj: Injector
+    private messanger: MessagesService
   ) {}
 
-  selectedSensor(id: string){
-    if(this.creatorComponent && this.creatorComponent.Rule){
-      this.creatorComponent.Rule.behaviour.SourceSensorId = id as string;
-      this.creatorComponent.closeOverlay();
-    }
+  select(sensor:{sensor: Sensor, color: string}){
+    this.sensors.forEach(sensor => sensor.color = "darkblue")
+
+    this.selectedSensor = sensor.sensor;
+    sensor.color = "green";
   }
 
   ngOnInit(): void {
     this.be.getAllSensors().subscribe(
       (x) => {
-        this.sensors = x;
+        this.sensors = x.map(val => { return {sensor: val, color: "darkblue"}});
         this.setColNum();
       },
       (err) => {
@@ -49,11 +49,11 @@ export class SelectInputSensorOverlayComponent implements OnInit {
     );
   }
   setColNum() {
-    this.columnNum=2;
-    /*
+    //this.columnNum=2;
+    
     let width = this.theContainer.nativeElement.offsetWidth;
     this.columnNum = Math.trunc(width / this.tileSize);
-    */
+    
   }
 
   //recalculating upon browser window resize

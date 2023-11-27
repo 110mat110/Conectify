@@ -10,8 +10,10 @@ import { WebsocketAction } from 'src/models/InputBareValue';
 import { OutputCreatorService } from './output-creator.service';
 import { Device } from 'src/models/thing';
 import { ApiMetadata, ApiMetadataConnector, Metadata } from 'src/models/metadata';
-import { AddDashboardApi } from 'src/models/Dashboard/addDashboardApi';
+import { AddDashboardApi, EditDashboardApi } from 'src/models/Dashboard/addDashboardApi';
 import { DashboardApi } from 'src/models/Dashboard/DashboardApi';
+import { AddDashboardDeviceApi } from 'src/models/Dashboard/DashboardDevice';
+import { EditDashboardDeviceApi } from 'src/models/Dashboard/EditDashboardDeviceApi';
 
 @Injectable({
   providedIn: 'root'
@@ -98,17 +100,34 @@ export class BEFetcherService {
     return this.http.get<string>(this.adresses.getUserId(userMail));
   }
 
-  getDasboards(userId: string) : Observable<string[]> {
-    return this.http.get<string[]>(this.adresses.getDashboards(userId));
+  getDasboards(userId: string) : Observable<DashboardApi[]> {
+    return this.http.get<DashboardApi[]>(this.adresses.getDashboards(userId));
   }
 
   getDashboard(dashboardId: string) : Observable<DashboardApi>{
     return this.http.get<DashboardApi>(this.adresses.getDashboard(dashboardId));
   }
 
-  addDashboard(dashboard: AddDashboardApi) : Observable<string>{
-    return this.http.post<string>(this.adresses.addDashboard(),dashboard, this.httpOptions);
+  addDashboard(dashboard: AddDashboardApi) : Observable<DashboardApi>{
+    return this.http.post<DashboardApi>(this.adresses.addDashboard(),dashboard, this.httpOptions);
   } 
+
+  editDashboard(dashboardId: string, dashboard: EditDashboardApi)
+  {
+    this.http.put(this.adresses.getDashboard(dashboardId), dashboard, this.httpOptions).subscribe();
+  }
+
+  addDashboardDevice(dashboardId: string, device: AddDashboardDeviceApi) : Observable<string>{
+    return this.http.post<string>(this.adresses.addDashboardDevice(dashboardId),device, this.httpOptions);
+  }
+
+  editDasboardDevice(dashboardId: string, device: EditDashboardDeviceApi){
+    return this.http.put(this.adresses.addDashboardDevice(dashboardId),device, this.httpOptions).subscribe();
+  }
+
+  removeDashboardDevice(dashboardId: string, deviceid: string){
+    return this.http.delete(this.adresses.removeDashboardDevice(dashboardId, deviceid)).subscribe();
+  }
 
   register(id: string, name: string): void {
     this.postDevice(this.ocs.createDevice(id, name)).subscribe(x => {

@@ -1,11 +1,16 @@
 <div *ngIf="actuators" class="overlayDiv">
     <div #theContainer>
   <mat-grid-list cols="{{columnNum}}" rowHeight="100px" gutterSize="6px">
-      <mat-grid-tile *ngFor="let actuator of actuators">
-        <div (click)="selectedActuator(actuator.id)" class="cube">
-            {{actuator.name}}
+      <mat-grid-tile *ngFor="let actuator of actuators" style="background-color: {{actuator.color}};">
+        <div (click)="select(actuator)" class="cube">
+            {{actuator.actuator.name}}
         </div>
       </mat-grid-tile>
     </mat-grid-list>
   </div>
 </div>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button *ngIf="selectedActuator" [mat-dialog-close]="selectedActuator" cdkFocusInitial>Select</button>
+</mat-dialog-actions>

@@ -29,10 +29,4 @@ export class SensorOverviewComponent implements OnInit {
     let width = this.theContainer.nativeElement.offsetWidth;
     this.columnNum = Math.trunc(width/this.tileSize);
   }
-
-    //recalculating upon browser window resize
-    @HostListener('window:resize', ['$event'])
-    onResize(event: any) {
-      this.setColNum();
-    }
 }

@@ -18,7 +18,9 @@ public class DashboardProfile : Profile
     .ForMember(x => x.DashBoardId, opt => opt.Ignore());
 
         this.CreateMap<Database.Models.Dashboard.Dashboard, DashboardApi>()
-            .ForMember(x => x.DashboradDevices, opt => opt.MapFrom(x => new List<DashboardDeviceApi>()));
+            .ForMember(x => x.DashboardDevices, opt => opt.Ignore());
+
+        this.CreateMap<DashboardDevice, DashboardDeviceApi>();
 
     }
 }

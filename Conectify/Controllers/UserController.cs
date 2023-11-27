@@ -1,4 +1,4 @@
-﻿using Conectify.Services.Dashboard.Services;
+﻿using Conectify.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Conectify.Services.Dashboard.Controllers;

@@ -3,3 +3,8 @@ export interface AddDashboardApi{
     position: number;
     type:number;
 }
+
+export interface EditDashboardApi{
+    name:string;
+    background:string;
+}

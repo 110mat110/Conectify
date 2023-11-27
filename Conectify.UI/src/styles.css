@@ -7,5 +7,9 @@ p{
     color: aliceblue;
 }
 
+.sensor-detail-panel .mat-dialog-container{
+    background-color: transparent !important;
+  }
+
 
 

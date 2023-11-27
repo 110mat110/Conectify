@@ -5,6 +5,8 @@ import { ValueInitRule } from 'src/models/Automatization/ValueInitRule';
 import { BefetchAutomatizationService } from '../befetch-automatization.service';
 import { MessagesService } from '../messages.service';
 import { SelectInputSensorOverlayComponent } from '../select-input-sensor-overlay/select-input-sensor-overlay.component';
+import { MatDialog } from '@angular/material/dialog';
+import { Sensor } from 'src/models/sensor';
 
 @Component({
   selector: 'app-aut-value-input',
@@ -13,35 +15,26 @@ import { SelectInputSensorOverlayComponent } from '../select-input-sensor-overla
 })
 export class AutValueInputComponent implements OnInit  {
   @Input() Rule?: ValueInitRule;
-  overlayRef: any;
 
-  constructor(  private be: BefetchAutomatizationService, public messenger: MessagesService, public overlay: Overlay, public viewContainerRef: ViewContainerRef) {
+  constructor(  private be: BefetchAutomatizationService, public messenger: MessagesService, public dialog: MatDialog) {
 
   }
   ngOnInit(): void {
     
   }
 
-  public closeOverlay(){
-    this.overlayRef.dispose();
-  }
-
   SelectSource(){
-    let config = new OverlayConfig();
-
-    config.positionStrategy = this.overlay.position()
-        .global().centerHorizontally();
-
-    config.hasBackdrop = true;
-    config.width = "500px";
-    config.height = "500px";
-
-    this.overlayRef  = this.overlay.create(config);
-    this.overlayRef.backdropClick().subscribe(() => {
-      this.overlayRef.dispose();
+    const dialogRef = this.dialog.open(SelectInputSensorOverlayComponent, {
+      width: '50%',
+      height: '100%',
+      restoreFocus: false
     });
-  
-    let ref = this.overlayRef.attach(new ComponentPortal(SelectInputSensorOverlayComponent, this.viewContainerRef));
-    ref.instance.creatorComponent = this;
+
+    dialogRef.afterClosed().subscribe(result => {
+      var sensor = result as Sensor;
+      if(this.Rule?.behaviour && sensor){
+        this.Rule.behaviour.SourceSensorId = sensor.id;
+      }
+    });
   }
 }

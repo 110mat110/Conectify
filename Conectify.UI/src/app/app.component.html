@@ -1,10 +1,11 @@
 <!-- <span class="toolbar"> -->
-<mat-toolbar>
+<mat-toolbar >
   <div style="width: 20px;"></div>
   <h1> Conectify </h1>
 
   <div style="width: 20px;"></div>
-  <span class="buttonBar">
+  <div fxHide.lt-md>
+  <span class="buttonBar" >
 
     <button class="navbar-button" routerLink="/sensors">Sensors</button>
     <button class="navbar-button" routerLink="/actuators">Actuators</button>
@@ -12,6 +13,18 @@
     <button class="navbar-button" routerLink="/metadata">Metadata</button>
     <button *ngIf="showDasboard" class="navbar-button" routerLink="/dashboard">Dashboard</button>
   </span>
+</div>
+  <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Menu" fxHide.gt-sm>
+    <mat-icon>menu</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu">
+    <button class="navbar-button" routerLink="/sensors">Sensors</button>
+    <button class="navbar-button" routerLink="/actuators">Actuators</button>
+    <button class="navbar-button" routerLink="/automatization">Automatization</button>
+    <button class="navbar-button" routerLink="/metadata">Metadata</button>
+    <button *ngIf="showDasboard" class="navbar-button" routerLink="/dashboard">Dashboard</button>
+  </mat-menu>
+
   <span class="example-spacer"></span>
   <mat-card style="background-color: var(--color5);">
     <mat-card-content>
@@ -24,7 +37,7 @@
 
       <ng-template #loggedInTemplate>
         <span>
-        <label >Welcome, {{ username }}!&nbsp;</label>
+        <label fxHide.xs>Welcome, {{ username }}!&nbsp;</label>
         <button mat-raised-button color="warn" (click)="logout()">Logout</button>
          </span>
       </ng-template>

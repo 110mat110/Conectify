@@ -6,6 +6,7 @@ import { Input } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { BEFetcherService } from './befetcher.service';
 import { CookieService } from 'ngx-cookie-service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -20,10 +21,11 @@ export class AppComponent {
   showDasboard: boolean = false;
   isLoggedIn: boolean = false;
   wsStatus: any = this.websocketService.status;
-  constructor(private websocketService: WebsocketService, private befetcher: BEFetcherService, private cookieService: CookieService) {
+  constructor(private websocketService: WebsocketService, private befetcher: BEFetcherService, private cookieService: CookieService, private router: Router) {
   }
 
   ngOnInit() {
+    this.router.navigate(['/actuators'])
     const token = this.cookieService.get('userToken');
 
     if (token) {
@@ -41,8 +43,14 @@ export class AppComponent {
         this.befetcher.register(id,this.username);
         this.websocketService.SetId(id);
         this.websocketService.Connect();
+
+        if(this.isLoggedIn){
+          this.router.navigate(['/dashboard'])
+        } else{
+          this.router.navigate(['/actuators'])
+        }
       });
-    this.isLoggedIn = this.username != "anonymous";
+      this.isLoggedIn = this.username != "anonymous";
   }
 
   login() {

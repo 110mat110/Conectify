@@ -15,7 +15,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 //builder.Services.UseConectifyWebsocket<Configuration, DeviceData>();
 builder.Services.AddTransient<DashboardService>();
-builder.Services.AddTransient<UserService>();
 builder.Services.AddDbContext<ConectifyDb>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DatabaseString")));

@@ -48,6 +48,9 @@ import { DasboardAddDeviceDialogComponent } from './dashboard/dasboard-add-devic
 import {MatCheckboxModule} from '@angular/material/checkbox'; 
 import {MatDividerModule} from '@angular/material/divider'; 
 import {MatCardModule} from '@angular/material/card';
+import { FlexLayoutModule } from '@angular/flex-layout';
+import {MatMenuModule} from '@angular/material/menu';
+import { LoadingComponent } from './dashboard/loading/loading.component'; 
 
 @NgModule({
   declarations: [
@@ -75,7 +78,8 @@ import {MatCardModule} from '@angular/material/card';
     AutAndComponent,
     DashboardComponent,
     DashboardcontentComponent,
-    DasboardAddDeviceDialogComponent
+    DasboardAddDeviceDialogComponent,
+    LoadingComponent
   ],
   imports: [
     FormsModule,
@@ -88,6 +92,7 @@ import {MatCardModule} from '@angular/material/card';
     ReactiveFormsModule,
     BrowserAnimationsModule,
     MatToolbarModule,
+    FlexLayoutModule,
     NgxEchartsModule.forRoot({
       echarts
     }),
@@ -101,7 +106,8 @@ import {MatCardModule} from '@angular/material/card';
     MatDialogModule,
     MatCheckboxModule,
     MatDividerModule,
-    MatCardModule
+    MatCardModule,
+    MatMenuModule
   ],  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],
   bootstrap: [AppComponent]
 })

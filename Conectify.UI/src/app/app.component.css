@@ -168,12 +168,17 @@ input[type=number]::-webkit-inner-spin-button {
     margin-left: 60px;
   }
 
+  .sensor-detail-panel{
+    background-color: transparent !important;
+  }
+
   svg#rocket {
     width: 80px;
     position: absolute;
     left: -10px;
     top: -24px;
   }
+  
 
   svg#rocket-smoke {
     height: calc(100vh - 95px);

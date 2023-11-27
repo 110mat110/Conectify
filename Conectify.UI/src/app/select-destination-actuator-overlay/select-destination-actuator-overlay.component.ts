@@ -11,11 +11,10 @@ import { MessagesService } from '../messages.service';
   styleUrls: ['./select-destination-actuator-overlay.component.css']
 })
 export class SelectDestinationActuatorOverlayComponent implements OnInit {
-
-  @Input() creatorComponent?: AutChangeDestinationComponent;
-  actuators: Actuator[] = [];
+  actuators: {actuator: Actuator, color: string}[] = [];
+  selectedActuator: Actuator|null = null;
   columnNum: number = 4;
-  tileSize: number = 400;
+  tileSize: number = 150;
   @ViewChild('theContainer') theContainer: any;
 
   constructor(
@@ -23,17 +22,17 @@ export class SelectDestinationActuatorOverlayComponent implements OnInit {
     private messanger: MessagesService,
   ) {}
 
-  selectedActuator(id: string){
-    if(this.creatorComponent && this.creatorComponent.Rule){
-      this.creatorComponent.Rule.behaviour.DestinationId = id as string;
-      this.creatorComponent.closeOverlay();
-    }
+  select(actuator:{actuator: Actuator, color: string}){
+    this.actuators.forEach(actuator => actuator.color = "darkblue")
+
+    this.selectedActuator = actuator.actuator;
+    actuator.color = "green";
   }
 
   ngOnInit(): void {
     this.be.getAllActuators().subscribe(
       (x) => {
-        this.actuators = x;
+        this.actuators = x.map(val => { return {actuator: val, color: "darkblue"}});
         this.setColNum();
       },
       (err) => {
@@ -43,11 +42,8 @@ export class SelectDestinationActuatorOverlayComponent implements OnInit {
     );
   }
   setColNum() {
-    this.columnNum=2;
-    /*
     let width = this.theContainer.nativeElement.offsetWidth;
     this.columnNum = Math.trunc(width / this.tileSize);
-    */
   }
 
   //recalculating upon browser window resize

@@ -6,6 +6,8 @@ import { ValueInitRule } from 'src/models/Automatization/ValueInitRule';
 import { BefetchAutomatizationService } from '../befetch-automatization.service';
 import { MessagesService } from '../messages.service';
 import { SelectDestinationActuatorOverlayComponent } from '../select-destination-actuator-overlay/select-destination-actuator-overlay.component';
+import { MatDialog } from '@angular/material/dialog';
+import { Actuator } from 'src/models/actuator';
 
 @Component({
   selector: 'app-aut-user-input',
@@ -14,35 +16,25 @@ import { SelectDestinationActuatorOverlayComponent } from '../select-destination
 })
 export class AutUserInputComponent implements OnInit {
   @Input() Rule?: UserInputRule;
-  overlayRef: any;
 
-  constructor(  private be: BefetchAutomatizationService, public messenger: MessagesService, public overlay: Overlay, public viewContainerRef: ViewContainerRef) {
+  constructor(  private be: BefetchAutomatizationService, public messenger: MessagesService, public dialog: MatDialog) {
 
   }
   ngOnInit(): void {
   }
-
-  public closeOverlay(){
-    this.overlayRef.dispose();
-  }
-
-  SelectSource(){
-    let config = new OverlayConfig();
-
-    config.positionStrategy = this.overlay.position()
-        .global().centerHorizontally();
-
-    config.hasBackdrop = true;
-    config.width = "500px";
-    config.height = "500px";
-
-    this.overlayRef  = this.overlay.create(config);
-    this.overlayRef.backdropClick().subscribe(() => {
-      this.overlayRef.dispose();
-    });
   
-    let ref = this.overlayRef.attach(new ComponentPortal(SelectDestinationActuatorOverlayComponent, this.viewContainerRef));
-    ref.instance.creatorComponent = this;
-  }
+  SelectSource(){
+    const dialogRef = this.dialog.open(SelectDestinationActuatorOverlayComponent, {
+      width: '50%',
+      height: '100%',
+      restoreFocus: false
+    });
 
+    dialogRef.afterClosed().subscribe(result => {
+      var actuator = result as Actuator;
+      if(this.Rule?.behaviour && actuator){
+        this.Rule.behaviour.SourceActuatorId = actuator.id;
+      }
+    });
+  }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Conectify.Database;
+using Conectify.Database.Migrations;
 using Conectify.Database.Models.Dashboard;
 using Conectify.Services.Dashboard.Models;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ public class DashboardService
         this.mapper = mapper;
     }
 
-    public async Task<Guid> Add(AddDashboardApi addDashboardApi, CancellationToken cancellationToken = default)
+    public async Task<DashboardApi> Add(AddDashboardApi addDashboardApi, CancellationToken cancellationToken = default)
     {
         if(!conectifyDb.Users.Any(x => x.Id == addDashboardApi.UserId))
         {
@@ -28,12 +29,21 @@ public class DashboardService
 
         var entity = await conectifyDb.AddOrUpdateAsync(dashboard, cancellationToken);
         await conectifyDb.SaveChangesAsync(cancellationToken);
-        return entity.Id;
+        return mapper.Map<DashboardApi>(entity);
     }
 
-    public async Task<IEnumerable<Guid>> GetDashboards(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DashboardApi>> GetDashboards(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await conectifyDb.Dashboards.Where(x => x.UserId ==  userId).OrderBy(x => x.Position).Select(x => x.Id).ToListAsync(cancellationToken);
+        var dashboardsDbs = await conectifyDb.Dashboards.Where(x => x.UserId ==  userId).OrderBy(x => x.Position).ToListAsync(cancellationToken);
+        var dashboards = mapper.Map<IEnumerable<DashboardApi>>(dashboardsDbs);
+
+        foreach(var dashboard in dashboards)
+        {
+            var devices = await conectifyDb.DashboardsDevice.Where(x => x.DashBoardId == dashboard.Id).ProjectTo<DashboardDeviceApi>(mapper.ConfigurationProvider).ToListAsync(cancellationToken);
+            dashboard.DashboardDevices = devices;
+        }
+
+        return dashboards;
     }
 
     public async Task<DashboardApi> GetDashboard(Guid dashboardId, CancellationToken cancellationToken = default)
@@ -42,7 +52,7 @@ public class DashboardService
         var dashboard = mapper.Map<DashboardApi>(dbModel);
 
         var devices = await conectifyDb.DashboardsDevice.Where(x => x.DashBoardId == dashboardId).ProjectTo<DashboardDeviceApi>(mapper.ConfigurationProvider).ToListAsync(cancellationToken);
-        dashboard.DashboradDevices = devices;
+        dashboard.DashboardDevices = devices;
 
         return dashboard;
     }
@@ -67,7 +77,7 @@ public class DashboardService
 
         dashboard.Background = editDashboardApi.Background;
         dashboard.Name = editDashboardApi.Name;
-
+        conectifyDb.Update(dashboard);
         await conectifyDb.SaveChangesAsync(cancellationToken);
     }
 
