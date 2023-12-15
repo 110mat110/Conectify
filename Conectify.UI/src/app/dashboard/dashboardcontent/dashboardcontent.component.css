@@ -19,9 +19,9 @@ app-sensor-cube{
     justify-content: center;
     align-items: center;
     text-align: center;
-    position: absolute;
-    height: 150px; 
-    width: 200px;
+    /* position: absolute; */
+    height: 150px !important; 
+    width: 200px !important;
     z-index: 1;
     box-sizing: border-box;
     padding: 10px;

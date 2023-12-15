@@ -2,7 +2,7 @@
     (click)="addDevice()">
     <mat-icon>menu</mat-icon>
 </button>
-<div style="height: 1000px;">
+<div style="height: 1000px; width: 1000px;">
 
     <!-- [style.left.px]="sensor.apiSensor.posX" [style.top.px]="sensor.apiSensor.posY" -->
     <div *ngFor="let sensor of sensors" [cdkDragFreeDragPosition]="sensor.cube.position" class="example-box"

@@ -13,6 +13,7 @@ mat-label {
 .cube {
     background-color: darkblue;
     width: 100% !important;
+    height: 100% !important;
     padding: 10px !important;
     border: (solid, black, 2px);
 }

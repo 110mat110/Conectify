@@ -21,7 +21,7 @@ public class Serializable : ISerializable
 
     public override string ToString()
     {
-        return JsonConvert.SerializeObject(this).Replace(@"\", "");
+        return ToJson();
     }
 
 }

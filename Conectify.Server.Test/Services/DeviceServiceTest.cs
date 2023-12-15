@@ -2,6 +2,7 @@
 using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Server.Services;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Services;
 using Conectify.Shared.Maps;
@@ -349,5 +350,42 @@ public class DeviceServiceTest
         var result = await service.GetMetadata(deviceId);
 
         Assert.Equal(2, result.Count());
+    }
+
+    [Fact]
+    public async Task ItShallFilterByVisibility()
+    {
+        var dbs = new ConectifyDb(dbContextoptions);
+
+        var visibleDeviceId = Guid.NewGuid();
+        var hiddenDeviceId = Guid.NewGuid();
+        dbs.Add(new Device()
+        {
+            Id = hiddenDeviceId,
+        });
+        dbs.Add(new MetadataConnector<Device>()
+        {
+            DeviceId = hiddenDeviceId,
+            Metadata = new Metadata() { Name = Constants.Metadatas.Visible},
+            NumericValue = 0,
+        });
+        dbs.Add(new Device()
+        {
+            Id = visibleDeviceId,
+        });
+        dbs.Add(new MetadataConnector<Device>()
+        {
+            DeviceId = visibleDeviceId,
+            Metadata = new Metadata() { Name = Constants.Metadatas.Visible },
+            NumericValue = 1,
+        });
+        dbs.SaveChanges();
+
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var filter = new ApiFilter() { IsVisible = true };
+        var result = (await service.Filter(filter)).Select(x => x.Id);
+
+        Assert.Contains<Guid>(visibleDeviceId, result);
+        Assert.DoesNotContain<Guid>(hiddenDeviceId, result);
     }
 }

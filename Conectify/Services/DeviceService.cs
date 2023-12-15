@@ -31,18 +31,31 @@ public class DeviceService : UniversalDeviceService<Device, ApiDevice>, IDeviceS
 
     public override async Task<IEnumerable<ApiDevice>> Filter(ApiFilter filter, CancellationToken ct = default)
     {
-        var exclude = new List<Guid>();
         if (filter.IsVisible)
         {
-            exclude.AddRange(await database.Set<MetadataConnector<Device>>().AsNoTracking().Include(x => x.Metadata).Where(x => x.Metadata.Name == Constants.Metadatas.Visible && x.NumericValue == 0).Select(x => x.DeviceId).ToListAsync(ct));
+            filter.MetadataFilters = filter.MetadataFilters.Append(new ApiMetadataFilter() { Name = Constants.Metadatas.Visible, NumericValue = 1, EqualityComparator = false });
+        }
+
+        var set = database.Set<Device>().AsNoTracking().Include(x => x.Metadata).ThenInclude(x => x.Metadata).AsQueryable();
+        if (filter.MetadataFilters.Any())
+        {
+            foreach(var metadata in filter.MetadataFilters)
+            {
+                set = set.Where(x => 
+                    x.Metadata.Any(m =>
+                        m.Metadata.Name == metadata.Name && 
+                        (string.IsNullOrEmpty(metadata.Value) && (metadata.EqualityComparator && m.StringValue == metadata.Value) ||
+                        metadata.NumericValue != null && m.NumericValue == metadata.NumericValue
+                        )));
+            }
         }
 
         if (!string.IsNullOrEmpty(filter.Name))
         {
-            return await database.Set<Device>().AsNoTracking().Where(x => x.Name.Contains(filter.Name) && !exclude.Contains(x.Id)).ProjectTo<ApiDevice>(mapper.ConfigurationProvider).ToListAsync(ct);
+            return await set.Where(x => x.Name.Contains(filter.Name)).ProjectTo<ApiDevice>(mapper.ConfigurationProvider).ToListAsync(ct);
         }
 
-        return await database.Set<Device>().AsNoTracking().Where(x => !exclude.Contains(x.Id)).ProjectTo<ApiDevice>(mapper.ConfigurationProvider).ToListAsync(ct);
+        return await set.ProjectTo<ApiDevice>(mapper.ConfigurationProvider).ToListAsync(ct);
     }
 
     public override async Task<bool> TryAddUnknownDevice(Guid deviceId, Guid parentId = default, CancellationToken ct = default)

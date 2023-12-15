@@ -3,8 +3,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
+[ExcludeFromCodeCoverage(Justification = "Config")]
 public class DesignTimeContextFactory : IDesignTimeDbContextFactory<ConectifyDb>
 {
     public ConectifyDb CreateDbContext(string[] args)
