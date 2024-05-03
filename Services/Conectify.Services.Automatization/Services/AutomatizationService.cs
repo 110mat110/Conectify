@@ -17,20 +17,17 @@ public interface IAutomatizationService
 
 public class AutomatizationService : IAutomatizationService
 {
-    private readonly AutomatizationCache automatizationCache;
+    private readonly IAutomatizationCache automatizationCache;
     private readonly AutomatizationConfiguration configuration;
     private readonly IServicesWebsocketClient websocketClient;
-    private readonly ITimingService timingService;
 
-    public AutomatizationService(AutomatizationCache automatizationCache,
+    public AutomatizationService(IAutomatizationCache automatizationCache,
                                  AutomatizationConfiguration configuration,
-                                 IServicesWebsocketClient websocketClient,
-                                 ITimingService timingService)
+                                 IServicesWebsocketClient websocketClient)
     {
         this.automatizationCache = automatizationCache;
         this.configuration = configuration;
         this.websocketClient = websocketClient;
-        this.timingService = timingService;
     }
 
     public void StartServiceAsync()
@@ -38,7 +35,6 @@ public class AutomatizationService : IAutomatizationService
         websocketClient.OnIncomingValue += WebsocketClient_OnIncomingValue;
         websocketClient.OnIncomingAction += WebsocketClient_OnIncomingAction;
         websocketClient.ConnectAsync();
-        timingService.HandleTimers();
     }
 
     private async void WebsocketClient_OnIncomingAction(Database.Models.Values.Action action)

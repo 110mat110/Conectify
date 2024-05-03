@@ -13,14 +13,14 @@ namespace Conectify.Services.Automatization.Services;
 
 public class RuleService
 {
-    private readonly AutomatizationCache automatizationCache;
+    private readonly IAutomatizationCache automatizationCache;
     private readonly IMapper mapper;
     private readonly ConectifyDb conectifyDb;
     private readonly IConnectorService connectorService;
     private readonly IDeviceData configuration;
     private readonly ITimingService timingService;
 
-    public RuleService(AutomatizationCache automatizationCache, IMapper mapper, ConectifyDb conectifyDb, IConnectorService connectorService, IDeviceData configuration, ITimingService timingService)
+    public RuleService(IAutomatizationCache automatizationCache, IMapper mapper, ConectifyDb conectifyDb, IConnectorService connectorService, IDeviceData configuration, ITimingService timingService)
     {
         this.automatizationCache = automatizationCache;
         this.mapper = mapper;

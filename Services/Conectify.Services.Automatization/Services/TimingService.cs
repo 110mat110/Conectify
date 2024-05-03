@@ -13,14 +13,15 @@ public interface ITimingService
 
 public class TimingService : ITimingService
 {
-    private readonly AutomatizationCache automatizationCache;
-    private readonly IServiceProvider serviceProvider;
+    private readonly IAutomatizationCache automatizationCache;
+    private readonly IAutomatizationService automatizationService;
     private readonly Dictionary<Guid, Timer> timers = new();
 
-    public TimingService(AutomatizationCache automatizationCache, IServiceProvider serviceProvider)
+    public TimingService(IAutomatizationCache automatizationCache, IAutomatizationService automatizationService)
     {
         this.automatizationCache = automatizationCache;
-        this.serviceProvider = serviceProvider;
+        this.automatizationService = automatizationService;
+        HandleTimers();
     }
 
     public void HandleTimers()
@@ -70,8 +71,6 @@ public class TimingService : ITimingService
 
         if (rule is null) return;
 
-        using var scope = serviceProvider.CreateAsyncScope();
-        var automatizationService = scope.ServiceProvider.GetRequiredService<IAutomatizationService>();
         await automatizationService.ExecuteRule(rule);
 
         CreateTimingFunction(rule);

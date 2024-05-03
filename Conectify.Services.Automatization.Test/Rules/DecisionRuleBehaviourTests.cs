@@ -4,10 +4,9 @@ using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Test.Rules;
 
-[TestFixture]
 public class DecisionRuleBehaviourTests
 {
-    [Test]
+    [Fact]
     public void Execute_WhenParametersAndParameterValuesExistAndComparisonIsTrue_ReturnsAutomatisationValue()
     {
         // Arrange
@@ -34,15 +33,15 @@ public class DecisionRuleBehaviourTests
         var result = decisionRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Name, Is.EqualTo("Comparsion output"));
-        Assert.That(result.NumericValue, Is.EqualTo(5));
-        Assert.That(result.StringValue, Is.EqualTo("Test"));
-        Assert.That(result.Unit, Is.EqualTo("Unit"));
-        Assert.That(result.SourceId, Is.EqualTo(masterRule.Id));
+        Assert.NotNull(result);
+        Assert.Equal("Comparsion output", result.Name);
+        Assert.Equal(result.NumericValue, 5);
+        Assert.Equal("Test", result.StringValue);
+        Assert.Equal("Unit", result.Unit);
+        Assert.Equal(result.SourceId, masterRule.Id);
     }
 
-    [Test]
+    [Fact]
     public void Execute_WhenParametersAndParameterValuesExistAndComparisonIsFalse_ReturnsNull()
     {
         // Arrange
@@ -70,10 +69,10 @@ public class DecisionRuleBehaviourTests
         var result = decisionRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [Test]
+    [Fact]
     public void Execute_WhenParametersDoNotExist_ReturnsNull()
     {
         // Arrange
@@ -100,10 +99,10 @@ public class DecisionRuleBehaviourTests
         var result = decisionRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [Test]
+    [Fact]
     public void Execute_WhenParameterValuesDoNotExist_ReturnsNull()
     {
         // Arrange
@@ -127,10 +126,10 @@ public class DecisionRuleBehaviourTests
         var result = decisionRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [Test]
+    [Fact]
     public void Execute_WhenParametersJsonIsInvalid_ReturnsNull()
     {
         // Arrange
@@ -158,10 +157,10 @@ public class DecisionRuleBehaviourTests
         var result = decisionRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [Test]
+    [Fact]
     public void Execute_WhenDeserializedValueIsNull_ReturnsNull()
     {
         // Arrange
@@ -189,10 +188,10 @@ public class DecisionRuleBehaviourTests
         var result = decisionRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Not.Null);
+        Assert.NotNull(result);
     }
 
-    [Test]
+    [Fact]
     public void InitializationValue_Always_ReturnsNull()
     {
         // Arrange
@@ -203,36 +202,37 @@ public class DecisionRuleBehaviourTests
         var result = decisionRuleBehaviour.InitializationValue(rule);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [TestCase(">", 5, 3, true)]
-    [TestCase(">", 5, 7, false)]
-    [TestCase(">", 5, 5, false)]
-
-    [TestCase("<", 5, 3, false)]
-    [TestCase("<", 5, 7, true)]
-    [TestCase("<", 5, 5, false)]
-
-    [TestCase("=", 5, 3, false)]
-    [TestCase("=", 5, 5, true)]
-    [TestCase("=", 5, 7, false)]
-
-    [TestCase(">=", 5, 3, true)]
-    [TestCase(">=", 5, 5, true)]
-    [TestCase(">=", 5, 7, false)]
-
-    [TestCase("<=", 5, 3, false)]
-    [TestCase("<=", 5, 5, true)]
-    [TestCase("<=", 5, 7, true)]
-
-    [TestCase("<>", 5, 3, true)]
-    [TestCase("<>", 5, 5, false)]
-    [TestCase("<>", 5, 7, true)]
-
-    [TestCase("!=", 5, 3, true)]
-    [TestCase("!=", 5, 5, false)]
-    [TestCase("!=", 5, 7, true)]
+    [Theory]
+    [InlineData(">", 5, 3, true)]
+    [InlineData(">", 5, 7, false)]
+    [InlineData(">", 5, 5, false)]
+     
+    [InlineData("<", 5, 3, false)]
+    [InlineData("<", 5, 7, true)]
+    [InlineData("<", 5, 5, false)]
+     
+    [InlineData("=", 5, 3, false)]
+    [InlineData("=", 5, 5, true)]
+    [InlineData("=", 5, 7, false)]
+     
+    [InlineData(">=", 5, 3, true)]
+    [InlineData(">=", 5, 5, true)]
+    [InlineData(">=", 5, 7, false)]
+     
+    [InlineData("<=", 5, 3, false)]
+    [InlineData("<=", 5, 5, true)]
+    [InlineData("<=", 5, 7, true)]
+     
+    [InlineData("<>", 5, 3, true)]
+    [InlineData("<>", 5, 5, false)]
+    [InlineData("<>", 5, 7, true)]
+     
+    [InlineData("!=", 5, 3, true)]
+    [InlineData("!=", 5, 5, false)]
+    [InlineData("!=", 5, 7, true)]
     public void ComputeValue_WhenGivenComparisonRule_ReturnsCorrectResult(string rule, float input, float comparingValue, bool expected)
     {
         // Arrange
@@ -261,11 +261,11 @@ public class DecisionRuleBehaviourTests
         // Assert
         if (expected)
         {
-            Assert.That(result, Is.Not.Null);
+            Assert.NotNull(result);
         }
         else
         {
-            Assert.That(result, Is.Null);
+            Assert.Null(result);
         }
     }
 

@@ -6,13 +6,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Conectify.Services.Automatization.Services;
 
-public class AutomatizationCache
+public interface IAutomatizationCache
+{
+    Task<Guid> AddNewRule(Rule rule, CancellationToken cancellationToken);
+    IEnumerable<RuleDTO> GetNextRules(RuleDTO ruleDTO, CancellationToken ct = default);
+    Task<RuleDTO?> GetRuleByIdAsync(Guid id);
+    IEnumerable<RuleDTO> GetRulesByTypeId(Guid ruleTypeId);
+    IEnumerable<RuleDTO> GetRulesForSource(Guid sourceId, CancellationToken ct = default);
+    Task Reload(Guid id, CancellationToken ct = default);
+}
+
+public class AutomatizationCache : IAutomatizationCache
 {
     private readonly IServiceProvider services;
     private readonly IMapper mapper;
     private IDictionary<Guid, RuleDTO> cache = new Dictionary<Guid, RuleDTO>();
     private DateTime lastReload;
-    private TimeSpan cacheLongevity = new TimeSpan(0, 10, 0);
+    private TimeSpan cacheLongevity = new(0, 10, 0);
     public AutomatizationCache(IServiceProvider services, IMapper mapper)
     {
         this.services = services;
@@ -68,7 +78,7 @@ public class AutomatizationCache
 
     private void ReloadIfNeeded()
     {
-        if(DateTime.UtcNow.Subtract(lastReload).CompareTo(cacheLongevity) > 0)
+        if (DateTime.UtcNow.Subtract(lastReload).CompareTo(cacheLongevity) > 0)
         {
             Reload();
         }
@@ -99,7 +109,7 @@ public class AutomatizationCache
     //    lastReload = DateTime.UtcNow;
     //}
 
-    private void  Reload()
+    private void Reload()
     {
         cache.Clear();
         using var scope = services.CreateScope();
@@ -107,7 +117,7 @@ public class AutomatizationCache
         var dbrules = conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).Include(x => x.SourceParameters).ToList();
 
         var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
-        foreach(var dto in dtos)
+        foreach (var dto in dtos)
         {
             dto.Initialize();
         }

@@ -18,7 +18,7 @@ builder.Services.AddDbContext<ConectifyDb>(options =>
         builder.Configuration.GetConnectionString("DatabaseString")));
 builder.Services.AddAutoMapper(typeof(RuleProfile).Assembly);
 builder.Services.UseConectifyWebsocket<AutomatizationConfiguration, DeviceData>();
-builder.Services.AddSingleton<AutomatizationCache>();
+builder.Services.AddSingleton<IAutomatizationCache, AutomatizationCache>();
 builder.Services.AddSingleton<IAutomatizationService, AutomatizationService>();
 builder.Services.AddSingleton<ITimingService, TimingService>();
 builder.Services.AddTransient<RuleService>();

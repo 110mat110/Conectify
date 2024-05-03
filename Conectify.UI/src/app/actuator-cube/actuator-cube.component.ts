@@ -10,6 +10,7 @@ import { MessagesService } from '../messages.service';
 import { OutputCreatorService } from '../output-creator.service';
 import { WebsocketService } from '../websocket.service';
 import { DashboardParams } from 'src/models/Dashboard/DashboardParams';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-actuator-cube',
@@ -23,15 +24,17 @@ export class ActuatorCubeComponent implements OnInit {
   public actuator?: Actuator;
   public device?: Device;
   public latestVal?: BaseInputType;
-  iotype: IOType = IOType.Linear;
+  iotype: IOType = IOType.Undefined;
   stringvalue: string = "";
   numericvalue: number | undefined = undefined;
   metadatas: Metadata[] = [];
   maxValue: number = 0;
   minValue: number = 0;
+  /* The `constructor` in the `ActuatorCubeComponent` class is defining the dependencies that will be
+  injected into the component when it is created. Here's what each parameter represents: */
   metadataValue: number = 0;
 
-  constructor(public messenger: MessagesService, private websocketService: WebsocketService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef, private output: OutputCreatorService) { }
+  constructor(public messenger: MessagesService, private websocketService: WebsocketService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef, private output: OutputCreatorService, private router: Router){}
 
   ngOnInit(): void {
     this.refreshActualStatus();
@@ -90,11 +93,20 @@ export class ActuatorCubeComponent implements OnInit {
   }
 
   onButtonClick() {
-    this.sendn(this.stringvalue, this.maxValue);
+    this.sendn(this.latestVal?.stringValue ?? this.stringvalue, this.maxValue);
   }
 
   offbuttonClick() {
-    this.sendn(this.stringvalue, this.minValue);
+    this.sendn(this.latestVal?.stringValue ?? this.stringvalue, this.minValue);
+  }
+
+  onSliderChange(value: string) {
+    this.numericvalue = Number(value);
+    this.sendn(this.stringvalue, Number(value));
+  }
+
+  onCCT(value: string){
+    this.sendn(value, this.latestVal?.numericValue?? 0);
   }
 
   triggerButtonClick(){
@@ -116,6 +128,10 @@ export class ActuatorCubeComponent implements OnInit {
   send(stringvalue: string, numericValue: string): void {
     var number = Number(numericValue);
     this.sendn(stringvalue, number);
+  }
+
+  SourceClick(){
+    this.router.navigate(['/device'])
   }
 }
 

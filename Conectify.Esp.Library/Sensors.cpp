@@ -15,12 +15,10 @@ Sensor::Sensor(String sensorName, String valueName, String valueUnit)
     this->sensorName = sensorName;
     this->valueName = valueName;
     this->valueUnit = valueUnit;
-    DebugMessage("Full constructor");
 }
 Sensor::Sensor()
 {
     isInitialized = false;
-    DebugMessage("Dummy contructor");
 };
 String Sensor::SerializeSensor(char deviceId[IdStringLength])
 {
@@ -71,7 +69,8 @@ String Sensor::ShowHtml()
     DebugMessage("Replacing actuator literal");
     for (int i = 0; i < GetGlobalVariables()->actuatorArrSize; i++)
     {
-        if (GetGlobalVariables()->actuatorsArr[i].IsSensorOfThis(id)){
+        if (GetGlobalVariables()->actuatorsArr[i].IsSensorOfThis(id))
+        {
             String currentActuatorHtml = GetGlobalVariables()->actuatorsArr[i].ShowHtml();
             sensor_html.replace("{{actuators}}", currentActuatorHtml);
         }
@@ -94,13 +93,27 @@ String Sensor::GetStringValue() { return stringValue; }
 float Sensor::GetNumericValue() { return numericValue; }
 void Sensor::SetStringValue(String val)
 {
-    SetChanged(changed || alwaysUpdateValue || val != stringValue, "SetString");
-    stringValue = val;
+    SetChanged(changed || alwaysUpdateValue || val != stringValue, "setString");
+    if (changed)
+    {
+        stringValue = val;
+    }
+        else
+    {
+        DebugMessage("Did not update string value. Old: " + String(stringValue) + " new " + String(val));
+    }
 }
 void Sensor::SetNumericValue(float val)
 {
     SetChanged(changed || alwaysUpdateValue || fabs(val - numericValue) > 0.05, "setInt");
-    numericValue = val;
+    if (changed)
+    {
+        numericValue = val;
+    }
+    else
+    {
+        DebugMessage("Did not update numeric value. Old: " + String(numericValue) + " new " + String(val));
+    }
 }
 
 bool Sensor::HasChanged()
@@ -122,7 +135,6 @@ Actuator::Actuator(Sensor *sensor, String ActuatorName)
 Actuator::Actuator()
 {
     isInitialized = false;
-    DebugMessage("Dummy actuator created!");
 }
 void Actuator::SetActuatorValue(String stringValue, String unit)
 {

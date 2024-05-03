@@ -1,4 +1,4 @@
-#if defined (ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #elif defined(ESP32)
@@ -28,7 +28,7 @@ HTTPResponse HTTPGet(String url)
 
   HTTPResponse response;
   DebugMessage("Sending request to: " + url);
-  //wifiClient.setTimeout(500);
+  // wifiClient.setTimeout(500);
   int watchdog = 0;
   while (watchdog < 3)
   {
@@ -65,13 +65,13 @@ HTTPResponse HTTPPost(String url, String payload)
   DebugMessage("Sending request to: " + url);
   DebugMessage("Payload: " + payload);
   int watchdog = 0;
-  //wifiClient.setTimeout(500);
+  // wifiClient.setTimeout(500);
   while (watchdog < 3)
   {
     HTTPClient http;
-    http.begin(/*wifiClient,*/ url);                              // Specify request destination
+    http.begin(/*wifiClient,*/ url);                          // Specify request destination
     http.addHeader(HeaderContentType, HeaderJsonContentType); // Specify content-type header
-    
+
     int httpCode = http.POST(payload); // Send the request
     DebugMessage("Got response: " + String(httpCode));
     response.success = httpCode == HttpOKCode;
@@ -105,9 +105,12 @@ String GetServer(BaseDevice &baseDevice)
 String SerializeDevice(BaseDevice &baseDevice, bool useId)
 {
   DynamicJsonDocument doc(384);
-  if(useId){
+  if (useId)
+  {
     doc[DTid] = baseDevice.id;
-  } else{
+  }
+  else
+  {
     doc[DTid] = "00000000-0000-0000-0000-000000000000";
   }
   doc[type] = IoTDeviceType;
@@ -132,14 +135,16 @@ void RegisterBaseDevice(BaseDevice &baseDevice)
 
   HTTPResponse response = HTTPPost(url, SerializeDevice(baseDevice, true));
 
-  if(response.code == 400){
-      response = HTTPPost(url, SerializeDevice(baseDevice, false));
-
+  if (response.code == 400)
+  {
+    response = HTTPPost(url, SerializeDevice(baseDevice, false));
   }
   if (response.success)
   {
     DecodeRegisteredDeviceValue(response.payload, baseDevice);
-  } else {
+  }
+  else
+  {
     DebugMessage("Was not able to initialize device!");
   }
 }
@@ -152,7 +157,40 @@ void DecodeRegisteredSensorValue(String payload, Sensor &sensor)
   DebugMessage("Retrieved ID is: " + payload);
   payload.toCharArray(sensor.id, IdStringLength, 1);
   sensor.isInitialized = true;
-  DebugMessage("Actuator has saved ID: " + String(sensor.id));
+  DebugMessage("Sensor has saved ID: " + String(sensor.id));
+}
+
+void LoadLastValue(Sensor &sensor, BaseDevice &baseDevice)
+{
+  DebugMessage("Loading sensor last value");
+  String url = httpPrefix + GetServer(baseDevice) + lastSensorValue + sensor.id;
+
+  HTTPResponse response = HTTPGet(url);
+
+  if (response.code == 200)
+  {
+    StaticJsonDocument<64> filter;
+    filter[type] = true;
+    filter[DTvalueName] = true;
+    filter[DTstringValue] = true;
+    filter[DTnumericValue] = true;
+    filter[DTdestinationId] = true;
+
+    DynamicJsonDocument root(1024);
+    auto error = deserializeJson(root, response.payload);
+
+    if (error)
+    {
+      DebugMessage(response.payload);
+      DebugMessage("deserializeJson() failed: ");
+      return;
+    }
+    String stringValue = root[DTvalueName];
+    float numericValue = root[DTnumericValue];
+
+    sensor.SetStringValue(stringValue);
+    sensor.SetNumericValue(numericValue);
+  }
 }
 
 void RegisterSensor(Sensor &sensor, BaseDevice &baseDevice)
@@ -172,6 +210,8 @@ void RegisterSensor(Sensor &sensor, BaseDevice &baseDevice)
   if (response.success)
   {
     DecodeRegisteredSensorValue(response.payload, sensor);
+
+    LoadLastValue(sensor, baseDevice);
   }
   DebugMessage("---------------END Reg. SENSOR-------------------");
 }
@@ -206,8 +246,6 @@ void decodeIncomingJson(String incomingJson,
     String commandText = root[DTvalueName];
     float commandValue = root[DTnumericValue];
     String commandTextparameter = root[DTstringValue];
-
-    DebugMessage("got command: " + commandText + " with num value: " + commandValue + " and text value: " + commandTextparameter);
 
     (*handleFunc)(commandText, commandValue, commandTextparameter);
     filter.clear();
@@ -266,7 +304,7 @@ String RequestTime(BaseDevice baseDevice)
   String payload = "!";
   HTTPClient http;
   String url = httpPrefix + GetServer(baseDevice) + timeSuffix;
-  //wifiClient.setTimeout(500);
+  // wifiClient.setTimeout(500);
   DebugMessage("Requesting time at: " + url);
   http.begin(/*wifiClient,*/ url); // Specify request destination
 

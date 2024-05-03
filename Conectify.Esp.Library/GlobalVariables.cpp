@@ -2,69 +2,84 @@
 #include "DebugMessageLib.h"
 #include "Arduino.h"
 
-#define LEDON  LOW
-#define LEDOFF  HIGH
+#define LEDON LOW
+#define LEDOFF HIGH
 #define ONBOARDLED 2
 
-GlobalVariables* globals;
+GlobalVariables *globals;
 bool GlobalsInitialized = false;
 
-GlobalVariables* GetGlobalVariables(){
-  if(!GlobalsInitialized) {
+GlobalVariables *GetGlobalVariables()
+{
+  if (!GlobalsInitialized)
+  {
     globals = new GlobalVariables();
     globals->TimeHandler.intervalMS = 100;
+    globals->SensoricTimer.SetForceTrigger();
     GlobalsInitialized = true;
   }
   return globals;
 }
 
-void GlobalVariables::SetWiFiTimerInSeconds(int secondsPerTimer){
-  WifiTimer.intervalMS = secondsPerTimer*1000;
+void GlobalVariables::SetWiFiTimerInSeconds(int secondsPerTimer)
+{
+  WifiTimer.intervalMS = secondsPerTimer * 1000;
   baseDevice.WiFiTimer = secondsPerTimer;
 }
-void GlobalVariables::SetSensoricTimerInSeconds(int secondsPerTimer){
-  SensoricTimer.intervalMS = secondsPerTimer*1000;
+void GlobalVariables::SetSensoricTimerInSeconds(int secondsPerTimer)
+{
+  SensoricTimer.intervalMS = secondsPerTimer * 1000;
   baseDevice.SensorTimer = secondsPerTimer;
 }
 
-void GlobalVariables::InvertLed(){
- ledstate = GVNot(ledstate);
+void GlobalVariables::InvertLed()
+{
+  ledstate = GVNot(ledstate);
 
- SetLed();
+  SetLed();
 }
 
-void GlobalVariables::SetLedON(){
+void GlobalVariables::SetLedON()
+{
   ledstate = LEDON;
 
   SetLed();
 }
 
-void GlobalVariables::SetLedOFF(){
+void GlobalVariables::SetLedOFF()
+{
   ledstate = LEDOFF;
 
   SetLed();
 }
 
-void GlobalVariables::SetLed(){
+void GlobalVariables::SetLed()
+{
   pinMode(ONBOARDLED, OUTPUT);
   digitalWrite(ONBOARDLED, ledstate);
 }
 
-int GlobalVariables::GVNot(int state){
-  if(state == LOW) return HIGH;
+int GlobalVariables::GVNot(int state)
+{
+  if (state == LOW)
+    return HIGH;
   return LOW;
 }
 
-bool GlobalVariables::RestartRequired(){
-  if(WiFiRestartReq){
+bool GlobalVariables::RestartRequired()
+{
+  if (WiFiRestartReq)
+  {
     WiFiRestartReq = false;
     return true;
   }
   return false;
 }
 
-bool GlobalVariables::EEPROMWriteRequired(){
-    if(EEPROMWrteReq){
+bool GlobalVariables::EEPROMWriteRequired()
+{
+  if (EEPROMWrteReq)
+  {
     EEPROMWrteReq = false;
     return true;
   }

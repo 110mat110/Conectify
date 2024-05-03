@@ -46,4 +46,10 @@ public class SensorsController : DeviceControllerBase<ApiSensor>
             return this.Problem("Cannot upload device");
         }
     }
+
+    [HttpGet("lastValue/{id}")]
+    public async Task<IActionResult> LastValue(Guid id, CancellationToken ct = default)
+    {
+        return new ObjectResult(await sensorService.GetLastValue(id, ct));
+    }
 }

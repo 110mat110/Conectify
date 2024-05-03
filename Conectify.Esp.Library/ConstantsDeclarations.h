@@ -42,6 +42,7 @@ const String inputSensorSuffix = "/api/sensors";
 const String inputActuatorSuffix = "/api/actuators";
 const String timeSuffix = "/api/system/time";
 const String inputWebSocketSuffix = "/api/websocket/";
+const String lastSensorValue = "/api/sensors/lastvalue/";
 
 const String HeaderContentType = "Content-Type";
 const String HeaderJsonContentType = "application/json";
@@ -67,6 +68,7 @@ const String CommandResponseActive = "active";
 
 const String HTMLPercentileSign = "&#37;";
 const String HTMLDegreeSign = "&#176;";
+const String EmptyPassword = "-----";
 
 const char USBCommEndChar = '#';
 const int HttpOKCode = 200;

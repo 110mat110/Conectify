@@ -1,4 +1,6 @@
 <div class="cube" (click)="cubeClick()">
+  <button *ngIf="device" class="SourceButton" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
+
   <div *ngIf="actuator">
     <div *ngIf="device">
       <b>{{actuator.name}} @ {{device.name}}</b>
@@ -12,21 +14,20 @@
   </div>
   <div *ngIf="latestVal && iotype != 3">
     <br/>
-    <div *ngIf="latestVal.numericValue >= 0">
+    <div *ngIf="latestVal.numericValue >= 0" style="display: inline-block;">
       <mat-form-field class="current-value">
         <mat-label>Current {{latestVal.name}}</mat-label>
         <input matInput disabled value="{{latestVal.numericValue}} {{latestVal.unit}}" #stringInput>
       </mat-form-field>
     </div>
-    <div *ngIf="latestVal.stringValue">
+    <div *ngIf="latestVal.stringValue" style="display: inline-block;">
       <mat-form-field class="current-value">
         <mat-label>Current {{latestVal.name}}</mat-label>
         <input matInput disabled value="{{latestVal.stringValue}} {{latestVal.unit}}" #stringInput>
       </mat-form-field>
-      
     </div>
   </div>
-  <div *ngIf=" !iotype">
+  <div *ngIf="iotype===-1">
     <table>
       <td>
         <mat-form-field class="string-input">
@@ -45,6 +46,12 @@
     </table>
   </div>
 
+  <div *ngIf="iotype===0">
+    <input type="range" class="linearActuator" min={{minValue}} max={{maxValue}} value={{latestVal?.numericValue}} (input)="onSliderChange(linearActuator.value)" #linearActuator/>
+    <button class="onButton" (click)="onButtonClick()">ON</button>
+    <button class="offButton" (click)="offbuttonClick()">OFF</button>
+  </div>
+
   <div *ngIf="iotype===1">
     <button class="onButton" (click)="onButtonClick()">ON</button>
     <button class="offButton" (click)="offbuttonClick()">OFF</button>
@@ -59,4 +66,11 @@
       <button class="onButton" (click)="onButtonClick()">ON</button>
       <button class="offButton" (click)="offbuttonClick()">OFF</button>
   </div>
+
+  <div *ngIf="iotype===4">
+    <input type="range" class="linearActuator" min={{minValue}} max={{maxValue}} value={{latestVal?.numericValue}} (input)="onSliderChange(linearActuator.value)" #linearActuator/>
+    <button class="onButton" (click)="onButtonClick()">ON</button>
+    <button class="offButton" (click)="offbuttonClick()">OFF</button>
+    <input type="range" class="linearActuator" min=2000 max=10000 (input)="onCCT(cctActuator.value)" #cctActuator/>
+</div>
 </div>

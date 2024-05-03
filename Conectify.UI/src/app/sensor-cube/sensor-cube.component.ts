@@ -11,6 +11,7 @@ import { SensorDetailComponent } from '../sensor-detail/sensor-detail.component'
 import { WebsocketService } from '../websocket.service';
 import { DashboardParams } from 'src/models/Dashboard/DashboardParams';
 import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-sensor-cube',
@@ -31,7 +32,7 @@ export class SensorCubeComponent implements OnInit, OnChanges {
   mergeOptions = {};
   chartOption: any = {};
 
-  constructor(public messenger: MessagesService, private be: BEFetcherService, public dialog: MatDialog,private websocketService: WebsocketService) {
+  constructor(public messenger: MessagesService, private be: BEFetcherService, public dialog: MatDialog,private websocketService: WebsocketService, private router: Router) {
   }
 
   HandleIncomingValue(msg: any): void {
@@ -138,5 +139,14 @@ export class SensorCubeComponent implements OnInit, OnChanges {
       data: {sensor: this.sensor},
       panelClass: "sensor-detail-panel"
     });
+  }
+
+  SourceClick(){
+    /* The line `this.router.navigate(['/device'])` is navigating to the '/device' route in the
+    application. It is typically used to redirect the user to a specific page or component within
+    the application when a certain action is triggered, such as a button click or a specific event.
+    In this case, it seems like it is intended to navigate to the 'device' route when the
+    `SourceClick()` method is called in the `SensorCubeComponent` component. */
+    this.router.navigate(['/device'])
   }
 }

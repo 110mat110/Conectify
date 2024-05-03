@@ -2,10 +2,10 @@
 using Conectify.Services.Automatization.Rules;
 
 namespace Conectify.Services.Automatization.Test.Rules;
-[TestFixture]
+
 public class OutputRuleBehaviourTests
 {
-    [Test]
+    [Fact]
     public void Execute_WhenAutomatisationValuesNotEmpty_ReturnsLastAutomatisationValueWithDestinationIdSet()
     {
         // Arrange
@@ -24,14 +24,14 @@ public class OutputRuleBehaviourTests
         var result = outputRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.NumericValue, Is.EqualTo(10));
-        Assert.That(result.StringValue, Is.EqualTo("Test2"));
-        Assert.That(result.Unit, Is.EqualTo("Unit2"));
-        Assert.That(result.DestinationId, Is.EqualTo(masterRule.DestinationActuatorId));
+        Assert.NotNull(result);
+        Assert.Equal(result.NumericValue, 10);
+        Assert.Equal("Test2", result.StringValue);
+        Assert.Equal("Unit2", result.Unit);
+        Assert.Equal(result.DestinationId, masterRule.DestinationActuatorId);
     }
 
-    [Test]
+    [Fact]
     public void Execute_WhenAutomatisationValuesEmpty_ReturnsNull()
     {
         // Arrange
@@ -45,10 +45,10 @@ public class OutputRuleBehaviourTests
         var result = outputRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [Test]
+    [Fact]
     public void GetId_Always_ReturnsCorrectGuid()
     {
         // Arrange
@@ -58,10 +58,10 @@ public class OutputRuleBehaviourTests
         var result = outputRuleBehaviour.GetId();
 
         // Assert
-        Assert.That(result, Is.EqualTo(Guid.Parse("d274c7f0-211e-413a-8689-f2543dbfc818")));
+        Assert.Equal(result, Guid.Parse("d274c7f0-211e-413a-8689-f2543dbfc818"));
     }
 
-    [Test]
+    [Fact]
     public void InitializationValue_Always_ReturnsNull()
     {
         // Arrange
@@ -72,7 +72,7 @@ public class OutputRuleBehaviourTests
         var result = outputRuleBehaviour.InitializationValue(rule);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
     // Add more tests for different scenarios as needed

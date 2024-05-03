@@ -4,10 +4,9 @@ using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Test.Rules;
 
-[TestFixture]
 public class SetValueRuleBehaviourTests
 {
-    [Test]
+    [Fact]
     public void Execute_WhenParametersJsonIsNotNull_ReturnsAutomatisationValueWithStaticValues()
     {
         // Arrange
@@ -31,15 +30,15 @@ public class SetValueRuleBehaviourTests
         var result = setValueRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Name, Is.EqualTo("Static value"));
-        Assert.That(result.NumericValue, Is.EqualTo(10));
-        Assert.That(result.StringValue, Is.EqualTo("Test2"));
-        Assert.That(result.Unit, Is.EqualTo("Unit2"));
-        Assert.That(result.SourceId, Is.EqualTo(masterRule.Id));
+        Assert.NotNull(result);
+        Assert.Equal("Static value", result.Name);
+        Assert.Equal(result.NumericValue, 10);
+        Assert.Equal("Test2", result.StringValue);
+        Assert.Equal("Unit2", result.Unit);
+        Assert.Equal(result.SourceId, masterRule.Id);
     }
 
-    [Test]
+    [Fact]
     public void Execute_WhenParametersJsonIsNull_ReturnsOriginalAutomatisationValue()
     {
         // Arrange
@@ -63,10 +62,10 @@ public class SetValueRuleBehaviourTests
         var result = setValueRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [Test]
+    [Fact]
     public void InitializationValue_WhenParametersJsonIsNotNull_ReturnsAutomatisationValueWithStaticValues()
     {
         // Arrange
@@ -83,15 +82,15 @@ public class SetValueRuleBehaviourTests
         var result = setValueRuleBehaviour.InitializationValue(rule);
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Name, Is.EqualTo("Static value"));
-        Assert.That(result.NumericValue, Is.EqualTo(10));
-        Assert.That(result.StringValue, Is.EqualTo("Test2"));
-        Assert.That(result.Unit, Is.EqualTo("Unit2"));
-        Assert.That(result.SourceId, Is.EqualTo(rule.Id));
+        Assert.NotNull(result);
+        Assert.Equal("Static value", result.Name);
+        Assert.Equal(result.NumericValue, 10);
+        Assert.Equal("Test2", result.StringValue);
+        Assert.Equal("Unit2", result.Unit);
+        Assert.Equal(result.SourceId, rule.Id);
     }
 
-    [Test]
+    [Fact]
     public void InitializationValue_WhenParametersJsonIsNull_ReturnsNull()
     {
         // Arrange
@@ -108,10 +107,10 @@ public class SetValueRuleBehaviourTests
         var result = setValueRuleBehaviour.InitializationValue(rule);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [Test]
+    [Fact]
     public void GetId_Always_ReturnsCorrectGuid()
     {
         // Arrange
@@ -121,7 +120,7 @@ public class SetValueRuleBehaviourTests
         var result = setValueRuleBehaviour.GetId();
 
         // Assert
-        Assert.That(result, Is.EqualTo(Guid.Parse("8c173ffc-7243-4675-9a0d-28c2ce19a18f")));
+        Assert.Equal(result, Guid.Parse("8c173ffc-7243-4675-9a0d-28c2ce19a18f"));
     }
 
     // Add more tests for different scenarios as needed

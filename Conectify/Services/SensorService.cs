@@ -4,8 +4,10 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Conectify.Database;
 using Conectify.Database.Models;
+using Conectify.Database.Models.Values;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Models.Values;
 using Conectify.Shared.Library.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +15,7 @@ public interface ISensorService : IUniversalDeviceService<ApiSensor>
 {
     Task<IEnumerable<ApiSensor>> GetAllSensorsPerDevice(Guid deviceId, CancellationToken ct = default);
     Task<ApiSensor?> GetSensorByActuator(Guid id, CancellationToken ct = default);
+    Task<ApiValue?> GetLastValue(Guid sensorId, CancellationToken ct = default);
 }
 
 public class SensorService : UniversalDeviceService<Sensor, ApiSensor>, ISensorService
@@ -102,5 +105,10 @@ public class SensorService : UniversalDeviceService<Sensor, ApiSensor>, ISensorS
         }
 
         return await database.Set<Sensor>().AsNoTracking().Where(x => !exclude.Contains(x.Id)).ProjectTo<ApiSensor>(mapper.ConfigurationProvider).ToListAsync(ct);
+    }
+
+    public async Task<ApiValue?> GetLastValue(Guid sensorId, CancellationToken ct = default)
+    {
+        return await database.Set<Value>().AsNoTracking().Where(x => x.SourceId == sensorId).OrderByDescending(x => x.TimeCreated).ProjectTo<ApiValue>(mapper.ConfigurationProvider).FirstOrDefaultAsync(ct);
     }
 }

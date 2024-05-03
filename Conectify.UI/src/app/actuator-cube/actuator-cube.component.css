@@ -12,8 +12,9 @@ mat-label {
 
 .cube {
     background-color: darkblue;
-    width: 100% !important;
-    height: 100% !important;
+    width: 100%;
+    max-width: 400px !important;
+    height: 100%;
     padding: 10px !important;
     border: (solid, black, 2px);
 }
@@ -39,6 +40,21 @@ mat-label {
     border-radius: 0px !important;
     height: 50px;
     width: 45%;
+}
+
+.linearActuator{
+    width: 90%;
+    height: 20px;
+}
+
+.SourceButton{
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    border-radius: 50%;
+    background-color: transparent;
+    border-color: transparent;
+    color: aliceblue;
 }
 
 .onButton {

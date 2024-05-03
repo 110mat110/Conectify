@@ -43,8 +43,6 @@ void LoadSensorsFromEEPROM(EEPROMClass eeprom, Sensor* sensorArray){
     eeprom.begin(512);
     byte sizeOfArray = 0;
     eeprom.get(0,sizeOfArray);
-    DebugMessage("Size of array is:");
-    DebugMessage(String(sizeOfArray));
     if(sizeOfArray == 0xFF) {
         DebugMessage("No sensors are saved!");   
         return;
@@ -52,9 +50,8 @@ void LoadSensorsFromEEPROM(EEPROMClass eeprom, Sensor* sensorArray){
     int pos = (sizeof(byte)*3) + sizeof(BaseDevice);
     for (int i = 0; i < sizeOfArray; i++)
     {
-
         eeprom.get(pos + i*IdStringLength,sensorArray[i].id);
-        DebugMessage("Got sensor ID: " + String(sensorArray[i].id));
+        DebugMessage("Sensor ["+String(i)+"] ID: " + String(sensorArray[i].id));
         sensorArray[i].isInitialized = true;
     }
     eeprom.end();
@@ -72,15 +69,14 @@ void LoadActuatorFromEEPROM(EEPROMClass eeprom, Actuator* actuatorArray){
     byte sizeOfArray = 0;
     eeprom.get(sizeof(byte),sizeOfArray);
     if(sizeOfArray == 0xFF) {
-        DebugMessage("No actuators are saved!");   
+        DebugMessage("No actuators are saved!");
         return;
     }
     for (int i = 0; i < sizeOfArray; i++)
     {
 
         eeprom.get(pos + i*IdStringLength,actuatorArray[i].id);
-        DebugMessage("Got Actuator ID: ");
-        DebugMessage(String(actuatorArray[i].id));
+        DebugMessage("Actuator ["+String(i)+"] ID: " + String(actuatorArray[i].id));
         actuatorArray[i].isInitialized = true;
     }
     eeprom.end();
@@ -95,7 +91,7 @@ void ClearEEPROM(EEPROMClass eeprom){
 }
 
 void ReadFromEEPRom(EEPROMClass eeprom, BaseDevice &device){
-    DebugMessage("READING FROM EEPROM");
+    DebugMessage("--------READING FROM EEPROM-------");
     eeprom.begin(512);
     eeprom.get((sizeof(byte)*3), device);
     DebugMessage("SIZE: " + String(sizeof(BaseDevice)));
@@ -106,6 +102,6 @@ void ReadFromEEPRom(EEPROMClass eeprom, BaseDevice &device){
     DebugMessage(String(device.SensorTimer));
     DebugMessage(String(device.WiFiTimer));
     DebugMessage(String(device.Name));
-    DebugMessage("--------------------");
+    DebugMessage("--------END EEPROM READING------------");
     eeprom.end();
 }

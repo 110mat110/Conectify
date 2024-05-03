@@ -21,7 +21,7 @@ void HandleCommand(String commandId, String commandText, float commandValue, Str
   DebugMessage("Recieved command " + commandText + " with param" + commandTextparameter + " and "+ String(commandValue));
 
   if(commandText == CommandWifiName) commandTextparameter.toCharArray(GetGlobalVariables()->baseDevice.ssid,WiFiLength);
-  if(commandText == CommandWifiPassword) commandTextparameter.toCharArray(GetGlobalVariables()->baseDevice.password,WiFiLength);
+  if(commandText == CommandWifiPassword && commandText != EmptyPassword) commandTextparameter.toCharArray(GetGlobalVariables()->baseDevice.password,WiFiLength);
   if(commandText == CommandSetId) commandTextparameter.toCharArray(GetGlobalVariables()->baseDevice.id,IdStringLength);
   if(commandText == CommandSetName) commandTextparameter.toCharArray(GetGlobalVariables()->baseDevice.Name,UserInputStringLength);
   if(commandText == CommandSetAdress) commandTextparameter.toCharArray(GetGlobalVariables()->baseDevice.serverUrl,ServerAdressLength);

@@ -4,10 +4,9 @@ using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Test.Rules;
 
-[TestFixture]
 public class TimeRuleBehaviourTests
 {
-    [Test]
+    [Fact]
     public void Execute_WhenTriggerTimeIsNow_ReturnsAutomatisationValueWithTrueValues()
     {
         // Arrange
@@ -28,16 +27,16 @@ public class TimeRuleBehaviourTests
         var result = timeRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Name, Is.EqualTo("TimeRuleResult"));
-        Assert.That(result.NumericValue, Is.EqualTo(1));
-        Assert.That(result.StringValue, Is.EqualTo("true"));
-        Assert.That(result.Unit, Is.EqualTo(""));
-        Assert.GreaterOrEqual(result.TimeCreated, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-        Assert.That(result.SourceId, Is.EqualTo(masterRule.Id));
+        Assert.NotNull(result);
+        Assert.Equal("TimeRuleResult", result.Name);
+        Assert.Equal(result.NumericValue, 1);
+        Assert.Equal("true", result.StringValue);
+        Assert.Equal("", result.Unit);
+        Assert.True(result.TimeCreated.CompareTo( DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) >= 0);
+        Assert.Equal(result.SourceId, masterRule.Id);
     }
 
-    [Test]
+    [Fact]
     public void Execute_WhenTriggerTimeIsNotNow_ReturnsAutomatisationValueWithFalseValues()
     {
         // Arrange
@@ -58,16 +57,16 @@ public class TimeRuleBehaviourTests
         var result = timeRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Name, Is.EqualTo("TimeRuleResult"));
-        Assert.That(result.NumericValue, Is.EqualTo(0));
-        Assert.That(result.StringValue, Is.EqualTo("false"));
-        Assert.That(result.Unit, Is.EqualTo(""));
-        Assert.GreaterOrEqual(result.TimeCreated, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-        Assert.That(result.SourceId, Is.EqualTo(masterRule.Id));
+        Assert.NotNull(result);
+        Assert.Equal("TimeRuleResult", result.Name);
+        Assert.Equal(result.NumericValue, 0);
+        Assert.Equal("false", result.StringValue);
+        Assert.Equal("", result.Unit);
+        Assert.True(result.TimeCreated.CompareTo(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())>=0);
+        Assert.Equal(result.SourceId, masterRule.Id);
     }
 
-    [Test]
+    [Fact]
     public void Execute_WhenOptionsIsNull_ReturnsAutomatisationValueWithFalseValues()
     {
         // Arrange
@@ -87,10 +86,10 @@ public class TimeRuleBehaviourTests
         var result = timeRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [Test]
+    [Fact]
     public void GetId_Always_ReturnsCorrectGuid()
     {
         // Arrange
@@ -100,10 +99,10 @@ public class TimeRuleBehaviourTests
         var result = timeRuleBehaviour.GetId();
 
         // Assert
-        Assert.That(result, Is.EqualTo(Guid.Parse("3dff4530-887b-48d1-a4fa-38cc8392469a")));
+        Assert.Equal(result, Guid.Parse("3dff4530-887b-48d1-a4fa-38cc8392469a"));
     }
 
-    [Test]
+    [Fact]
     public void InitializationValue_Always_ReturnsNull()
     {
         // Arrange
@@ -114,7 +113,7 @@ public class TimeRuleBehaviourTests
         var result = timeRuleBehaviour.InitializationValue(rule);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
     // Add more tests for different scenarios as needed

@@ -50,7 +50,8 @@ import {MatDividerModule} from '@angular/material/divider';
 import {MatCardModule} from '@angular/material/card';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import {MatMenuModule} from '@angular/material/menu';
-import { LoadingComponent } from './dashboard/loading/loading.component'; 
+import { LoadingComponent } from './dashboard/loading/loading.component';
+import { DeviceComponent } from './device/device.component'; 
 
 @NgModule({
   declarations: [
@@ -79,7 +80,8 @@ import { LoadingComponent } from './dashboard/loading/loading.component';
     DashboardComponent,
     DashboardcontentComponent,
     DasboardAddDeviceDialogComponent,
-    LoadingComponent
+    LoadingComponent,
+    DeviceComponent
   ],
   imports: [
     FormsModule,

@@ -1,5 +1,7 @@
 <div *ngIf="sensor" class="cube" (click)="onClick()" height >
 
+<button *ngIf="device" class="SourceButton" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
+
 <table class="hiddenTable" >   
 <tr>
 <td style="background-color: transparent !important; vertical-align: centre;">
@@ -28,10 +30,9 @@
 </td>
 <br/>
 <br/>
-<td *ngIf="valsReady" width="100%" height="90%">
-    <div style="height: 50px;"></div>
+<td *ngIf="valsReady" width="100%" height="200px">
 <!-- <app-last-value [chartOption] = "chartOption"></app-last-value> [options]="chartOption" -->
-<div echarts [autoResize]="true" [options]="chartOption" [merge]="mergeOptions" class="cube-chart"></div>
+<div echarts [autoResize]="true" [options]="chartOption" [merge]="mergeOptions" class="cube-chart" style="height: 100%;"></div>
 </td>
 </tr>
 </table>

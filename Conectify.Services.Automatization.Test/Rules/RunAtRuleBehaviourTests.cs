@@ -3,10 +3,9 @@ using Conectify.Services.Automatization.Rules;
 
 namespace Conectify.Services.Automatization.Test.Rules;
 
-[TestFixture]
 public class RunAtRuleBehaviourTests
 {
-    [Test]
+    [Fact]
     public void Execute_Always_ReturnsAutomatisationValueWithCorrectValues()
     {
         // Arrange
@@ -20,15 +19,15 @@ public class RunAtRuleBehaviourTests
         var result = runAtRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Name, Is.EqualTo("TimeRuleResult"));
-        Assert.That(result.NumericValue, Is.EqualTo(0));
-        Assert.That(result.Unit, Is.EqualTo(""));
-        Assert.That(result.SourceId, Is.EqualTo(masterRule.Id));
-        Assert.GreaterOrEqual(result.TimeCreated, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+        Assert.NotNull(result);
+        Assert.Equal("TimeRuleResult", result.Name);
+        Assert.Equal(result.NumericValue, 0);
+        Assert.Equal("", result.Unit);
+        Assert.Equal(result.SourceId, masterRule.Id);
+        Assert.True(result.TimeCreated.CompareTo(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()) >= 0);
     }
 
-    [Test]
+    [Fact]
     public void GetId_Always_ReturnsCorrectGuid()
     {
         // Arrange
@@ -38,10 +37,10 @@ public class RunAtRuleBehaviourTests
         var result = runAtRuleBehaviour.GetId();
 
         // Assert
-        Assert.That(result, Is.EqualTo(Guid.Parse("3dff4530-887b-48d1-a4fa-38cc8392469a")));
+        Assert.Equal(result, Guid.Parse("3dff4530-887b-48d1-a4fa-38cc8392469a"));
     }
 
-    [Test]
+    [Fact]
     public void InitializationValue_Always_ReturnsNull()
     {
         // Arrange
@@ -52,7 +51,7 @@ public class RunAtRuleBehaviourTests
         var result = runAtRuleBehaviour.InitializationValue(rule);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
     // Add more tests for different scenarios as needed

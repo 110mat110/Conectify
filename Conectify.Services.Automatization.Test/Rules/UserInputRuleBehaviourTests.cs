@@ -3,10 +3,9 @@ using Conectify.Services.Automatization.Rules;
 
 namespace Conectify.Services.Automatization.Test.Rules;
 
-[TestFixture]
 public class UserInputRuleBehaviourTests
 {
-    [Test]
+    [Fact]
     public void Execute_WhenAutomatisationValuesNotEmpty_ReturnsFirstAutomatisationValue()
     {
         // Arrange
@@ -25,13 +24,13 @@ public class UserInputRuleBehaviourTests
         var result = userInputRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.NumericValue, Is.EqualTo(5));
-        Assert.That(result.StringValue, Is.EqualTo("Test"));
-        Assert.That(result.Unit, Is.EqualTo("Unit"));
+        Assert.NotNull(result);
+        Assert.Equal(result.NumericValue, 5);
+        Assert.Equal("Test", result.StringValue);
+        Assert.Equal("Unit", result.Unit);
     }
 
-    [Test]
+    [Fact]
     public void Execute_WhenAutomatisationValuesEmpty_ReturnsNull()
     {
         // Arrange
@@ -45,10 +44,10 @@ public class UserInputRuleBehaviourTests
         var result = userInputRuleBehaviour.Execute(automatisationValues, masterRule, parameterValues);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
-    [Test]
+    [Fact]
     public void GetId_Always_ReturnsCorrectGuid()
     {
         // Arrange
@@ -58,10 +57,10 @@ public class UserInputRuleBehaviourTests
         var result = userInputRuleBehaviour.GetId();
 
         // Assert
-        Assert.That(result, Is.EqualTo(Guid.Parse("24ff4530-887b-48d1-a4fa-38cc83925798")));
+        Assert.Equal(result, Guid.Parse("24ff4530-887b-48d1-a4fa-38cc83925798"));
     }
 
-    [Test]
+    [Fact]
     public void InitializationValue_Always_ReturnsNull()
     {
         // Arrange
@@ -72,7 +71,7 @@ public class UserInputRuleBehaviourTests
         var result = userInputRuleBehaviour.InitializationValue(rule);
 
         // Assert
-        Assert.That(result, Is.Null);
+        Assert.Null(result);
     }
 
     // Add more tests for different scenarios as needed
