@@ -15,4 +15,6 @@ public class ApiMetadataConnector : IApiModel
 
     public Guid MetadataId { get; set; }
     public Guid DeviceId { get; set; }
+
+    public Guid Id { get; set; }
 }

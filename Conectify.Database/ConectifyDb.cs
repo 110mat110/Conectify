@@ -59,24 +59,6 @@ public class ConectifyDb : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<MetadataConnector<Actuator>>().HasKey(u => new
-        {
-            u.DeviceId,
-            u.MetadataId
-        });
-
-        modelBuilder.Entity<MetadataConnector<Sensor>>().HasKey(u => new
-        {
-            u.DeviceId,
-            u.MetadataId
-        });
-
-        modelBuilder.Entity<MetadataConnector<Device>>().HasKey(u => new
-        {
-            u.DeviceId,
-            u.MetadataId
-        });
-
         modelBuilder.Entity<RuleConnector>().HasKey(u => new
         {
             u.PreviousRuleId,

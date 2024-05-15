@@ -1,4 +1,6 @@
-﻿namespace Conectify.Shared.Library.Models.Services;
+﻿using System;
+
+namespace Conectify.Shared.Library.Models.Services;
 
 public record MetadataServiceConnector
 {
@@ -11,4 +13,6 @@ public record MetadataServiceConnector
     public float? MaxVal { get; set; }
 
     public string MetadataName { get; set; } = string.Empty;
+
+    public Guid Id { get; set; }
 }

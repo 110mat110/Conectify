@@ -1,9 +1,13 @@
 ﻿namespace Conectify.Database.Models;
 
 using System;
+using System.ComponentModel.DataAnnotations;
 
 public class MetadataConnector<T>
 {
+    [Key]
+    public Guid Id { get; set; }
+
     public float? NumericValue { get; set; }
     public string StringValue { get; set; } = string.Empty;
     public int? TypeValue { get; set; }

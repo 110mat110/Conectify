@@ -19,6 +19,7 @@ export class MetadataComponent implements OnInit {
   selectedMetadata?: Metadata;
   metadatas: Metadata[] = [];
   avaliableMetadata: ApiMetadata[] = [];
+  exclusive: boolean = false;
   constructor(private beFetcher: BEFetcherService ) { }
 
   ngOnInit(): void {
@@ -82,7 +83,7 @@ export class MetadataComponent implements OnInit {
   }
 
   createMetadata(name: string){
-    this.beFetcher.postMetadata({id:"00000000-0000-0000-0000-000000000000", name: name});
+    this.beFetcher.postMetadata({id:"00000000-0000-0000-0000-000000000000", name: name, exclusive: this.exclusive});
     setTimeout(()=>{ this.reloadMetadata() }, 1000)
   }
 }

@@ -52,7 +52,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 import {MatMenuModule} from '@angular/material/menu';
 import { LoadingComponent } from './dashboard/loading/loading.component';
 import { DeviceComponent } from './device/device.component'; 
-
+import {MatTreeModule} from '@angular/material/tree'; 
 @NgModule({
   declarations: [
     AppComponent,
@@ -109,7 +109,8 @@ import { DeviceComponent } from './device/device.component';
     MatCheckboxModule,
     MatDividerModule,
     MatCardModule,
-    MatMenuModule
+    MatMenuModule,
+    MatTreeModule
   ],  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],
   bootstrap: [AppComponent]
 })

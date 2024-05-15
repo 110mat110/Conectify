@@ -13,4 +13,6 @@ public class ApiMetadata
     public float? MaxVal { get; set; }
 
     public Guid MetadataId { get; set; }
+
+    public Guid Id { get; set; }
 }

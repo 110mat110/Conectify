@@ -30,6 +30,10 @@ export class BEFetcherService {
   getAllActuators(): Observable<Actuator[]> {
     return this.http.get<Actuator[]>(this.adresses.getAllActuatorsDetails());
   }
+  getAllActuatorsForDevice(deviceId: string): Observable<Actuator[]> {
+    return this.http.get<Actuator[]>(this.adresses.getAllActuatorsForDevice(deviceId));
+  }
+
   getActiveActuatorsIds(): Observable<string[]> {
     return this.http.get<string[]>(this.adresses.getActiveActuatorsIds());
   }
@@ -51,6 +55,11 @@ export class BEFetcherService {
   getAllSensors(): Observable<Sensor[]> {
     return this.http.get<Sensor[]>(this.adresses.getAllSensorsDetails());
   }
+
+  getAllSensorsForDevice(deviceId: string): Observable<Sensor[]> {
+    return this.http.get<Sensor[]>(this.adresses.getAllSensorsForDevice(deviceId));
+  }
+
   getActiveSensors(): Observable<string[]> {
     return this.http.get<string[]>(this.adresses.getActiveSensorIds());
   }
@@ -91,6 +100,10 @@ export class BEFetcherService {
     return this.http.get<ApiMetadata[]>(this.adresses.getAllMetadata());
   }
 
+  getDeviceMetadata(deviceId: string): Observable<Metadata[]> {
+    return this.http.get<Metadata[]>(this.adresses.getDeviceMetdatas(deviceId));
+  }
+
   postMetadata(metadata: ApiMetadata) {
     this.http.post(this.adresses.postMetadata(), metadata, this.httpOptions).subscribe();
     this.messenger.addMessage("Creating new metadata {" + JSON.stringify(metadata) + "} to adress: " + this.adresses.postMetadata());
@@ -127,6 +140,10 @@ export class BEFetcherService {
 
   removeDashboardDevice(dashboardId: string, deviceid: string){
     return this.http.delete(this.adresses.removeDashboardDevice(dashboardId, deviceid)).subscribe();
+  }
+
+  deleteMetadata(id: string){
+    return this.http.delete(this.adresses.deleteMetadata(id)).subscribe();
   }
 
   register(id: string, name: string): void {
