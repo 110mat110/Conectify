@@ -1,6 +1,7 @@
 using Conectify.Services.Library;
 using Conectify.Services.MQTTTasker;
 using Conectify.Services.MQTTTasker.Services;
+using Conectify.Shared.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+builder.Logging.AddRemoteLogging();
 builder.Services.UseConectifyWebsocket<Configuration, DeviceData>();
 builder.Services.AddSingleton<IMQTTSender, MQTTSender>();
 builder.Services.AddTransient<IValueService, ValueService>();

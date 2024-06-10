@@ -3,6 +3,7 @@
 using AutoMapper;
 using Conectify.Database;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.Metrics;
 
 public interface ISubscribersCache
 {
@@ -41,7 +42,22 @@ public class SubscribersCache : ISubscribersCache
 
     public bool RemoveSubscriber(Guid deviceId)
     {
-        return subscribers.Remove(deviceId);
+        
+        var result = subscribers.Remove(deviceId);
+
+        if (result)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
+            if (meterFactory is not null)
+            {
+                var meter = meterFactory.Create("CustomMeters");
+                var counter = meter.CreateCounter<int>("subs_count");
+                counter.Add(-1);
+            }
+            return true;
+        }
+        return false;
     }
 
     public async Task<Subscriber?> UpdateSubscriber(Guid deviceId, CancellationToken ct = default)
@@ -61,6 +77,13 @@ public class SubscribersCache : ISubscribersCache
             else
             {
                 lock (locker) { subscribers.Add(deviceId, sub); }
+                var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
+                if (meterFactory is not null)
+                {
+                    var meter = meterFactory.Create("CustomMeters");
+                    var counter = meter.CreateCounter<int>("subs_count");
+                    counter.Add(1);
+                }
             }
             return subscribers[deviceId];
         }

@@ -3,6 +3,7 @@ using Conectify.Services.Automatization;
 using Conectify.Services.Automatization.Mapper;
 using Conectify.Services.Automatization.Services;
 using Conectify.Services.Library;
+using Conectify.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +18,7 @@ builder.Services.AddDbContext<ConectifyDb>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DatabaseString")));
 builder.Services.AddAutoMapper(typeof(RuleProfile).Assembly);
+builder.Logging.AddRemoteLogging();
 builder.Services.UseConectifyWebsocket<AutomatizationConfiguration, DeviceData>();
 builder.Services.AddSingleton<IAutomatizationCache, AutomatizationCache>();
 builder.Services.AddSingleton<IAutomatizationService, AutomatizationService>();

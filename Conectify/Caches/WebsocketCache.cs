@@ -1,5 +1,8 @@
 ﻿namespace Conectify.Server.Caches;
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Writers;
+using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
 
 public interface IWebsocketCache
@@ -15,6 +18,12 @@ public class WebsocketCache : IWebsocketCache
 {
     private static readonly Dictionary<Guid, WSCahceItem> sockets = new Dictionary<Guid, WSCahceItem>();
     private readonly object locker = new();
+    private readonly IServiceProvider serviceProvider;
+
+    public WebsocketCache(IServiceProvider serviceProvider)
+    {
+        this.serviceProvider = serviceProvider;
+    }
 
     public bool AddNewWebsocket(Guid deviceId, WebSocket webSocket)
     {
@@ -30,6 +39,14 @@ public class WebsocketCache : IWebsocketCache
         }
         else
         {
+            using var scope = serviceProvider.CreateScope();
+            var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
+            if (meterFactory is not null)
+            {
+                var meter = meterFactory.Create("CustomMeters");
+                var counter = meter.CreateCounter<int>("connections_count");
+                counter.Add(1);
+            }
             lock (locker)
             {
                 sockets.Add(deviceId, new WSCahceItem(webSocket));
@@ -43,10 +60,21 @@ public class WebsocketCache : IWebsocketCache
         if (sockets.ContainsKey(deviceId))
         {
             if (sockets[deviceId].Count <= 1)
+            {
+                using var scope = serviceProvider.CreateScope();
+                var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
+                if (meterFactory is not null)
+                {
+                    var meter = meterFactory.Create("CustomMeters");
+                    var counter = meter.CreateCounter<int>("connections_count");
+                    counter.Add(-1);
+                }
+
                 lock (locker)
                 {
                     sockets.Remove(deviceId);
                 }
+            }
             else
             {
                 lock (locker)

@@ -1,9 +1,10 @@
 using Conectify.Services.AQIScraper;
 using Conectify.Services.Library;
+using Conectify.Shared.Services;
 using System.Timers;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Logging.AddRemoteLogging();
 builder.Services.UseConectifyWebsocket<Configuration, DeviceData>();
 builder.Services.AddTransient<CHMIScraper>();
 // Add services to the container.
