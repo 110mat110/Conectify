@@ -8,7 +8,7 @@ public class WebsocketCacheTest
     [Fact]
     public void ItShallAddNewWebsocket()
     {
-        var cache = new WebsocketCache();
+        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
         var deviceId = Guid.NewGuid();
         var result = cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
 
@@ -20,7 +20,7 @@ public class WebsocketCacheTest
     [Fact]
     public void ItShallUpdateExistingWebsocket()
     {
-        var cache = new WebsocketCache();
+        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
         var deviceId = Guid.NewGuid();
         cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
         var result = cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
@@ -33,7 +33,7 @@ public class WebsocketCacheTest
     [Fact]
     public void ItShallRemoveExistingWebsocket()
     {
-        var cache = new WebsocketCache();
+        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
         var deviceId = Guid.NewGuid();
         cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
         cache.Remove(deviceId);
@@ -44,7 +44,7 @@ public class WebsocketCacheTest
     [Fact]
     public void ItShallDecreaseCountOfWebsockets()
     {
-        var cache = new WebsocketCache();
+        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
         var deviceId = Guid.NewGuid();
         cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
         cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
@@ -56,7 +56,7 @@ public class WebsocketCacheTest
     [Fact]
     public void ItShallNotFailRemoveNonExistingWebsocket()
     {
-        var cache = new WebsocketCache();
+        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
 
         cache.Remove(Guid.NewGuid());
     }
@@ -64,7 +64,7 @@ public class WebsocketCacheTest
     [Fact]
     public void ItShallReturnWebsocket()
     {
-        var cache = new WebsocketCache();
+        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
         var deviceId = Guid.NewGuid();
         var ws = A.Fake<WebSocket>();
         A.CallTo(() => ws.State).Returns(WebSocketState.Open);
@@ -83,7 +83,7 @@ public class WebsocketCacheTest
     [InlineData(WebSocketState.None)]
     public void ItShallNotReturnWebsocket(WebSocketState state)
     {
-        var cache = new WebsocketCache();
+        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
         var deviceId = Guid.NewGuid();
         var ws = A.Fake<WebSocket>();
         A.CallTo(() => ws.State).Returns(state);
