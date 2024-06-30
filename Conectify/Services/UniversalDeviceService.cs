@@ -74,14 +74,14 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
 
     public async Task<bool> AddMetadata(ApiMetadataConnector apiModel, CancellationToken ct = default)
     {
-        if (await database.Set<TDbs>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == apiModel.DeviceId) is null || await database.Set<Metadata>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == apiModel.MetadataId) is null)
+        if (await database.Set<TDbs>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == apiModel.DeviceId, cancellationToken: ct) is null || await database.Set<Metadata>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == apiModel.MetadataId, cancellationToken: ct) is null)
         {
             logger.LogWarning("Not found device or metadata for import");
             return false;
         }
 
         var mapedModel = mapper.Map<MetadataConnector<TDbs>>(apiModel);
-        var model = await database.Set<MetadataConnector<TDbs>>().AsNoTracking().FirstOrDefaultAsync(x => x.MetadataId == apiModel.MetadataId && x.DeviceId == apiModel.DeviceId, ct);
+        var model = await database.Set<MetadataConnector<TDbs>>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == apiModel.Id || (x.MetadataId == apiModel.MetadataId && x.DeviceId == apiModel.DeviceId), ct);
 
         if (model is null)
         {
@@ -89,7 +89,13 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
         }
         else
         {
-            model = mapedModel;
+            model.NumericValue = mapedModel.NumericValue;
+            model.Unit = mapedModel.Unit;
+            model.StringValue = mapedModel.StringValue;
+            model.MinVal = mapedModel.MinVal;
+            model.MaxVal = mapedModel.MaxVal;
+            model.TypeValue = mapedModel.TypeValue;
+            
             database.Update(model);
         }
 

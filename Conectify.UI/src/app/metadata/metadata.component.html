@@ -78,6 +78,8 @@
     <input #metadataName matInput placeholder="Any name">
   </mat-form-field>
 
+    <mat-checkbox [(ngModel)]="exclusive">Exclusive</mat-checkbox>
+
   <button mat-mini-fab color="primary" aria-label="Create new metadata" (click)="createMetadata(metadataName.value)">
     <mat-icon>add</mat-icon>
   </button>

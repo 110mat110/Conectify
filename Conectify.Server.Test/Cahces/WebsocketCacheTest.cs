@@ -1,14 +1,29 @@
 ﻿using Conectify.Server.Caches;
+using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
 
 namespace Conectify.Server.Test.Cahces;
 
 public class WebsocketCacheTest
 {
+    IServiceProvider serviceProvider;
+
+    public WebsocketCacheTest()
+    {
+        var serviceCollection = new ServiceCollection();
+
+        // Add DI configurations if necessary 
+        serviceCollection.AddScoped<IMeterFactory, FakeMeterFactory> ();
+
+        // Build ServiceProvider
+        serviceProvider = serviceCollection.BuildServiceProvider();
+    }
+
     [Fact]
     public void ItShallAddNewWebsocket()
     {
-        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
+        var cache = new WebsocketCache(serviceProvider);
         var deviceId = Guid.NewGuid();
         var result = cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
 
@@ -20,7 +35,7 @@ public class WebsocketCacheTest
     [Fact]
     public void ItShallUpdateExistingWebsocket()
     {
-        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
+        var cache = new WebsocketCache(serviceProvider);
         var deviceId = Guid.NewGuid();
         cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
         var result = cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
@@ -33,7 +48,7 @@ public class WebsocketCacheTest
     [Fact]
     public void ItShallRemoveExistingWebsocket()
     {
-        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
+        var cache = new WebsocketCache(serviceProvider);
         var deviceId = Guid.NewGuid();
         cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
         cache.Remove(deviceId);
@@ -44,7 +59,7 @@ public class WebsocketCacheTest
     [Fact]
     public void ItShallDecreaseCountOfWebsockets()
     {
-        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
+        var cache = new WebsocketCache(serviceProvider);
         var deviceId = Guid.NewGuid();
         cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
         cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
@@ -56,7 +71,7 @@ public class WebsocketCacheTest
     [Fact]
     public void ItShallNotFailRemoveNonExistingWebsocket()
     {
-        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
+        var cache = new WebsocketCache(serviceProvider);
 
         cache.Remove(Guid.NewGuid());
     }
@@ -64,7 +79,7 @@ public class WebsocketCacheTest
     [Fact]
     public void ItShallReturnWebsocket()
     {
-        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
+        var cache = new WebsocketCache(serviceProvider);
         var deviceId = Guid.NewGuid();
         var ws = A.Fake<WebSocket>();
         A.CallTo(() => ws.State).Returns(WebSocketState.Open);
@@ -83,7 +98,7 @@ public class WebsocketCacheTest
     [InlineData(WebSocketState.None)]
     public void ItShallNotReturnWebsocket(WebSocketState state)
     {
-        var cache = new WebsocketCache(A.Fake<IServiceProvider>());
+        var cache = new WebsocketCache(serviceProvider);
         var deviceId = Guid.NewGuid();
         var ws = A.Fake<WebSocket>();
         A.CallTo(() => ws.State).Returns(state);
@@ -91,5 +106,18 @@ public class WebsocketCacheTest
         var result = cache.GetActiveSocket(deviceId);
 
         Assert.Null(result);
+    }
+
+    public class FakeMeterFactory : IMeterFactory
+    {
+        public Meter Create(MeterOptions options)
+        {
+            return new Meter(options);
+        }
+
+        public void Dispose()
+        {
+            return;
+        }
     }
 }

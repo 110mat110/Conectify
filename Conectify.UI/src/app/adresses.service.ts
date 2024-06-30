@@ -45,6 +45,14 @@ export class AdressesService {
     return this.historyURL + "device/actuators"
   }
 
+  getAllActuatorsForDevice(id: string) : string{
+    return this.serverURL + "actuators/by-device/" + id;
+  }
+
+  getAllSensorsForDevice(id: string) : string{
+    return this.serverURL + "sensors/by-device/" + id;
+  }
+
   getAllActuatorsDetails(): string{
     return this.serverURL+ "actuators/all";
   }
@@ -59,6 +67,10 @@ export class AdressesService {
 
   getSensorMetdatas(id: string):string{
     return this.serverURL + "sensors/" + id + "/metadata";
+  }
+
+  getDeviceMetdatas(id: string):string{
+    return this.serverURL + "device/" + id + "/metadata";
   }
 
   getAllSensorsDetails(): string{
@@ -138,6 +150,9 @@ export class AdressesService {
 
   removeDashboardDevice(dashboardId: string, deviceId: string){
     return this.dashboardURL + "dashboard/"+ dashboardId + "/device/" + deviceId;
+  }
 
+  deleteMetadata(id: string){
+    return this.serverURL + "metadata/" + id;
   }
 }

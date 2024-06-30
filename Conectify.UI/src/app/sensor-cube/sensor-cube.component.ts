@@ -147,6 +147,6 @@ export class SensorCubeComponent implements OnInit, OnChanges {
     the application when a certain action is triggered, such as a button click or a specific event.
     In this case, it seems like it is intended to navigate to the 'device' route when the
     `SourceClick()` method is called in the `SensorCubeComponent` component. */
-    this.router.navigate(['/device'])
+    this.router.navigate(['/device/'+this.sensor?.sourceDeviceId])
   }
 }

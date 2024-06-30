@@ -1,4 +1,5 @@
 export interface Metadata{
+    id: string,
     name: string,
     numericValue: number,
     stringValue: string,
@@ -11,6 +12,7 @@ export interface Metadata{
 export interface ApiMetadata{
     name: string,
     id: string,
+    exclusive: boolean
 }
 
 export interface ApiMetadataConnector{

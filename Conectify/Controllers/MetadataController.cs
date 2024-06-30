@@ -33,4 +33,18 @@ public class MetadataController : ControllerBase
         var metadata = await metadataService.GetMetadataByCode(code);
         return metadata is null ? NotFound() : Ok(metadata.Id);
     }
+
+    [HttpDelete("{metadataId}/{deviceId}")]
+    public async Task<IActionResult> RemoveMetadata(Guid metadataId, Guid deviceId)
+    {
+        await metadataService.Remove(metadataId, deviceId);
+        return Ok();
+    }
+
+    [HttpDelete("{Id}")]
+    public async Task<IActionResult> Remove(Guid Id)
+    {
+        await metadataService.Remove(Id);
+        return Ok();
+    }
 }

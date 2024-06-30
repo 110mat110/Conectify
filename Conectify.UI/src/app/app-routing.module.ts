@@ -15,7 +15,7 @@ const routes: Routes = [
   {path: 'metadata', component: MetadataComponent},
   {path: 'dashboard', component: DashboardComponent},
   {path: 'loading', component: LoadingComponent},
-  {path: 'device', component: DeviceComponent},
+  {path: 'device/:id', component: DeviceComponent},
   { path: '', redirectTo: '/loading', pathMatch: 'full' },
 ];
 

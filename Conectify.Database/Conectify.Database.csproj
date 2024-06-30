@@ -38,8 +38,4 @@
     <ProjectReference Include="..\Conectify.Shared.Library\Conectify.Shared.Library.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Migrations\" />
-  </ItemGroup>
-
 </Project>

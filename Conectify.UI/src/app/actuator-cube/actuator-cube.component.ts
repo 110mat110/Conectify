@@ -131,7 +131,7 @@ export class ActuatorCubeComponent implements OnInit {
   }
 
   SourceClick(){
-    this.router.navigate(['/device'])
+    this.router.navigate(['/device/'+ this.actuator?.sourceDeviceId])
   }
 }
 

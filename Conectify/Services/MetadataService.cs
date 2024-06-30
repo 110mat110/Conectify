@@ -14,6 +14,10 @@ public interface IMetadataService
     public Task<bool> AddNewMetadata(ApiBasicMetadata metadata, CancellationToken ct = default);
 
     public Task<ApiBasicMetadata?> GetMetadataByCode(string code, CancellationToken ct = default);
+
+    public Task<bool> Remove(Guid metadataId, Guid deviceId, CancellationToken ct = default);
+    public Task<bool> Remove(Guid id, CancellationToken ct = default);
+
 }
 
 public class MetadataService : IMetadataService
@@ -51,4 +55,62 @@ public class MetadataService : IMetadataService
 		var metadata = await database.Set<Metadata>().FirstOrDefaultAsync(metadata => metadata.Code.ToLower() == code.ToLower(), ct);
         return mapper.Map<ApiBasicMetadata>(metadata);
 	}
+
+    public async Task<bool> Remove(Guid metadataId, Guid deviceId, CancellationToken ct = default)
+    {
+        var deviceMetadata = await database.Set<MetadataConnector<Device>>().FirstOrDefaultAsync(x => x.MetadataId == metadataId && x.DeviceId == deviceId, ct);
+
+        if(deviceMetadata != null)
+        {
+            database.Set<MetadataConnector<Device>>().Remove(deviceMetadata);
+            return true;
+        }
+
+        var actuatorMetadata = await database.Set<MetadataConnector<Actuator>>().FirstOrDefaultAsync(x => x.MetadataId == metadataId && x.DeviceId == deviceId, ct);
+
+        if (actuatorMetadata != null)
+        {
+            database.Set<MetadataConnector<Actuator>>().Remove(actuatorMetadata);
+            return true;
+        }
+
+        var sensorMetadata = await database.Set<MetadataConnector<Sensor>>().FirstOrDefaultAsync(x => x.MetadataId == metadataId && x.DeviceId == deviceId, ct);
+
+        if (sensorMetadata != null)
+        {
+            database.Set<MetadataConnector<Sensor>>().Remove(sensorMetadata);
+            return true;
+        }
+
+        return false;
+    }
+
+    public async Task<bool> Remove(Guid id, CancellationToken ct = default)
+    {
+        var deviceMetadata = await database.Set<MetadataConnector<Device>>().FirstOrDefaultAsync(x => x.Id == id, ct);
+
+        if (deviceMetadata != null)
+        {
+            database.Set<MetadataConnector<Device>>().Remove(deviceMetadata);
+            return true;
+        }
+
+        var actuatorMetadata = await database.Set<MetadataConnector<Actuator>>().FirstOrDefaultAsync(x => x.Id == id, ct);
+
+        if (actuatorMetadata != null)
+        {
+            database.Set<MetadataConnector<Actuator>>().Remove(actuatorMetadata);
+            return true;
+        }
+
+        var sensorMetadata = await database.Set<MetadataConnector<Sensor>>().FirstOrDefaultAsync(x => x.Id == id, ct);
+
+        if (sensorMetadata != null)
+        {
+            database.Set<MetadataConnector<Sensor>>().Remove(sensorMetadata);
+            return true;
+        }
+
+        return false;
+    }
 }
