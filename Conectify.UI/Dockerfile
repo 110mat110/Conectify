@@ -1,5 +1,5 @@
 #stage 1
-FROM node:16.17.0 as node
+FROM node:20.15.0 as node
 WORKDIR /app
 COPY Conectify.UI/. .
 RUN npm install
