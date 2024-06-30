@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { MatSelectionListChange } from '@angular/material/list';
 import { delay } from 'rxjs/operators';
 import { ApiMetadata, Metadata } from 'src/models/metadata';
@@ -13,7 +13,7 @@ import { BEFetcherService } from '../befetcher.service';
 })
 export class MetadataComponent implements OnInit {
 
-  formControlObj: FormControl = new FormControl();
+  formControlObj: UntypedFormControl = new UntypedFormControl();
   supportedDevices: DeviceSelector[] = [];
   selectedDeviceId?: string;
   selectedMetadata?: Metadata;
@@ -34,7 +34,7 @@ export class MetadataComponent implements OnInit {
   reloadMetadata(){
     this.beFetcher.getAllMetadata().subscribe(x => {
       this.avaliableMetadata = x;
-      this.formControlObj = new FormControl(this.avaliableMetadata);
+      this.formControlObj = new UntypedFormControl(this.avaliableMetadata);
       this.formControlObj?.setValue(this.avaliableMetadata[0].id);
     });
   }

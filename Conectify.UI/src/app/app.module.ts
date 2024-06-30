@@ -4,7 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { SensorOverviewComponent } from './sensor-overview/sensor-overview.component';
-import { HttpBackend, HttpClientModule } from '@angular/common/http';
+import { HttpBackend, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { DebugMessagesComponent } from './debug-messages/debug-messages.component';
 import { SensorCubeComponent } from './sensor-cube/sensor-cube.component';
 import { ActuatorCubeComponent } from './actuator-cube/actuator-cube.component';
@@ -48,69 +48,61 @@ import { DasboardAddDeviceDialogComponent } from './dashboard/dasboard-add-devic
 import {MatCheckboxModule} from '@angular/material/checkbox'; 
 import {MatDividerModule} from '@angular/material/divider'; 
 import {MatCardModule} from '@angular/material/card';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import {MatMenuModule} from '@angular/material/menu';
 import { LoadingComponent } from './dashboard/loading/loading.component';
 import { DeviceComponent } from './device/device.component'; 
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    SensorOverviewComponent,
-    DebugMessagesComponent,
-    SensorCubeComponent,
-    ActuatorCubeComponent,
-    ActuatorOverviewComponent,
-    SensorDetailComponent,
-    MetadataIconsComponent,
-    AutomatizationComponent,
-    AutValueInputComponent,
-    AutomatizationComponentComponent,
-    SelectInputSensorOverlayComponent,
-    AutChangeDestinationComponent,
-    SelectDestinationActuatorOverlayComponent,
-    MetadataComponent,
-    LastValueComponent,
-    AutUserInputComponent,
-    AutSetTimeComponent,
-    AutEachTimeComponent,
-    AutSetValueComponent,
-    AutDecisionComponent,
-    AutAndComponent,
-    DashboardComponent,
-    DashboardcontentComponent,
-    DasboardAddDeviceDialogComponent,
-    LoadingComponent,
-    DeviceComponent
-  ],
-  imports: [
-    FormsModule,
-    DragDropModule,
-    BrowserModule,
-    MatSliderModule,
-    MatGridListModule,
-    AppRoutingModule,
-    HttpClientModule,
-    ReactiveFormsModule,
-    BrowserAnimationsModule,
-    MatToolbarModule,
-    FlexLayoutModule,
-    NgxEchartsModule.forRoot({
-      echarts
-    }),
-    OverlayModule,
-    MatInputModule,
-    MatIconModule,
-    MatListModule,
-    MatButtonModule,
-    MatSelectModule,
-    MatTabsModule,
-    MatDialogModule,
-    MatCheckboxModule,
-    MatDividerModule,
-    MatCardModule,
-    MatMenuModule
-  ],  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        SensorOverviewComponent,
+        DebugMessagesComponent,
+        SensorCubeComponent,
+        ActuatorCubeComponent,
+        ActuatorOverviewComponent,
+        SensorDetailComponent,
+        MetadataIconsComponent,
+        AutomatizationComponent,
+        AutValueInputComponent,
+        AutomatizationComponentComponent,
+        SelectInputSensorOverlayComponent,
+        AutChangeDestinationComponent,
+        SelectDestinationActuatorOverlayComponent,
+        MetadataComponent,
+        LastValueComponent,
+        AutUserInputComponent,
+        AutSetTimeComponent,
+        AutEachTimeComponent,
+        AutSetValueComponent,
+        AutDecisionComponent,
+        AutAndComponent,
+        DashboardComponent,
+        DashboardcontentComponent,
+        DasboardAddDeviceDialogComponent,
+        LoadingComponent,
+        DeviceComponent
+    ],
+    bootstrap: [AppComponent], imports: [FormsModule,
+        DragDropModule,
+        BrowserModule,
+        MatSliderModule,
+        MatGridListModule,
+        AppRoutingModule,
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        MatToolbarModule,
+        NgxEchartsModule.forRoot({
+            echarts
+        }),
+        OverlayModule,
+        MatInputModule,
+        MatIconModule,
+        MatListModule,
+        MatButtonModule,
+        MatSelectModule,
+        MatTabsModule,
+        MatDialogModule,
+        MatCheckboxModule,
+        MatDividerModule,
+        MatCardModule,
+        MatMenuModule], providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }, provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }

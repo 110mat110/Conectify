@@ -82,6 +82,16 @@ input[type=number]::-webkit-inner-spin-button {
     margin: 0 16px;
   }
 
+  .mat-mdc-text-field-wrapper {
+    background-color: white !important;
+    border-bottom: none !important;
+}
+
+.mat-mdc-form-field-focus-overlay {
+  background-color: white !important;
+}
+
+
   .toolbar #twitter-logo:hover,
   .toolbar #youtube-logo:hover {
     opacity: 0.8;

@@ -26,7 +26,7 @@
   </mat-menu>
 
   <span class="example-spacer"></span>
-  <mat-card style="background-color: var(--color5);">
+  <mat-card appearance="outlined" style="background-color: var(--color5);">
     <mat-card-content>
       <form *ngIf="!isLoggedIn; else loggedInTemplate" (submit)="login()">
         <mat-form-field>

@@ -1,5 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
-@import '~@angular/cdk/overlay-prebuilt.css';
+@import '@angular/cdk/overlay-prebuilt.css';
 
 html, body { height: 100%;  background-color: black; color: aliceblue;}
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; color: aliceblue; }
@@ -7,9 +7,12 @@ p{
     color: aliceblue;
 }
 
-.sensor-detail-panel .mat-dialog-container{
+.mat-mdc-text-field-wrapper {
     background-color: transparent !important;
-  }
+    color: aliceblue;
+}
 
-
+.mat-mdc-form-field:not(.mat-form-field-no-animations) .mdc-text-field__input{
+    color: aliceblue !important;
+}
 

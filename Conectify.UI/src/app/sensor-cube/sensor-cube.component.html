@@ -5,7 +5,7 @@
 <table class="hiddenTable" >   
 <tr>
 <td style="background-color: transparent !important; vertical-align: centre;">
-    <h4><b>{{sensor.name}} @ {{device?.name}}</b></h4>
+    <h4><b>{{sensor.name}} &#64; {{device?.name}}</b></h4>
     <div *ngIf="metadatas">
         <app-metadata-icons [metadatas] = "metadatas"></app-metadata-icons>
       </div>
@@ -13,13 +13,13 @@
     <div *ngIf="latestVal">
         {{latestVal.name}}
         <div *ngIf="latestVal.numericValue >= 0">
-            <mat-form-field appearance="standard">
+            <mat-form-field>
                 <mat-label>Numeric value</mat-label>
                 <input matInput disabled value="{{latestVal.numericValue}} {{latestVal.unit}}">
             </mat-form-field>
         </div>
         <div *ngIf="latestVal.stringValue">
-            <mat-form-field appearance="standard">
+            <mat-form-field>
                 <mat-label>String value</mat-label>
                 <input matInput disabled value="{{latestVal.stringValue}} {{latestVal.unit}}">
             </mat-form-field>
