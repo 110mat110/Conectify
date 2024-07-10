@@ -1,0 +1,6 @@
+@Conectify.Services.Cloud_HostAddress = http://localhost:5157
+
+GET {{Conectify.Services.Cloud_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

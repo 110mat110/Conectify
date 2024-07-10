@@ -23,7 +23,6 @@ builder.Services.AddSingleton<IAutomatizationService, AutomatizationService>();
 builder.Services.AddSingleton<ITimingService, TimingService>();
 builder.Services.AddTransient<RuleService>();
 
-
 var app = builder.Build();
 await app.Services.ConnectToConectifyServer();
 var automatizationService = app.Services.GetRequiredService<IAutomatizationService>();
