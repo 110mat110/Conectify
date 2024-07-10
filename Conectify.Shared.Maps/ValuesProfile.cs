@@ -2,6 +2,7 @@
 
 using AutoMapper;
 using Conectify.Database.Models.Values;
+using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Values;
 using Conectify.Shared.Library.Models.Websocket;
 
@@ -71,5 +72,14 @@ public class ValuesProfile : Profile
         CreateMap<ApiCommandResponse, CommandResponse>()
             .ForMember(x => x.Source, opt => opt.Ignore())
             .ForMember(x => x.Command, opt => opt.Ignore());
+
+        CreateMap<Command, ApiDataModel>()
+            .ForMember(x => x.Type, opt => opt.MapFrom(x => nameof(Command)))
+            .ForMember(x => x.ResponseSourceId, opt => opt.Ignore());
+        CreateMap<Action, ApiDataModel>()
+            .ForMember(x => x.Type, opt => opt.MapFrom(x => nameof(Action)))
+            .ForMember(x => x.ResponseSourceId, opt => opt.Ignore());
+
+
     }
 }
