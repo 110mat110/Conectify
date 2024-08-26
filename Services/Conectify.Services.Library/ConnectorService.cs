@@ -30,21 +30,8 @@ public interface IConnectorService
 
 }
 
-public class ConnectorService : IConnectorService
+public class ConnectorService(ILogger<ConnectorService> logger, ConfigurationBase configuration, IMapper mapper, IHttpFactory httpProvider) : IConnectorService
 {
-    private readonly ILogger<ConnectorService> logger;
-    private readonly ConfigurationBase configuration;
-    private readonly IMapper mapper;
-    private readonly IHttpFactory httpProvider;
-
-    public ConnectorService(ILogger<ConnectorService> logger, ConfigurationBase configuration, IMapper mapper, IHttpFactory httpProvider)
-    {
-        this.logger = logger;
-        this.configuration = configuration;
-        this.mapper = mapper;
-        this.httpProvider = httpProvider;
-    }
-
     public async Task<bool> RegisterDevice(ApiDevice device, IEnumerable<ApiSensor> apiSensors, IEnumerable<ApiActuator> apiActuators, CancellationToken ct = default)
     {
         await PostAsync(device, "{0}/api/device", ct);

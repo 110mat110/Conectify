@@ -5,15 +5,8 @@ using Conectify.Shared.Services;
 
 namespace Conectify.Services.Automatization;
 
-public class DeviceData : IDeviceData
+public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
 {
-    private readonly AutomatizationConfiguration configuration;
-
-    public DeviceData(AutomatizationConfiguration configuration)
-    {
-        this.configuration = configuration;
-    }
-
     public ApiDevice Device => new()
     {
         Id = configuration.DeviceId,

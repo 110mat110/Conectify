@@ -9,6 +9,14 @@
     list-style-type: none;
   }
   
+ .sidenav-container{
+  height: 1000px;
+ }
+
+ mat-drawer-content{
+  background-color: black;
+ }
+
   /*
    * This padding sets alignment of the nested nodes.
    */
@@ -23,4 +31,48 @@
    */
   .example-tree div[role=group] > .mat-tree-node {
     padding-left: 40px;
+  }
+
+  .mat-drawer-container{
+    background-color: transparent;
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+  
+  .red-dot {
+    background-color: red;
+    color: red;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+  
+  }
+  
+  .yellow-dot {
+    background-color: yellow;
+    color: yellow;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+  
+  }
+  
+  .green-dot {
+    background-color: green;
+    color: green;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;  
   }

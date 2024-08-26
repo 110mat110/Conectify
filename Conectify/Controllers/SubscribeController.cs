@@ -6,15 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
 [ApiController]
-public class SubscribeController : ControllerBase
+public class SubscribeController(IPipelineService pipelineService) : ControllerBase
 {
-    private readonly IPipelineService pipelineService;
-
-    public SubscribeController(IPipelineService pipelineService)
-    {
-        this.pipelineService = pipelineService;
-    }
-
     [HttpGet("{deviceId}/all")]
     public async Task<IActionResult> SubscribeToAll(Guid deviceId)
     {

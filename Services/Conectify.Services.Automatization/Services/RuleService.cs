@@ -11,25 +11,8 @@ using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Services;
 
-public class RuleService
+public class RuleService(IAutomatizationCache automatizationCache, IMapper mapper, ConectifyDb conectifyDb, IConnectorService connectorService, IDeviceData configuration, ITimingService timingService)
 {
-    private readonly IAutomatizationCache automatizationCache;
-    private readonly IMapper mapper;
-    private readonly ConectifyDb conectifyDb;
-    private readonly IConnectorService connectorService;
-    private readonly IDeviceData configuration;
-    private readonly ITimingService timingService;
-
-    public RuleService(IAutomatizationCache automatizationCache, IMapper mapper, ConectifyDb conectifyDb, IConnectorService connectorService, IDeviceData configuration, ITimingService timingService)
-    {
-        this.automatizationCache = automatizationCache;
-        this.mapper = mapper;
-        this.conectifyDb = conectifyDb;
-        this.connectorService = connectorService;
-        this.configuration = configuration;
-        this.timingService = timingService;
-    }
-
     public async Task<Guid> AddNewRule(CreateRuleApiModel apiModel, CancellationToken cancellationToken)
     {
         var rule = mapper.Map<Rule>(apiModel);

@@ -23,23 +23,8 @@ public interface IPipelineService
 
 }
 
-public class PipelineService : IPipelineService
+public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscribersCache, IWebSocketService webSocketService, IMapper mapper, ILogger<PipelineService> logger) : IPipelineService
 {
-    private readonly ConectifyDb conectifyDb;
-    private readonly ISubscribersCache subscribersCache;
-    private readonly IWebSocketService webSocketService;
-    private readonly IMapper mapper;
-    private readonly ILogger<PipelineService> logger;
-
-    public PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscribersCache, IWebSocketService webSocketService, IMapper mapper, ILogger<PipelineService> logger)
-    {
-        this.conectifyDb = conectifyDb;
-        this.subscribersCache = subscribersCache;
-        this.webSocketService = webSocketService;
-        this.mapper = mapper;
-        this.logger = logger;
-    }
-
     public async Task ResendValueToSubscribers(IBaseInputType entity)
     {
         IWebsocketModel? apiModel = null;
@@ -86,7 +71,7 @@ public class PipelineService : IPipelineService
 
         foreach (var subscriber in targetingSubscribers.Distinct())
         {
-            this.logger.LogWarning("Sending from pipeline to " + subscriber.ToString());
+            logger.LogWarning("Sending from pipeline to " + subscriber.ToString());
             await webSocketService.SendToDeviceAsync(subscriber, apiModel);
         }
     }

@@ -12,27 +12,8 @@ public interface IDataService
     Task ProcessEntity(IBaseInputType mapedEntity, Guid deviceId, CancellationToken ct = default);
 }
 
-public class DataService : IDataService
+public class DataService(ILogger<DataService> logger, ConectifyDb database, IPipelineService pipelineService, IDeviceService deviceService, ISensorService sensorService, IActuatorService actuatorService, IMapper mapper) : IDataService
 {
-    private readonly ILogger<DataService> logger;
-    private readonly ConectifyDb database;
-    private readonly IPipelineService pipelineService;
-    private readonly IDeviceService deviceService;
-    private readonly ISensorService sensorService;
-    private readonly IActuatorService actuatorService;
-    private readonly IMapper mapper;
-
-    public DataService(ILogger<DataService> logger, ConectifyDb database, IPipelineService pipelineService, IDeviceService deviceService, ISensorService sensorService, IActuatorService actuatorService, IMapper mapper)
-    {
-        this.logger = logger;
-        this.database = database;
-        this.pipelineService = pipelineService;
-        this.deviceService = deviceService;
-        this.sensorService = sensorService;
-        this.actuatorService = actuatorService;
-        this.mapper = mapper;
-    }
-
     public async Task InsertJsonModel(string rawJson, Guid deviceId, CancellationToken ct = default)
     {
         try

@@ -6,9 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
 [ApiController]
-public class DeviceController : DeviceControllerBase<ApiDevice>
+public class DeviceController(IDeviceService deviceService, ILogger<DeviceController> logger) : DeviceControllerBase<ApiDevice>(logger, deviceService)
 {
-    public DeviceController(IDeviceService deviceService, ILogger<DeviceController> logger) : base(logger, deviceService)
-    {
-    }
 }

@@ -51,6 +51,10 @@ import {MatCardModule} from '@angular/material/card';
 import {MatMenuModule} from '@angular/material/menu';
 import { LoadingComponent } from './dashboard/loading/loading.component';
 import { DeviceComponent } from './device/device.component'; 
+import { FlexLayoutModule } from "@angular/flex-layout";
+import {MatSidenavModule} from '@angular/material/sidenav';
+
+
 
 @NgModule({ declarations: [
         AppComponent,
@@ -81,10 +85,12 @@ import { DeviceComponent } from './device/device.component';
         LoadingComponent,
         DeviceComponent
     ],
-    bootstrap: [AppComponent], imports: [FormsModule,
+    bootstrap: [AppComponent], 
+    imports: [FormsModule,
         DragDropModule,
         BrowserModule,
         MatSliderModule,
+        FlexLayoutModule,
         MatGridListModule,
         AppRoutingModule,
         ReactiveFormsModule,
@@ -104,5 +110,7 @@ import { DeviceComponent } from './device/device.component';
         MatCheckboxModule,
         MatDividerModule,
         MatCardModule,
-        MatMenuModule], providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }, provideHttpClient(withInterceptorsFromDi())] })
+        MatSidenavModule,
+        MatMenuModule], 
+        providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }, provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }

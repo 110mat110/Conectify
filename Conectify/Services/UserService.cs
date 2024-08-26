@@ -3,15 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Conectify.Server.Services;
 
-public class UserService
+public class UserService(ConectifyDb conectifyDb)
 {
-    private readonly ConectifyDb conectifyDb;
-
-    public UserService(ConectifyDb conectifyDb)
-    {
-        this.conectifyDb = conectifyDb;
-    }
-
     public async Task<Guid> GetUser(string userMail)
     {
         var existingUser = await conectifyDb.Users.FirstOrDefaultAsync(x => x.UserMail == userMail);

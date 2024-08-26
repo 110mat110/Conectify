@@ -1,5 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, OnChanges, SimpleChanges, Input } from '@angular/core';
+import { ActivatedRoute, RedirectCommand, Router } from '@angular/router';
 import { BEFetcherService } from '../befetcher.service';
 import { Device } from 'src/models/thing';
 import { Actuator } from 'src/models/actuator';
@@ -7,6 +7,8 @@ import { Sensor } from 'src/models/sensor';
 import { ApiMetadata, Metadata } from 'src/models/metadata';
 import { MatListOption, MatSelectionListChange } from '@angular/material/list';
 import { FormControl } from '@angular/forms';
+import { fromEvent } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-device',
@@ -17,13 +19,15 @@ export class DeviceComponent implements OnInit {
 
   public id: string | null = "";
   public device: Device | undefined = undefined;
+  public devices: Device[] = [];
   public actuators: Actuator[] = [];
-  public actuatorCubes: {id: string, visible: boolean}[] = [];
-  public actuatorWithMetadata: {actuator: Actuator, metadatas: Metadata[]}[] = [];
-  public sensorWithMetadata: {sensor: Sensor, metadatas: Metadata[]}[] = []
-  public sensorCubes: {id: string, visible: boolean}[] = [];
+  public actuatorCubes: { id: string, visible: boolean }[] = [];
+  public actuatorWithMetadata: { actuator: Actuator, metadatas: Metadata[] }[] = [];
+  public sensorWithMetadata: { sensor: Sensor, metadatas: Metadata[] }[] = []
+  public sensorCubes: { id: string, visible: boolean }[] = [];
   public sensors: Sensor[] = [];
   public metadatas: Metadata[] = [];
+  public deviceSrc: string | undefined;
   selectedMetadata?: Metadata;
   avaliableMetadata: ApiMetadata[] = [];
   columnNum: number = 4;
@@ -31,30 +35,42 @@ export class DeviceComponent implements OnInit {
   @ViewChild('theContainer') theContainer: any;
   @ViewChild('sensorMetadatas') sensorMetadatas: any;
   @ViewChild('actuatorMetadatas') actuatorMetadatas: any;
+  @ViewChild('deviceWebsite', { static: true }) deviceWebsite: any;
 
 
   formControlObj: FormControl = new FormControl();
 
 
-  constructor(private route: ActivatedRoute, private be: BEFetcherService) { }
+  constructor(private route: ActivatedRoute, private be: BEFetcherService, private router: Router) { }
 
   ngOnInit(): void {
+    this.be.getAllDevices().subscribe(
+      devices => {
+        this.devices = devices;
+
+
     this.id = this.route.snapshot.paramMap.get('id');
-    if(this.id == null){
+    if (this.id == null || this.id == "" || this.id == "-1") {
+      this.selectDevice(devices[0])
       return;
     }
+
     this.be.getDevice(this.id).subscribe(
-      device => this.device = device
+      device => {
+        this.device = device;
+        this.deviceSrc = "http://" + device.ipAdress + "/";
+        this.deviceWebsite.nativeElement.src = this.deviceSrc;
+      }
     )
 
     this.be.getAllActuatorsForDevice(this.id).subscribe(
       actuators => {
         this.actuators = actuators;
         actuators.forEach(element => {
-          this.actuatorCubes.push({id: element.id, visible: true})
+          this.actuatorCubes.push({ id: element.id, visible: true })
           this.be.getActuatorMetadatas(element.id).subscribe(
-            metadatas =>{
-               this.actuatorWithMetadata.push({actuator:element, metadatas: metadatas})
+            metadatas => {
+              this.actuatorWithMetadata.push({ actuator: element, metadatas: metadatas })
             }
           )
         });
@@ -62,15 +78,16 @@ export class DeviceComponent implements OnInit {
     )
 
     this.be.getAllSensorsForDevice(this.id).subscribe(
-      sensors => {this.sensors = sensors;
+      sensors => {
+        this.sensors = sensors;
         sensors.forEach(element => {
-          this.sensorCubes.push({id: element.id, visible: true})
+          this.sensorCubes.push({ id: element.id, visible: true })
           this.be.getSensorMetadatas(element.id).subscribe(
-            metadatas =>{
-               this.sensorWithMetadata.push({sensor:element, metadatas: metadatas})
+            metadatas => {
+              this.sensorWithMetadata.push({ sensor: element, metadatas: metadatas })
             }
           )
-          
+
         });
       }
     )
@@ -85,23 +102,48 @@ export class DeviceComponent implements OnInit {
       this.formControlObj?.setValue(this.avaliableMetadata[0].id);
     });
 
-    let width = this.theContainer.nativeElement.offsetWidth;
-    this.columnNum = Math.trunc(width/this.tileSize);
+    this.calculateCols();
+  
+})};
+
+ngAfterViewInit(): void {
+  this.calculateCols();
+
+  fromEvent(window, 'resize')
+    .pipe(debounceTime(100))
+    .subscribe(() => this.calculateCols());
+}
+
+getStatusColor(state: number): string {
+  switch (state) {
+    case 0: return 'red';
+    case 1: return 'yellow';
+    case 2: return 'green';
+    default: return 'white';
   }
-  updateMetadata(numericValue: string, stringValue: string, minVal: string, maxVal: string){
-    this.actuatorMetadatas.selectedOptions.selected.forEach((element: {actuator: {id: string} }) => {
-    console.warn(element.actuator.id);
-   }); 
-   this.sensorMetadatas.selectedOptions.selected.map((o: MatListOption) => o.value).forEach((element: {sensor: {id: string} }) => {
-    console.warn(element.sensor.id);
-   }); 
+}
+
+calculateCols(): void {
+  const containerWidth = this.theContainer.nativeElement.clientWidth;
+  this.columnNum = Math.floor(containerWidth / 400);
+}
+
+  ngOnChanges(changes: SimpleChanges): void {
+  }
+  updateMetadata(numericValue: string, stringValue: string, minVal: string, maxVal: string) {
+    this.actuatorMetadatas.selectedOptions.selected.forEach((element: { actuator: { id: string } }) => {
+      console.warn(element.actuator.id);
+    });
+    this.sensorMetadatas.selectedOptions.selected.map((o: MatListOption) => o.value).forEach((element: { sensor: { id: string } }) => {
+      console.warn(element.sensor.id);
+    });
   }
 
   listSelectionChange(e: MatSelectionListChange) {
     console.log(e.source.selectedOptions.selected.map((o: MatListOption) => o.value));
   }
 
-  deleteMetadata(id: string){
+  deleteMetadata(id: string) {
     this.be.deleteMetadata(id);
   }
 
@@ -109,8 +151,13 @@ export class DeviceComponent implements OnInit {
     let selection = e.options[0].value;
     this.selectedMetadata = this.metadatas.find(x => x.metadataId = selection);
     this.formControlObj?.setValue(this.selectedMetadata?.metadataId);
-}
-compareCategoryObjects(object1: any, object2: any) {
-  return object1 && object2 && object1 === object2;
-}
+  }
+  compareCategoryObjects(object1: any, object2: any) {
+    return object1 && object2 && object1 === object2;
+  }
+
+  selectDevice(device: Device): void {
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate(['/device/'+device.id])});
+  }
 }

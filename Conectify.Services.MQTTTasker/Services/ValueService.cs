@@ -9,18 +9,9 @@ public interface IValueService
 	Task<bool> SetAction(Guid actuatorId, float  value);
 }
 
-internal class ValueService : IValueService
+internal class ValueService(IServicesWebsocketClient websocketClient, IDeviceData deviceData) : IValueService
 {
-	private readonly IServicesWebsocketClient websocketClient;
-	private readonly IDeviceData deviceData;
-
-	public ValueService(IServicesWebsocketClient websocketClient, IDeviceData deviceData)
-	{
-		this.websocketClient = websocketClient;
-		this.deviceData = deviceData;
-	}
-
-        public async Task<bool> SetAction(Guid actuatorId, float value)
+    public async Task<bool> SetAction(Guid actuatorId, float value)
 	{
 		var response = new WebsocketBaseModel()
 		{

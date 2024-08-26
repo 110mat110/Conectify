@@ -6,17 +6,8 @@ using System.Net.Http.Headers;
 
 namespace Conectify.Services.ShellyConnector.Services;
 
-public class ValueScraper : BackgroundService
+public class ValueScraper(Configuration configuration, IServicesWebsocketClient websocketClient) : BackgroundService
 {
-    private readonly Configuration configuration;
-    private readonly IServicesWebsocketClient websocketClient;
-
-    public ValueScraper(Configuration configuration, IServicesWebsocketClient websocketClient)
-    {
-        this.configuration = configuration;
-        this.websocketClient = websocketClient;
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (configuration.ShellyType.ToLower().Contains("pm"))

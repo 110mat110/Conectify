@@ -1,8 +1,9 @@
 export interface Device {
     id: string;
-    iPAdress: string;
+    ipAdress: string;
     macAdress: string;
     name: string;
+    state: number;
 }
 
 export interface DeviceSelector{

@@ -9,16 +9,9 @@ public interface IMQTTSender
 	Task SendValueToBroker(IBaseInputType input, CancellationToken cancellationToken);
 }
 
-internal class MQTTSender : IMQTTSender
+internal class MQTTSender(Configuration configuration) : IMQTTSender
 {
-	private readonly Configuration configuration;
-
-	public MQTTSender(Configuration configuration)
-	{
-		this.configuration = configuration;
-	}
-
-	public async Task SendValueToBroker(IBaseInputType input, CancellationToken cancellationToken)
+    public async Task SendValueToBroker(IBaseInputType input, CancellationToken cancellationToken)
 	{
 		if (!input.NumericValue.HasValue)
 		{

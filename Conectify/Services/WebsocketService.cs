@@ -13,29 +13,13 @@ public interface IWebSocketService
     Task<bool> SendToDeviceAsync(Guid thingId, string rawString, CancellationToken cancelationToken = default);
 }
 
-public class WebSocketService : IWebSocketService
+public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCache cache, IServiceProvider serviceProvider, IDeviceService deviceService, IWebsocketCache websocketCache) : IWebSocketService
 {
-
-    private readonly ILogger<WebSocketService> logger;
-    private readonly ISubscribersCache subscribersCache;
-    private readonly IServiceProvider serviceProvider;
-    private readonly IDeviceService deviceService;
-    private readonly IWebsocketCache websocketCache;
-
-    public WebSocketService(ILogger<WebSocketService> logger, ISubscribersCache cache, IServiceProvider serviceProvider, IDeviceService deviceService, IWebsocketCache websocketCache)
-    {
-        this.logger = logger;
-        this.subscribersCache = cache;
-        this.serviceProvider = serviceProvider;
-        this.deviceService = deviceService;
-        this.websocketCache = websocketCache;
-    }
-
     public async Task<bool> ConnectAsync(Guid deviceId, WebSocket webSocket, CancellationToken ct = default)
     {
         websocketCache.AddNewWebsocket(deviceId, webSocket);
         await deviceService.TryAddUnknownDevice(deviceId, ct: ct); ;
-        await subscribersCache.UpdateSubscriber(deviceId, ct);
+        await cache.UpdateSubscriber(deviceId, ct);
         logger.LogWarning($"Connection with device {deviceId} has started.");
         await HandleInput(webSocket, deviceId, ct);
 
@@ -43,7 +27,7 @@ public class WebSocketService : IWebSocketService
         websocketCache.Remove(deviceId);
         if (websocketCache.GetNoOfActiveSockets(deviceId) < 1)
         {
-            subscribersCache.RemoveSubscriber(deviceId);
+            cache.RemoveSubscriber(deviceId);
         }
         else
         {
@@ -90,7 +74,7 @@ public class WebSocketService : IWebSocketService
             logger.LogInformation("Value sended to active websocket " + deviceId);
             return true;
         }
-        subscribersCache.RemoveSubscriber(deviceId);
+        cache.RemoveSubscriber(deviceId);
         websocketCache.Remove(deviceId);
         logger.LogError($"Cannot send message to {deviceId}");
         return false;

@@ -7,19 +7,8 @@ using System.Net.Http.Headers;
 
 namespace Conectify.Services.AQIScraper;
 
-public class CHMIScraper
+public class CHMIScraper(IServicesWebsocketClient websocketClient, Configuration configuration, ILogger<CHMIScraper> logger)
 {
-    private readonly IServicesWebsocketClient websocketClient;
-    private readonly Configuration configuration;
-    private readonly ILogger<CHMIScraper> logger;
-
-    public CHMIScraper(IServicesWebsocketClient websocketClient, Configuration configuration, ILogger<CHMIScraper> logger)
-    {
-        this.websocketClient = websocketClient;
-        this.configuration = configuration;
-        this.logger = logger;
-    }
-
     public async Task LoadNewValues()
     {
         HttpClient client = new();
@@ -45,7 +34,7 @@ public class CHMIScraper
                 Name = "AQI",
                 NumericValue = AQI,
                 StringValue = status,
-                SourceId = this.configuration.SensorId,
+                SourceId = configuration.SensorId,
                 TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 Unit = "PM10",
                 Type = Constants.Types.Value,

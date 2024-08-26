@@ -7,14 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Conectify.Services.Dashboard.Controllers;
 [Route("api/[controller]")]
 [ApiController]
-public class DashboardController : ControllerBase
+public class DashboardController(DashboardService dashboardService) : ControllerBase
 {
-    private readonly DashboardService dashboardService;
-
-    public DashboardController(DashboardService dashboardService)
-    {
-        this.dashboardService = dashboardService;
-    }
 
     // GET: api/<DashboardController>
     [HttpGet("all/{userId}")]

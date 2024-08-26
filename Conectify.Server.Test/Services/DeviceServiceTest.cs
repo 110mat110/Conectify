@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Conectify.Database;
 using Conectify.Database.Models;
+using Conectify.Server.Caches;
 using Conectify.Server.Services;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
@@ -36,7 +37,7 @@ public class DeviceServiceTest
     [Fact]
     public async Task ItShallAddUnknownDeviceToDatabase()
     {
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
 		var deviceId = Guid.NewGuid();
 
         var result = await service.TryAddUnknownDevice(deviceId);
@@ -51,7 +52,7 @@ public class DeviceServiceTest
     [Fact]
     public async Task ItShallNotAddDeviceAgainToDatabase()
     {
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
         var deviceId = Guid.NewGuid();
         var dbs = new ConectifyDb(dbContextoptions);
         var deviceName = "Test known device";
@@ -74,7 +75,7 @@ public class DeviceServiceTest
     [Fact]
     public async Task ItShallAddKnownDeviceWithId()
     {
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
         var deviceId = Guid.NewGuid();
         var deviceName = Guid.NewGuid().ToString();
         var apiDevice = new ApiDevice()
@@ -97,7 +98,7 @@ public class DeviceServiceTest
     [Fact]
     public async Task ItShallOverwriteKnownDevice()
     {
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
         var deviceName = Guid.NewGuid().ToString();
         var deviceId = Guid.NewGuid();
         var dbs = new ConectifyDb(dbContextoptions);
@@ -128,7 +129,7 @@ public class DeviceServiceTest
     [Fact]
     public async Task ItShallAddKnownDeviceWithoutId()
     {
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
         var deviceName = Guid.NewGuid().ToString();
         var apiDevice = new ApiDevice()
         {
@@ -158,7 +159,7 @@ public class DeviceServiceTest
         });
         dbs.SaveChanges();
 
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
 		var result = await service.GetSpecificDevice(deviceId);
 
         Assert.NotNull(result);
@@ -169,7 +170,7 @@ public class DeviceServiceTest
     [Fact]
     public async Task ItShallReturnNullWhenDeviceIsNotInDb()
     {
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
 		var result = await service.GetSpecificDevice(Guid.NewGuid());
 
         Assert.Null(result);
@@ -191,7 +192,7 @@ public class DeviceServiceTest
         });
         dbs.SaveChanges();
 
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
         var result = await service.GetAllDevices();
 
         Assert.NotEmpty(result);
@@ -216,7 +217,7 @@ public class DeviceServiceTest
             MetadataId = metadataId,
         };
 
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
         var result = await service.AddMetadata(metadataApi);
 
         Assert.False(result);
@@ -240,7 +241,7 @@ public class DeviceServiceTest
             MetadataId = Guid.NewGuid(),
         };
 
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
         var result = await service.AddMetadata(metadataApi);
 
         Assert.False(result);
@@ -269,7 +270,7 @@ public class DeviceServiceTest
             StringValue = stringValue,
         };
 
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
         var result = await service.AddMetadata(metadataApi);
 
         Assert.True(result);
@@ -309,7 +310,7 @@ public class DeviceServiceTest
             StringValue = stringValue,
         };
 
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
         var result = await service.AddMetadata(metadataApi);
 
         Assert.True(result);
@@ -346,7 +347,7 @@ public class DeviceServiceTest
         });
         dbs.SaveChanges();
 
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
         var result = await service.GetMetadata(deviceId);
 
         Assert.Equal(2, result.Count());
@@ -381,7 +382,7 @@ public class DeviceServiceTest
         });
         dbs.SaveChanges();
 
-        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration);
+        var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
         var filter = new ApiFilter() { IsVisible = true };
         var result = (await service.Filter(filter)).Select(x => x.Id);
 

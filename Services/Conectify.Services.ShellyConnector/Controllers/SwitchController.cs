@@ -5,15 +5,8 @@ namespace Conectify.Services.ShellyConnector.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-public class SwitchController : ControllerBase
+public class SwitchController(IShellyService shellyService) : ControllerBase
 {
-    private readonly IShellyService shellyService;
-
-    public SwitchController(IShellyService shellyService)
-    {
-        this.shellyService = shellyService;
-    }
-
     [HttpGet("Off")]
     public async Task<IActionResult> Off()
     {

@@ -5,17 +5,8 @@ using Conectify.Shared.Library.Models;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController, Route("api/[controller]")]
-public class DeviceControllerBase<TApi> : ControllerBase where TApi : IApiModel
+public class DeviceControllerBase<TApi>(ILogger<DeviceControllerBase<TApi>> logger, IUniversalDeviceService<TApi> service) : ControllerBase where TApi : IApiModel
 {
-    private readonly IUniversalDeviceService<TApi> service;
-    private readonly ILogger<DeviceControllerBase<TApi>> logger;
-
-    public DeviceControllerBase(ILogger<DeviceControllerBase<TApi>> logger, IUniversalDeviceService<TApi> service)
-    {
-        this.logger = logger;
-        this.service = service;
-    }
-
     [HttpPost()]
     public async Task<IActionResult> AddNew(TApi apiDevice, CancellationToken ct)
     {

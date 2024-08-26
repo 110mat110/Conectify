@@ -1,10 +1,37 @@
-<div *ngIf="device" #theContainer>
-    <h2>{{device.name}}</h2>
+<mat-drawer-container class="sidenav-container" autosize>
+    <!-- Sidenav that stays visible -->
+    <mat-drawer mode="side" opened #deviceDrawer>
+      <mat-nav-list>
+        <ng-container *ngFor="let device of devices">
+            <mat-list-item (click)="selectDevice(device)">
+                <span [ngStyle]="{'color': getStatusColor(device.state)}"> o </span>
+                <span>{{ device.name }}</span>
+              </mat-list-item>
+        </ng-container>
+      </mat-nav-list>
+    </mat-drawer>
+
+    <mat-drawer-content>
+<div #theContainer>
+    <button type="button" mat-button (click)="deviceDrawer.toggle()">
+        <mat-icon #icon aria-hidden="false" aria-label="Example home icon" fontIcon="keyboard_arrow_right"></mat-icon>
+      </button>
+    <h2>{{device?.name}}</h2>
     <p>Overview page for device
-        {{device.iPAdress}}
+        {{device?.ipAdress}}
     </p>
     <br />
     <mat-tab-group>
+
+        <mat-tab label="Sensors">
+            <mat-grid-list cols="{{columnNum}}" rowHeight="250px" gutterSize="6px">
+                <div *ngFor="let sensor of sensorCubes">
+                    <mat-grid-tile>
+                        <app-sensor-cube [sensorInput]="sensor"></app-sensor-cube>
+                    </mat-grid-tile>
+                </div>
+            </mat-grid-list>
+        </mat-tab>
         <mat-tab *ngIf="actuatorCubes.length >0" label="Actuators">
             <mat-grid-list cols="{{columnNum}}" rowHeight="250px" gutterSize="6px">
                 <div *ngFor="let actuator of actuatorCubes" width="100%" style="flex: 1 1 auto;">
@@ -14,14 +41,8 @@
                 </div>
             </mat-grid-list>
         </mat-tab>
-        <mat-tab label="Sensors">
-            <mat-grid-list cols="{{columnNum}}" rowHeight="250px" gutterSize="6px">
-                <div *ngFor="let sensor of sensorCubes">
-                    <mat-grid-tile>
-                        <app-sensor-cube [sensorInput]="sensor"></app-sensor-cube>
-                    </mat-grid-tile>
-                </div>
-            </mat-grid-list>
+        <mat-tab label="Panel" >
+            <iframe #deviceWebsite src="" style="border:none;" allowfullscreen height="800px" width="100%"></iframe>
         </mat-tab>
         <mat-tab label="Metadata">
 
@@ -169,3 +190,5 @@
     </mat-tab-group>
 
 </div>
+</mat-drawer-content>
+</mat-drawer-container>

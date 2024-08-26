@@ -16,18 +16,10 @@ public interface ISubscribersCache
     Task<Subscriber?> UpdateSubscriber(Guid deviceId, CancellationToken ct = default);
 }
 
-public class SubscribersCache : ISubscribersCache
+public class SubscribersCache(IServiceProvider serviceProvider, IMapper mapper) : ISubscribersCache
 {
     private static Dictionary<Guid, Subscriber> subscribers = new Dictionary<Guid, Subscriber>();
-    private readonly IServiceProvider serviceProvider;
-    private readonly IMapper mapper;
     private readonly object locker = new();
-
-    public SubscribersCache(IServiceProvider serviceProvider, IMapper mapper)
-    {
-        this.serviceProvider = serviceProvider;
-        this.mapper = mapper;
-    }
 
     public IEnumerable<Subscriber> AllSubscribers() => subscribers.Select(x => x.Value);
 

@@ -9,16 +9,8 @@ public interface IInternalCommandService
 {
     Task<bool> HandleInternalCommand(Command command, CancellationToken ct);
 }
-internal class InternalCommandService : IInternalCommandService
+internal class InternalCommandService(ConfigurationBase configuration, IServiceProvider serviceProvider) : IInternalCommandService
 {
-    private readonly ConfigurationBase configuration;
-    private readonly IServiceProvider serviceProvider;
-
-    public InternalCommandService(ConfigurationBase configuration, IServiceProvider serviceProvider)
-    {
-        this.configuration = configuration;
-        this.serviceProvider = serviceProvider;
-    }
     public async Task<bool> HandleInternalCommand(Command command, CancellationToken ct)
     {
         if (command.DestinationId != configuration.DeviceId)

@@ -1,6 +1,8 @@
 import { Component, HostListener, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
+import { fromEvent } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-sensor-overview',
@@ -15,17 +17,24 @@ export class SensorOverviewComponent implements OnInit {
 
   constructor(private be: BEFetcherService, private messanger: MessagesService ) { 
   }
+  ngAfterViewInit(): void {
+    this.calculateCols();
+  
+    fromEvent(window, 'resize')
+      .pipe(debounceTime(100))
+      .subscribe(() => this.calculateCols());
+  }
 
   ngOnInit(): void {
     this.be.getActiveSensors().subscribe(x => {
       x.forEach(s => this.sensors.push({id: s, visible: true}));
-      this.setColNum();
+      this.calculateCols();
     }, (err) => {
       this.messanger.addMessage("Error!");
       this.messanger.addMessage(JSON.stringify(err));
   });
   }
-  setColNum(){
+  calculateCols(){
     let width = this.theContainer.nativeElement.offsetWidth;
     this.columnNum = Math.trunc(width/this.tileSize);
   }

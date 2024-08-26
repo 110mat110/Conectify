@@ -36,6 +36,8 @@ USBComm usb;
 String lastIP = "";
 WebsocketsClient websocketClient;
 DNSServer dnsServer;
+Value *watchedValuesArray;
+int valuesArrayLength = 0;
 
 bool InitializeNetwork();
 void InitializeDevice(int psensorArrSize, int pactuatorArrSize, void (*SensorsDeclarations)());
@@ -85,7 +87,7 @@ void LoopMandatoryRoutines()
   {
     ReloadNetwork();
   }
-  //dnsServer.processNextRequest();
+  // dnsServer.processNextRequest();
 
   if (websocketClient.available())
   {
@@ -198,10 +200,9 @@ bool IsWiFi()
   return wifi;
 }
 
-
-const IPAddress localIP(192, 168, 4, 1);		   // the IP address the web server, Samsung requires the IP to be in public space
-const IPAddress gatewayIP(192, 168, 4, 1);		   // IP address of the network should be the same as the local IP for captive portals
-const IPAddress subnetMask(255, 255, 255, 0);  // no need to change: https://avinetworks.com/glossary/subnet-mask/
+const IPAddress localIP(192, 168, 4, 1);      // the IP address the web server, Samsung requires the IP to be in public space
+const IPAddress gatewayIP(192, 168, 4, 1);    // IP address of the network should be the same as the local IP for captive portals
+const IPAddress subnetMask(255, 255, 255, 0); // no need to change: https://avinetworks.com/glossary/subnet-mask/
 
 void InitializeAP()
 {
@@ -413,6 +414,36 @@ void HandleCommand(String commandText, float commandValue, String commandTextPar
   HandleCommand("", commandText, commandValue, commandTextParam);
 }
 
+void HandleIncomingValue(String source, float value, String stringValue, String unit)
+{
+  if(valuesArrayLength == 0){
+    DebugMessage("Values array is empty");
+    return;
+  }
+
+  char id[IdStringLength];
+  source.toCharArray(id, IdStringLength, 0);
+
+  for (int i = 0; i < valuesArrayLength; i++)
+  {
+    if (!strcmp(id, watchedValuesArray[i].SourceId))
+    {
+      watchedValuesArray[i].hasChanged = true;
+      watchedValuesArray[i].NumericValue = value;
+      watchedValuesArray[i].stringValue = stringValue;
+      watchedValuesArray[i].unit = unit;
+      DebugMessage("Set values for " + source);
+      return;
+    }
+  }
+}
+
+void SetWatchDog(Value valuesArray[], int valuesLength)
+{
+  valuesArrayLength = valuesLength;
+  watchedValuesArray = valuesArray;
+}
+
 void onMessageCallback(WebsocketsMessage message)
 {
   DebugMessage("Got websocket: ");
@@ -420,11 +451,13 @@ void onMessageCallback(WebsocketsMessage message)
   decodeIncomingJson(
       message.data(),
       HandleCommand,
+      HandleIncomingValue,
       GetGlobalVariables()->dateTime,
       GetGlobalVariables()->actuatorsArr,
       GetGlobalVariables()->actuatorArrSize);
 }
 
-DNSServer* GetDns(){
+DNSServer *GetDns()
+{
   return &dnsServer;
 }

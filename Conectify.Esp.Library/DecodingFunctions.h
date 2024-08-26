@@ -21,6 +21,7 @@ void RegisterActuator(Actuator &sensor, BaseDevice &baseDevice);
 
 void decodeIncomingJson(String incomingJson,   
     void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
+    void (*handleValues)(String source, float value, String stringValue, String unit),
     Time dateTime,
     Actuator* actuators,
     byte actuatorsLength

@@ -7,16 +7,9 @@ namespace Conectify.Services.MQTTTasker.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ValuesController : ControllerBase
+public class ValuesController(IValueService valueService) : ControllerBase
 {
-	private readonly IValueService valueService;
-
-	public ValuesController(IValueService valueService)
-	{
-		this.valueService = valueService;
-	}
-
-	[HttpPost("action/{id}/{value}")]
+    [HttpPost("action/{id}/{value}")]
 	public async Task<bool> Set(Guid id, float value)
 	{
 		return await valueService.SetAction(id, value);

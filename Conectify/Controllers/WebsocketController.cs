@@ -6,15 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
 [ApiController]
-public class WebsocketController : ControllerBase
+public class WebsocketController(IWebSocketService webSocketService) : ControllerBase
 {
-    private readonly IWebSocketService webSocketService;
-
-    public WebsocketController(IWebSocketService webSocketService)
-    {
-        this.webSocketService = webSocketService;
-    }
-
     [HttpGet("{id}")]
     public async Task<IActionResult> WebsocketRegister(Guid id)
     {

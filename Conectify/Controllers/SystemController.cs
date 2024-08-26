@@ -7,15 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 [Route("api/[controller]")]
 [ApiController]
-public class SystemController : ControllerBase
+public class SystemController(ConectifyDb database) : ControllerBase
 {
-    private readonly ConectifyDb database;
-
-    public SystemController(ConectifyDb database)
-    {
-        this.database = database;
-    }
-
     [HttpGet("Ping")]
     public string GetPing()
     {

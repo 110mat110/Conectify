@@ -1,11 +1,7 @@
 ﻿namespace Conectify.Service.History;
 
-public class Configuration : Conectify.Services.Library.ConfigurationBase
+public class Configuration(IConfiguration configuration) : Conectify.Services.Library.ConfigurationBase(configuration)
 {
-    public Configuration(IConfiguration configuration) : base(configuration)
-    {
-    }
-
     public Guid SensorId { get; set; }
 
     public Guid ActuatorId { get; set; }

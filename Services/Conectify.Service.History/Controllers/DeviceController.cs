@@ -5,15 +5,8 @@ namespace Conectify.Service.History.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class DeviceController : ControllerBase
+public class DeviceController(IDeviceCachingService deviceCachingService) : ControllerBase
 {
-    private readonly IDeviceCachingService deviceCachingService;
-
-    public DeviceController(IDeviceCachingService deviceCachingService)
-    {
-        this.deviceCachingService = deviceCachingService;
-    }
-
     [HttpGet("sensors")]
     public IEnumerable<Guid> ActiveSensors()
     {

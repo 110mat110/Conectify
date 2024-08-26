@@ -37,6 +37,10 @@ export class AdressesService {
     return this.serverURL + "device/" + id;
   }
 
+  getAllDevices(): string {
+    return this.serverURL + "device/all";
+  }
+
   postDevice():string{
     return this.serverURL + "device";
   }

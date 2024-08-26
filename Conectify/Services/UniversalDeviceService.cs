@@ -22,23 +22,8 @@ public interface IUniversalDeviceService<TApi>
     Task<IEnumerable<TApi>> Filter(ApiFilter filter, CancellationToken ct = default);
 }
 
-public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceService<TApi> where TDbs : class, IEntity, IDevice
+public abstract class UniversalDeviceService<TDbs, TApi>(ConectifyDb database, IMapper mapper, ILogger<UniversalDeviceService<TDbs, TApi>> logger, IHttpFactory httpProvider, Configuration configuration) : IUniversalDeviceService<TApi> where TDbs : class, IEntity, IDevice
 {
-    private readonly ConectifyDb database;
-    private readonly IMapper mapper;
-    private readonly ILogger<UniversalDeviceService<TDbs, TApi>> logger;
-	private readonly IHttpFactory httpProvider;
-	private readonly Configuration configuration;
-
-	protected UniversalDeviceService(ConectifyDb database, IMapper mapper, ILogger<UniversalDeviceService<TDbs, TApi>> logger, IHttpFactory httpProvider, Configuration configuration)
-    {
-        this.database = database;
-        this.mapper = mapper;
-        this.logger = logger;
-		this.httpProvider = httpProvider;
-		this.configuration = configuration;
-	}
-
     public async Task<Guid> AddKnownDevice(TApi apiDevice, CancellationToken ct = default)
     {
         var device = mapper.Map<TDbs>(apiDevice);
@@ -67,7 +52,7 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
         return mapper.Map<TApi>(dbsModel);
     }
 
-    public async Task<IEnumerable<TApi>> GetAllDevices(CancellationToken ct = default)
+    public virtual async Task<IEnumerable<TApi>> GetAllDevices(CancellationToken ct = default)
     {
         return await database.Set<TDbs>().AsNoTracking().ProjectTo<TApi>(mapper.ConfigurationProvider).ToListAsync(ct);
     }
