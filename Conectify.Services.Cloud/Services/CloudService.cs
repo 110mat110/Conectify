@@ -2,6 +2,7 @@
 using Conectify.Database.Models.Values;
 using Conectify.Services.Cloud.Services;
 using Conectify.Services.Library;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
 using Newtonsoft.Json;
 using System.Text;
@@ -14,33 +15,82 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
 
     private readonly Dictionary<Guid, List<IWebsocketBaseModel>> valueCache = [];
 
-    public void StartServiceAsync()
+    private DateTime LastRefresh = DateTime.MinValue;
+
+    public async Task StartServiceAsync()
     {
         websocketClient.OnIncomingValue += WebsocketClient_OnIncomingValue;
         websocketClient.OnIncomingAction += WebsocketClient_OnIncomingAction;
         websocketClient.OnIncomingCommand += WebsocketClient_OnIncomingCommand;
-        websocketClient.ConnectAsync();
+        await websocketClient.ConnectAsync();
 
-        RefreshCloudDevices().RunSynchronously();
+        await RefreshCloudDevices();
+
+        Timer timer = new(CallCloud, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
+    }
+
+    private async void CallCloud(object? state)
+    {
+        var finalURL = string.Format("http://{0}/api/value", cloudConfiguration.BaseAddress);
+        finalURL = finalURL.Replace("//", "/").Replace(@"\\", @"\").Replace("http:/", "http://").Replace("https:/", "https://");
+
+        using var client = new HttpClient();
+        var message = new HttpRequestMessage(HttpMethod.Get, finalURL);
+        var result = await client.SendAsync(message);
+
+        var jsonResult = await result.Content.ReadAsStringAsync();
+
+        var values = JsonConvert.DeserializeObject<ApiValues>(jsonResult);
+
+        foreach(var value in values?.Actuators?? [])
+        {
+            var action = new WebsocketBaseModel()
+            {
+                DestinationId = Guid.Parse(value.ActuatorId),
+                Name = "cloud",
+                NumericValue = value.NumericValue,
+                StringValue = value.StringValue,
+                TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                Unit = "",
+                SourceId = cloudConfiguration.SensorId,
+                Type = Constants.Types.Action,
+            };
+           await websocketClient.SendMessageAsync(action);
+        }
     }
 
     private async Task RefreshCloudDevices()
     {
-        var actuators = await connectorService.LoadAllActuators();
-        var cloudActuators = actuators.Where(a => a.Metadata.Any(m => m.Id == Guid.Parse("fd247417-9c50-4108-a8ad-f4899268c706"))).ToList();
-    
-    
-        foreach(var cloudActuator  in cloudActuators)
+        if (DateTime.UtcNow.Subtract(LastRefresh).TotalMinutes < 3)
         {
-            var finalURL = string.Format("{0}/api/actuators", cloudConfiguration.BaseAddress);
+            return;
+        }
+        LastRefresh = DateTime.UtcNow;
+
+        var actuators = await connectorService.LoadAllActuators();
+        var actuatorsForCloud = actuators.Where(a => a.Metadata.Any(m => m.MetadataId == Constants.Metadatas.CloudMetadata)).ToList();
+
+
+        foreach (var actuatorForCloud  in actuatorsForCloud)
+        {
+            var finalURL = string.Format("http://{0}/api/actuators", cloudConfiguration.BaseAddress);
             finalURL = finalURL.Replace("//", "/").Replace(@"\\", @"\").Replace("http:/", "http://").Replace("https:/", "https://");
 
-            var serializedApiModel = JsonConvert.SerializeObject(new ApiCloudActuator(cloudActuator.Id.ToString(), cloudActuator.Name, "", 0 ,"", "1"));
+            var typeMetadata = actuatorForCloud.Metadata.FirstOrDefault(x => x.MetadataId == Constants.Metadatas.IOTypeMetada);
+            string ioType = Constants.Metadatas.DefaultIOType;
+            if (typeMetadata is not null)
+            {
+                ioType = typeMetadata.NumericValue.ToString() ?? Constants.Metadatas.DefaultIOType;
+            }
+
+            var lastValue = await connectorService.LoadLastValue(actuatorForCloud.SensorId);
+
+            var apiCloudActuator = new ApiCloudActuator(actuatorForCloud.Id.ToString(), actuatorForCloud.Name, lastValue?.StringValue ?? string.Empty, lastValue?.NumericValue ?? 0f ,lastValue?.Unit ?? String.Empty, ioType);
 
             using var client = new HttpClient();
             var message = new HttpRequestMessage(HttpMethod.Post, finalURL)
             {
-                Content = new StringContent(serializedApiModel, Encoding.UTF8, "application/json")
+                Content = new StringContent(JsonConvert.SerializeObject(apiCloudActuator), Encoding.UTF8, "application/json")
             };
             var result = await client.SendAsync(message);
         }
@@ -65,10 +115,14 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
         
     }
 
-    private void WebsocketClient_OnIncomingValue(Value value)
+    private async void WebsocketClient_OnIncomingValue(Value value)
     {
-        
+        await RefreshCloudDevices();
     }
 
     private record ApiCloudActuator(string ActuatorId, string ActuatorName, string StringValue, float NumericValue, string Unit, string ActuatorType);
+
+    private record ApiValue(string ActuatorId, string StringValue, float NumericValue);
+
+    private record ApiValues(ApiValue[] Actuators);
 }
