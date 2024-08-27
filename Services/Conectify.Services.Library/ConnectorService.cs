@@ -3,6 +3,7 @@ using Conectify.Database.Models;
 using Conectify.Shared.Library.Interfaces;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Services;
+using Conectify.Shared.Library.Models.Values;
 using Conectify.Shared.Library.Services;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -27,6 +28,8 @@ public interface IConnectorService
     Task<IEnumerable<Actuator>> LoadActuatorsPerDevice(Guid deviceId, CancellationToken ct = default);
 
     Task<IEnumerable<Sensor>> LoadSensorsPerDevice(Guid deviceId, CancellationToken ct = default);
+
+    Task<ApiValue?> LoadLastValue(Guid sensorId, CancellationToken ct = default);
 
 }
 
@@ -132,6 +135,11 @@ public class ConnectorService : IConnectorService
     {
         var apiModels = await GetAsync<IEnumerable<ApiSensor>>("{0}/api/sensors/by-device/" + deviceId.ToString(), ct);
         return mapper.Map<IEnumerable<Sensor>>(apiModels);
+    }
+
+    public async Task<ApiValue?> LoadLastValue(Guid sensorId, CancellationToken ct = default)
+    {
+        return await GetAsync<ApiValue>("{0}/api/sensors/lastValue/" + sensorId.ToString(), ct);
     }
 
     private async Task PostAsync<T>(T objectToSend, string urlSuffix, CancellationToken ct = default) where T : IApiModel

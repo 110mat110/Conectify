@@ -1,4 +1,6 @@
-﻿namespace Conectify.Shared.Library;
+﻿using System;
+
+namespace Conectify.Shared.Library;
 
 public static class Constants
 {
@@ -19,5 +21,9 @@ public static class Constants
     public static class Metadatas
     {
         public const string Visible = "Visible";
+        public static Guid CloudMetadata => Guid.Parse("fd247417-9c50-4108-a8ad-f4899268c706");
+        public static Guid IOTypeMetada => Guid.Parse("91ec4f43-c247-4cff-8601-2d9c82df05a5");
+
+        public const string DefaultIOType = "-1";
     }
 }

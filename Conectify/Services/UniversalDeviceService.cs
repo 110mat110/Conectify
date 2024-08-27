@@ -43,7 +43,7 @@ public abstract class UniversalDeviceService<TDbs, TApi> : IUniversalDeviceServi
     {
         var device = mapper.Map<TDbs>(apiDevice);
         device.IsKnown = true;
-        await NotifyAboutNewDevice(ct);
+        //await NotifyAboutNewDevice(ct);
         await database.AddOrUpdateAsync(device, ct);
         await database.SaveChangesAsync(ct);
         return device.Id;

@@ -18,6 +18,13 @@ public class MetadataProfile : Profile
             .ForMember(x => x.Metadata, opt => opt.Ignore())
             .ForMember(x => x.Device, opt => opt.Ignore());
 
+        CreateMap<ApiMetadata, MetadataConnector<Actuator>>()
+    .ForMember(x => x.DeviceId, opt => opt.Ignore())
+    .ForMember(x => x.TypeValue, opt => opt.Ignore())
+    .ForMember(x => x.Metadata, opt => opt.Ignore())
+    .ForMember(x => x.Device, opt => opt.Ignore());
+
+
         CreateMap<ApiMetadataConnector, MetadataConnector<Sensor>>()
             .ForMember(x => x.Metadata, opt => opt.Ignore())
             .ForMember(x => x.Device, opt => opt.Ignore());
