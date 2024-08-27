@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Services\Conectify.Services.Library\Conectify.Services.Library.csproj" />
+    <ProjectReference Include="..\Conectify.Services.Library\Conectify.Services.Library.csproj" />
   </ItemGroup>
 
 </Project>
