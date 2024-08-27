@@ -31,8 +31,7 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
 
     private async void CallCloud(object? state)
     {
-        var finalURL = string.Format("http://{0}/api/value", cloudConfiguration.BaseAddress);
-        finalURL = finalURL.Replace("//", "/").Replace(@"\\", @"\").Replace("http:/", "http://").Replace("https:/", "https://");
+        var finalURL = string.Format("{0}/api/value/", cloudConfiguration.BaseAddress);
 
         using var client = new HttpClient();
         var message = new HttpRequestMessage(HttpMethod.Get, finalURL);
