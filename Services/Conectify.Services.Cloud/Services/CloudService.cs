@@ -72,8 +72,7 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
 
         foreach (var actuatorForCloud  in actuatorsForCloud)
         {
-            var finalURL = string.Format("http://{0}/api/actuators", cloudConfiguration.BaseAddress);
-            finalURL = finalURL.Replace("//", "/").Replace(@"\\", @"\").Replace("http:/", "http://").Replace("https:/", "https://");
+            var finalURL = string.Format("{0}/api/actuators", cloudConfiguration.BaseAddress);;
 
             var typeMetadata = actuatorForCloud.Metadata.FirstOrDefault(x => x.MetadataId == Constants.Metadatas.IOTypeMetada);
             string ioType = Constants.Metadatas.DefaultIOType;
