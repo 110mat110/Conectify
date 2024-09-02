@@ -6,7 +6,7 @@ public static class Constants
 {
     public static class Commands
     {
-        public const string ActivityCheck = "activityCheck";
+        public const string ActivityCheck = "activitycheck";
         public const string Active = "active";
     }
 
