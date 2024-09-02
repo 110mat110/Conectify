@@ -20,7 +20,7 @@ void RegisterSensor(Sensor &sensor, BaseDevice &baseDevice);
 void RegisterActuator(Actuator &sensor, BaseDevice &baseDevice);
 
 void decodeIncomingJson(String incomingJson,   
-    void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
+    void (*handleFunc)(String commandId, String commandText, float commandValue, String commandTextParam),
     void (*handleValues)(String source, float value, String stringValue, String unit),
     Time dateTime,
     Actuator* actuators,

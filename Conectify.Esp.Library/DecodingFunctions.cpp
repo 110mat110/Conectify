@@ -219,7 +219,7 @@ void RegisterSensor(Sensor &sensor, BaseDevice &baseDevice)
 
 #pragma region IncomingValue
 void decodeIncomingJson(String incomingJson,
-                        void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
+                        void (*handleFunc)(String commandId, String commandText, float commandValue, String commandTextParam),
                         void (*handleValues)(String source, float value, String stringValue, String unit),
                         Time dateTime,
                         Actuator *actuators,
@@ -241,14 +241,14 @@ void decodeIncomingJson(String incomingJson,
     DebugMessage("deserializeJson() failed: ");
     return;
   }
-  DebugMessage("decoding object");
   if (root[type] == CommandType)
   {
+    String commandId = root[DTid];
     String commandText = root[DTvalueName];
     float commandValue = root[DTnumericValue];
     String commandTextparameter = root[DTstringValue];
 
-    (*handleFunc)(commandText, commandValue, commandTextparameter);
+    (*handleFunc)(commandId, commandText, commandValue, commandTextparameter);
     filter.clear();
     root.clear();
     return;

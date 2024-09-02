@@ -26,7 +26,7 @@
 #include "DebugMessageLib.h"
 #include "GlobalVariables.h"
 #include "USBComm.h"
-#include "CommandHanlder.h"
+#include "CommandHandler.h"
 #include "Int64String.h"
 #include "WebServer.h"
 
@@ -231,6 +231,7 @@ void SendViaWebSocket(String message)
 {
   if (websocketClient.available())
   {
+    DebugMessage("Sending via websocket: " + message);
     websocketClient.send(message);
   }
   else
@@ -264,7 +265,6 @@ void SendAllSensorsToServerIfNeeded()
     if (GetGlobalVariables()->actuatorsArr[i].HasChanged())
     {
       DebugMessage("--------- Actuator response ------------------------");
-      DebugMessage("Payload: " + GetGlobalVariables()->actuatorsArr[i].SerializeResponse(GetGlobalVariables()->dateTime));
       SendViaWebSocket(GetGlobalVariables()->actuatorsArr[i].SerializeResponse(GetGlobalVariables()->dateTime));
       GetGlobalVariables()->actuatorsArr[i].MarkAsRead();
     }
@@ -276,7 +276,6 @@ void SendAllSensorsToServerIfNeeded()
       if (GetGlobalVariables()->sensorsArr[i].isInitialized)
       {
         DebugMessage("--------- Sensor Value ------------------------");
-        DebugMessage("Payload: " + GetGlobalVariables()->sensorsArr[i].SerializeValue(GetGlobalVariables()->dateTime));
         SendViaWebSocket(GetGlobalVariables()->sensorsArr[i].SerializeValue(GetGlobalVariables()->dateTime));
       }
       GetGlobalVariables()->sensorsArr[i].MarkAsRead();
@@ -408,10 +407,6 @@ void RegisterAllEntities()
   {
     DebugMessage("Not online. Cannot register any device!");
   }
-}
-void HandleCommand(String commandText, float commandValue, String commandTextParam)
-{
-  HandleCommand("", commandText, commandValue, commandTextParam);
 }
 
 void HandleIncomingValue(String source, float value, String stringValue, String unit)

@@ -6,6 +6,7 @@
 #include "EEPRomHandler.h"
 #include "MainFunctions.h"
 #include "EEPROM.h"
+#include "CommandHandler.h"
 
 AsyncWebServer server(80);
 
@@ -111,61 +112,61 @@ void StartWebServer()
               {
     if (request->hasParam(CommandWifiName, true))
     {
-      HandleCommand(CommandWifiName, 0, request->getParam(CommandWifiName, true)->value());
+      HandleCommand("",CommandWifiName, 0, request->getParam(CommandWifiName, true)->value());
     }
     if (request->hasParam(CommandWifiPassword, true))
     {
-      HandleCommand(CommandWifiPassword, 0, request->getParam(CommandWifiPassword, true)->value());
+      HandleCommand("",CommandWifiPassword, 0, request->getParam(CommandWifiPassword, true)->value());
     }
     SaveToEEPRom(EEPROM, GetGlobalVariables()->baseDevice);
-    HandleCommand(CommandReconectWifi, 120, "");
+    HandleCommand("",CommandReconectWifi, 120, "");
     request->redirect("/"); });
 
     server.on("/reboot", HTTP_POST, [](AsyncWebServerRequest *request)
               {
-              HandleCommand(CommandReboot, 0, "");
+              HandleCommand("",CommandReboot, 0, "");
               request->redirect("/"); });
     server.on("/reboot.html", HTTP_POST, [](AsyncWebServerRequest *request)
               {
-              HandleCommand(CommandReboot, 0, "");
+              HandleCommand("",CommandReboot, 0, "");
               request->redirect("/"); });
 
     server.on("/reboot.html", HTTP_GET, [](AsyncWebServerRequest *request)
               {
-              HandleCommand(CommandReboot, 0, "");
+              HandleCommand("",CommandReboot, 0, "");
               request->redirect("/"); });
     server.on("/device", HTTP_POST, [](AsyncWebServerRequest *request)
               {
     DebugMessage("Device settings");
     if (request->hasParam(CommandSetId, true))
     {
-      HandleCommand(CommandSetId, 0, request->getParam(CommandSetId, true)->value());
+      HandleCommand("",CommandSetId, 0, request->getParam(CommandSetId, true)->value());
     }
     if (request->hasParam(CommandSetName, true))
     {
-      HandleCommand(CommandSetName, 0, request->getParam(CommandSetName, true)->value());
+      HandleCommand("",CommandSetName, 0, request->getParam(CommandSetName, true)->value());
     }
     if(request->hasParam(CommandSetAdress, true)){
-      HandleCommand(CommandSetAdress, 0, request->getParam(CommandSetAdress, true)->value());
+      HandleCommand("",CommandSetAdress, 0, request->getParam(CommandSetAdress, true)->value());
     }
     if (request->hasParam(CommandSetPort, true))
     {
-      HandleCommand(CommandSetPort, 0, request->getParam(CommandSetPort, true)->value());
+      HandleCommand("",CommandSetPort, 0, request->getParam(CommandSetPort, true)->value());
     }
     if (request->hasParam(CommandWifiRefreshTimer, true))
     {
-      HandleCommand(CommandWifiRefreshTimer, request->getParam(CommandWifiRefreshTimer, true)->value().toInt(), "");
+      HandleCommand("",CommandWifiRefreshTimer, request->getParam(CommandWifiRefreshTimer, true)->value().toInt(), "");
     }
     if (request->hasParam(CommandSensorTimer, true))
     {
-      HandleCommand(CommandSensorTimer, request->getParam(CommandSensorTimer, true)->value().toInt(), "");
+      HandleCommand("",CommandSensorTimer, request->getParam(CommandSensorTimer, true)->value().toInt(), "");
     }
     if (request->hasParam(CommandDebugMessage, true)){
-      HandleCommand(CommandDebugMessage, 1, "");
+      HandleCommand("",CommandDebugMessage, 1, "");
     } else{
-      HandleCommand(CommandDebugMessage, 0, "");
+      HandleCommand("",CommandDebugMessage, 0, "");
     }
-    HandleCommand(CommandSaveDevice, 0, "");
+    HandleCommand("",CommandSaveDevice, 0, "");
     request->redirect("/"); });
 
     server.on("/setup", HTTP_POST, [](AsyncWebServerRequest *request)
@@ -173,33 +174,33 @@ void StartWebServer()
     DebugMessage("Device first setup");
     if (request->hasParam(CommandSetId, true))
     {
-      HandleCommand(CommandSetId, 0, request->getParam(CommandSetId, true)->value());
+      HandleCommand("",CommandSetId, 0, request->getParam(CommandSetId, true)->value());
     }
     if (request->hasParam(CommandSetName, true))
     {
-      HandleCommand(CommandSetName, 0, request->getParam(CommandSetName, true)->value());
+      HandleCommand("",CommandSetName, 0, request->getParam(CommandSetName, true)->value());
     }
     if(request->hasParam(CommandSetAdress, true)){
-      HandleCommand(CommandSetAdress, 0, request->getParam(CommandSetAdress, true)->value());
+      HandleCommand("",CommandSetAdress, 0, request->getParam(CommandSetAdress, true)->value());
     }
     if (request->hasParam(CommandSetPort, true))
     {
-      HandleCommand(CommandSetPort, 0, request->getParam(CommandSetPort, true)->value());
+      HandleCommand("",CommandSetPort, 0, request->getParam(CommandSetPort, true)->value());
     }
     if (request->hasParam(CommandWifiRefreshTimer, true))
     {
-      HandleCommand(CommandWifiRefreshTimer, request->getParam(CommandWifiRefreshTimer, true)->value().toInt(), "");
+      HandleCommand("",CommandWifiRefreshTimer, request->getParam(CommandWifiRefreshTimer, true)->value().toInt(), "");
     }
     if (request->hasParam(CommandSensorTimer, true))
     {
-      HandleCommand(CommandSensorTimer, request->getParam(CommandSensorTimer, true)->value().toInt(), "");
+      HandleCommand("",CommandSensorTimer, request->getParam(CommandSensorTimer, true)->value().toInt(), "");
     }
     if (request->hasParam(CommandDebugMessage, true)){
-      HandleCommand(CommandDebugMessage, 1, "");
+      HandleCommand("",CommandDebugMessage, 1, "");
     } else{
-      HandleCommand(CommandDebugMessage, 0, "");
+      HandleCommand("",CommandDebugMessage, 0, "");
     }
-    HandleCommand(CommandSaveDevice, 0, "");
+    HandleCommand("",CommandSaveDevice, 0, "");
     request->redirect("/"); });
 
     server.on("/actuatorSet", HTTP_POST, [](AsyncWebServerRequest *request)

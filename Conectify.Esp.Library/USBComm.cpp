@@ -1,7 +1,7 @@
 
 #include "USBComm.h"
 #include "DebugMessageLib.h"
-#include "CommandHanlder.h"
+#include "CommandHandler.h"
 #include "ConstantsDeclarations.h"
 #include "GlobalVariables.h"
 

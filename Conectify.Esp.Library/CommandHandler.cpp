@@ -6,7 +6,7 @@
 #error Architecture unrecognized by this code.
 #endif
 #include <EEPROM.h>
-#include "CommandHanlder.h"
+#include "CommandHandler.h"
 #include "ConstantsDeclarations.h"
 #include "Arduino.h"
 #include "EEPRomHandler.h"
@@ -50,7 +50,13 @@ void HandleCommand(String commandId, String commandText, float commandValue, Str
 }
 
 void SendCommandResponseToServer(String commandId){
-    DynamicJsonDocument doc(256);
+    if(commandId == ""){
+      DebugMessage("Do not have original command ID. Not sending response to websocket");
+      return;
+    }
+
+    DynamicJsonDocument doc(512);
+    doc[DTResponseSourceId] = commandId;
     doc[type] = CommandResponseType;
     doc[DTSourceId] = GetGlobalVariables() -> baseDevice.id;
     doc[timeCreated] = GetGlobalVariables() -> dateTime.ToJSONString();
@@ -58,7 +64,6 @@ void SendCommandResponseToServer(String commandId){
     doc[DTstringValue] = "";
     doc[DTnumericValue] = 0;
     doc[DTvalueUnit] = "";
-    doc[DTResponseSourceId] = commandId;
     String json;
     serializeJson(doc, json);
     doc.clear();
