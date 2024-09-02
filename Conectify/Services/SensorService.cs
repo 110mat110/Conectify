@@ -18,21 +18,8 @@ public interface ISensorService : IUniversalDeviceService<ApiSensor>
     Task<ApiValue?> GetLastValue(Guid sensorId, CancellationToken ct = default);
 }
 
-public class SensorService : UniversalDeviceService<Sensor, ApiSensor>, ISensorService
+public class SensorService(ConectifyDb database, IMapper mapper, IDeviceService deviceService, ILogger<SensorService> logger, IHttpFactory httpFactory, Configuration configuration) : UniversalDeviceService<Sensor, ApiSensor>(database, mapper, logger, httpFactory, configuration), ISensorService
 {
-    private readonly ConectifyDb database;
-    private readonly IMapper mapper;
-    private readonly IDeviceService deviceService;
-    private readonly ILogger<SensorService> logger;
-
-    public SensorService(ConectifyDb database, IMapper mapper, IDeviceService deviceService, ILogger<SensorService> logger, IHttpFactory httpFactory, Configuration configuration) : base(database, mapper, logger, httpFactory, configuration)
-    {
-        this.database = database;
-        this.mapper = mapper;
-        this.deviceService = deviceService;
-        this.logger = logger;
-    }
-
     public override async Task<bool> TryAddUnknownDevice(Guid sensorId, Guid deviceId, CancellationToken ct = default)
     {
         if (deviceId == Guid.Empty)

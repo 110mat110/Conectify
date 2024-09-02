@@ -14,19 +14,8 @@ public interface IActuatorService : IUniversalDeviceService<ApiActuator>
     Task<IEnumerable<ApiActuator>> GetAllActuatorsPerDevice(Guid deviceId, CancellationToken ct = default);
 }
 
-public class ActuatorService : UniversalDeviceService<Actuator, ApiActuator>, IActuatorService
+public class ActuatorService(ConectifyDb database, IMapper mapper, IDeviceService deviceService, ILogger<ActuatorService> logger, IHttpFactory httpFactory, Configuration configuration) : UniversalDeviceService<Actuator, ApiActuator>(database, mapper, logger, httpFactory, configuration), IActuatorService
 {
-    private readonly ConectifyDb database;
-    private readonly IMapper mapper;
-    private readonly IDeviceService deviceService;
-
-    public ActuatorService(ConectifyDb database, IMapper mapper, IDeviceService deviceService, ILogger<ActuatorService> logger, IHttpFactory httpFactory, Configuration configuration) : base(database, mapper, logger, httpFactory, configuration)
-	{
-        this.database = database;
-        this.mapper = mapper;
-        this.deviceService = deviceService;
-    }
-
     public override async Task<bool> TryAddUnknownDevice(Guid actuatorId, Guid deviceId, CancellationToken ct = default)
     {
         if (deviceId == Guid.Empty)

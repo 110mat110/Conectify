@@ -12,18 +12,14 @@ public interface IWebsocketCache
     void Remove(Guid deviceId);
 
     int GetNoOfActiveSockets(Guid deviceId);
+
+    public bool IsActiveSocket(Guid deviceId);
 }
 
-public class WebsocketCache : IWebsocketCache
+public class WebsocketCache(IServiceProvider serviceProvider) : IWebsocketCache
 {
     private static readonly Dictionary<Guid, WSCahceItem> sockets = new Dictionary<Guid, WSCahceItem>();
     private readonly object locker = new();
-    private readonly IServiceProvider serviceProvider;
-
-    public WebsocketCache(IServiceProvider serviceProvider)
-    {
-        this.serviceProvider = serviceProvider;
-    }
 
     public bool AddNewWebsocket(Guid deviceId, WebSocket webSocket)
     {
@@ -90,8 +86,15 @@ public class WebsocketCache : IWebsocketCache
         return (sockets.ContainsKey(deviceId) && sockets[deviceId].WebSocket.State == WebSocketState.Open) ? sockets[deviceId].WebSocket : null;
     }
 
+
+
     public int GetNoOfActiveSockets(Guid deviceId)
     {
         return sockets.ContainsKey(deviceId) ? sockets[deviceId].Count : 0;
+    }
+
+    public bool IsActiveSocket(Guid deviceId)
+    {
+        return (sockets.ContainsKey(deviceId) && sockets[deviceId].WebSocket.State == WebSocketState.Open);
     }
 }

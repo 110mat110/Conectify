@@ -8,17 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Conectify.Services.Dashboard.Services;
 
-public class DashboardService
+public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
 {
-    private readonly ConectifyDb conectifyDb;
-    private readonly IMapper mapper;
-
-    public DashboardService(ConectifyDb conectifyDb, IMapper mapper)
-    {
-        this.conectifyDb = conectifyDb;
-        this.mapper = mapper;
-    }
-
     public async Task<DashboardApi> Add(AddDashboardApi addDashboardApi, CancellationToken cancellationToken = default)
     {
         if(!conectifyDb.Users.Any(x => x.Id == addDashboardApi.UserId))

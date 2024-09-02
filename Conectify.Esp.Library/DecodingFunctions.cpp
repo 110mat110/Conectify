@@ -220,6 +220,7 @@ void RegisterSensor(Sensor &sensor, BaseDevice &baseDevice)
 #pragma region IncomingValue
 void decodeIncomingJson(String incomingJson,
                         void (*handleFunc)(String commandText, float commandValue, String commandTextParam),
+                        void (*handleValues)(String source, float value, String stringValue, String unit),
                         Time dateTime,
                         Actuator *actuators,
                         byte actuatorsLength)
@@ -259,7 +260,6 @@ void decodeIncomingJson(String incomingJson,
 
     if (!root[DTdestinationId].isNull())
     {
-
       String strId = root[DTdestinationId].as<String>();
       DebugMessage("Message for: " + strId);
       if (!strId.isEmpty())
@@ -288,6 +288,18 @@ void decodeIncomingJson(String incomingJson,
     }
     String time = root[timeCreated];
     DebugMessage(time);
+    filter.clear();
+    root.clear();
+    return;
+  }
+
+  if(root[type] == ValueType){
+    String sourceId = root[DTSourceId].as<String>();
+    float value = root[DTnumericValue];
+    String stringValue = root[DTstringValue];
+    String unit = root[DTvalueUnit];
+
+     (*handleValues)(sourceId, value, stringValue, unit),
     filter.clear();
     root.clear();
     return;

@@ -11,19 +11,8 @@ public interface IShellyService
     Task<bool> LongPress(CancellationToken cancellationToken = default);
 }
 
-public class ShellyService : IShellyService
+public class ShellyService(Configuration configuration, IServicesWebsocketClient websocketClient, ILogger<ShellyService> logger) : IShellyService
 {
-    private readonly Configuration configuration;
-    private readonly IServicesWebsocketClient websocketClient;
-    private readonly ILogger<ShellyService> logger;
-
-    public ShellyService(Configuration configuration, IServicesWebsocketClient websocketClient, ILogger<ShellyService> logger)
-    {
-        this.configuration = configuration;
-        this.websocketClient = websocketClient;
-        this.logger = logger;
-    }
-
     public async Task<bool> LongPress(CancellationToken cancellationToken = default)
     {
         logger.LogInformation($"Registered long press");

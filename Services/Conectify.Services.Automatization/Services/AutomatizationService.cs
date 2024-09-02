@@ -15,21 +15,10 @@ public interface IAutomatizationService
     void StartServiceAsync();
 }
 
-public class AutomatizationService : IAutomatizationService
+public class AutomatizationService(IAutomatizationCache automatizationCache,
+                             AutomatizationConfiguration configuration,
+                             IServicesWebsocketClient websocketClient) : IAutomatizationService
 {
-    private readonly IAutomatizationCache automatizationCache;
-    private readonly AutomatizationConfiguration configuration;
-    private readonly IServicesWebsocketClient websocketClient;
-
-    public AutomatizationService(IAutomatizationCache automatizationCache,
-                                 AutomatizationConfiguration configuration,
-                                 IServicesWebsocketClient websocketClient)
-    {
-        this.automatizationCache = automatizationCache;
-        this.configuration = configuration;
-        this.websocketClient = websocketClient;
-    }
-
     public void StartServiceAsync()
     {
         websocketClient.OnIncomingValue += WebsocketClient_OnIncomingValue;

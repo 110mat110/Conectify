@@ -6,6 +6,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Conectify.Database;
 using Conectify.Database.Models;
+using Conectify.Server.Caches;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Services;
@@ -16,19 +17,8 @@ public interface IDeviceService : IUniversalDeviceService<ApiDevice>
 {
 }
 
-public class DeviceService : UniversalDeviceService<Device, ApiDevice>, IDeviceService
+public class DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceService> logger, IHttpFactory httpFactory, Configuration configuration, IWebsocketCache websocketCache) : UniversalDeviceService<Device, ApiDevice>(database, mapper, logger, httpFactory, configuration), IDeviceService
 {
-    private readonly ConectifyDb database;
-    private readonly IMapper mapper;
-    private readonly ILogger<DeviceService> logger;
-
-    public DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceService> logger, IHttpFactory httpFactory, Configuration configuration) : base(database, mapper, logger, httpFactory, configuration)
-	{
-        this.database = database;
-        this.mapper = mapper;
-        this.logger = logger;
-    }
-
     public override async Task<IEnumerable<ApiDevice>> Filter(ApiFilter filter, CancellationToken ct = default)
     {
         if (filter.IsVisible)
@@ -82,5 +72,32 @@ public class DeviceService : UniversalDeviceService<Device, ApiDevice>, IDeviceS
         return true;
     }
 
+    public override async Task<IEnumerable<ApiDevice>> GetAllDevices(CancellationToken ct = default)
+    {
+        var devices = await base.GetAllDevices(ct);
+        var currentTime = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(1)).ToUnixTimeMilliseconds();
+        foreach (var device in devices)
+        {
+            if (!websocketCache.IsActiveSocket(device.Id))
+            {
+                device.State = ApiDeviceState.Offline;
+            }
+            else
+            {
+                if (await database.CommandResponses.AsNoTracking().AnyAsync(
+                    x => x.Name == Constants.Commands.Active 
+                    && x.SourceId == device.Id 
+                    && x.TimeCreated > currentTime, cancellationToken: ct))
+                {
+                    device.State = ApiDeviceState.Online;
+                }
+                else
+                {
+                    device.State = ApiDeviceState.NotAnswering;
+                }
+            }
+        }
 
+        return devices;
+    }
 }

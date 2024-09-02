@@ -1,10 +1,7 @@
 ﻿namespace Conectify.Services.OccupancyCheck;
 
-public class Configuration : Library.ConfigurationBase
+public class Configuration(IConfiguration configuration) : Library.ConfigurationBase(configuration)
 {
-    public Configuration(IConfiguration configuration) : base(configuration)
-    {
-    }
     public Guid SensorId { get; set; }
 
     public string Password { get; set; } = string.Empty;

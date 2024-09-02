@@ -35,8 +35,9 @@ export class OutputCreatorService {
     return{
       id: id,
       macAdress: "",
-      iPAdress: "",
+      ipAdress: "",
       name: "Angular@" + usernName,
+      state: 0,
     }
   }
 

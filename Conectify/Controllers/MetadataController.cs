@@ -6,15 +6,8 @@ namespace Conectify.Server.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class MetadataController : ControllerBase
+public class MetadataController(IMetadataService metadataService) : ControllerBase
 {
-    private readonly IMetadataService metadataService;
-
-    public MetadataController(IMetadataService metadataService)
-    {
-        this.metadataService = metadataService;
-    }
-
     [HttpGet("all")]
     public async Task<IEnumerable<ApiBasicMetadata>> GetAllMetadataAsync()
     {

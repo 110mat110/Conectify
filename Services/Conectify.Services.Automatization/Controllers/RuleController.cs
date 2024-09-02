@@ -6,15 +6,8 @@ namespace Conectify.Services.Automatization.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class RuleController : ControllerBase
+public class RuleController(RuleService ruleService) : ControllerBase
 {
-    private readonly RuleService ruleService;
-
-    public RuleController(RuleService ruleService)
-    {
-        this.ruleService = ruleService;
-    }
-
     [HttpPost]
     public async Task<IActionResult> AddNewRule(CreateRuleApiModel ruleApiModel)
     {

@@ -76,6 +76,11 @@ export class BEFetcherService {
     return this.http.get<Device>(this.adresses.getDeviceDetail(id));
   }
 
+  getAllDevices(): Observable<Device[]> {
+    return this.http.get<Device[]>(this.adresses.getAllDevices());
+  }
+
+
   getSensorValues(id: string): Observable<BaseInputType[]> {
     //this.messenger.addMessage("Requesting values: "+ this.adresses.getSensorValues(id));
     return this.http.get<BaseInputType[]>(this.adresses.getSensorValues(id));

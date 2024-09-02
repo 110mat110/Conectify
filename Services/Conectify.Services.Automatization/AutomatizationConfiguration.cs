@@ -2,12 +2,8 @@
 
 namespace Conectify.Services.Automatization;
 
-public class AutomatizationConfiguration : ConfigurationBase
+public class AutomatizationConfiguration(IConfiguration configuration) : ConfigurationBase(configuration)
 {
-    public AutomatizationConfiguration(IConfiguration configuration) : base(configuration)
-    {
-
-    }
     public int RefreshIntervalSeconds { get; set; } = 1;
 
     public Guid SensorId { get; set; }

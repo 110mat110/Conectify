@@ -5,15 +5,8 @@ using Conectify.Shared.Services;
 
 namespace Conectify.Services.OccupancyCheck;
 
-public class DeviceData : IDeviceData
+public class DeviceData(Configuration configuration) : IDeviceData
 {
-    private readonly Configuration configuration;
-
-    public DeviceData(Configuration configuration)
-    {
-        this.configuration = configuration;
-    }
-
     public ApiDevice Device => new()
     {
         Id = configuration.DeviceId,

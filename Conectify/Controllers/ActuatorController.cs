@@ -6,16 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ActuatorsController : DeviceControllerBase<ApiActuator>
+public class ActuatorsController(IActuatorService service, ILogger<ActuatorsController> logger) : DeviceControllerBase<ApiActuator>(logger, service)
 {
-    private readonly IActuatorService service;
-    private readonly ILogger<ActuatorsController> logger;
-
-    public ActuatorsController(IActuatorService service, ILogger<ActuatorsController> logger) : base(logger, service)
-    {
-        this.service = service;
-        this.logger = logger;
-    }
 
     /// <summary>
     /// Mintly test

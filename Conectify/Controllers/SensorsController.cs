@@ -6,23 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
 [ApiController]
-public class SensorsController : DeviceControllerBase<ApiSensor>
+public class SensorsController(ISensorService deviceService, ILogger<SensorsController> logger) : DeviceControllerBase<ApiSensor>(logger, deviceService)
 {
-    private readonly ISensorService sensorService;
-    private readonly ILogger<SensorsController> logger;
-
-    public SensorsController(ISensorService deviceService, ILogger<SensorsController> logger) : base(logger, deviceService)
-    {
-        this.sensorService = deviceService;
-        this.logger = logger;
-    }
-
     [HttpGet("by-device/{id}")]
     public async Task<IActionResult> GetAllDevices(Guid id, CancellationToken ct = default)
     {
         try
         {
-            return new ObjectResult(await sensorService.GetAllSensorsPerDevice(id, ct));
+            return new ObjectResult(await deviceService.GetAllSensorsPerDevice(id, ct));
 
         }
         catch (Exception ex)
@@ -37,7 +28,7 @@ public class SensorsController : DeviceControllerBase<ApiSensor>
     {
         try
         {
-            return new ObjectResult(await sensorService.GetSensorByActuator(id, ct));
+            return new ObjectResult(await deviceService.GetSensorByActuator(id, ct));
 
         }
         catch (Exception ex)
@@ -50,6 +41,6 @@ public class SensorsController : DeviceControllerBase<ApiSensor>
     [HttpGet("lastValue/{id}")]
     public async Task<IActionResult> LastValue(Guid id, CancellationToken ct = default)
     {
-        return new ObjectResult(await sensorService.GetLastValue(id, ct));
+        return new ObjectResult(await deviceService.GetLastValue(id, ct));
     }
 }

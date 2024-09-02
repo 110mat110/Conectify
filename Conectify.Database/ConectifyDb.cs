@@ -7,12 +7,8 @@ using Conectify.Database.Models.Dashboard;
 using Conectify.Database.Models.Values;
 using Microsoft.EntityFrameworkCore;
 
-public class ConectifyDb : DbContext
+public class ConectifyDb(DbContextOptions<ConectifyDb> options) : DbContext(options)
 {
-    public ConectifyDb(DbContextOptions<ConectifyDb> options)
-    : base(options)
-    {
-    }
 
     //Values
     public DbSet<Value> Values { get; set; } = null!;

@@ -9,17 +9,8 @@ using OpenQA.Selenium.Support.UI;
 
 namespace Conectify.Services.OccupancyCheck;
 
-public class OccupancyService
+public class OccupancyService(IServicesWebsocketClient websocketClient, Configuration configuration)
 {
-    private readonly IServicesWebsocketClient websocketClient;
-    private readonly Configuration configuration;
-
-    public OccupancyService(IServicesWebsocketClient websocketClient, Configuration configuration)
-    {
-        this.websocketClient = websocketClient;
-        this.configuration = configuration;
-    }
-
     public async Task CheckForLiveDevices()
     {
         do
@@ -61,7 +52,7 @@ public class OccupancyService
                         Name = "Occupancy",
                         NumericValue = result ? 1 : 0,
                         StringValue = !result ? "no one home" : "",
-                        SourceId = this.configuration.SensorId,
+                        SourceId = configuration.SensorId,
                         TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         Unit = "",
                         Type = Constants.Types.Value,
