@@ -8,9 +8,9 @@
 #error Architecture unrecognized by this code.
 #endif
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "DecodingFunctions.h"
-#include "ArduinoJson.h"
+#include <ArduinoJson.h>
 #include "BaseDevice.h"
 #include "Sensors.h"
 #include "DebugMessageLib.h"

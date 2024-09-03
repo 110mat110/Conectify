@@ -1,10 +1,10 @@
 #ifndef DecodingFunctions_h
 #define DecodingFunctions_h
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "BaseDevice.h"
 #include "Sensors.h"
-#include "ArduinoJson.h"
+#include <ArduinoJson.h>
 #if defined (ARDUINO_ARCH_ESP8266)
 #include "ESP8266WiFi.h"
 #elif defined(ESP32)

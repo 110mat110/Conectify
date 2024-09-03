@@ -1,7 +1,7 @@
 #ifndef MainFunctions_h
 #define MainFunctions_h
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include <DNSServer.h>
 #include "Sensors.h"
 #include "BaseDevice.h"

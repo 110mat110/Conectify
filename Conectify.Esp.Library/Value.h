@@ -1,7 +1,7 @@
 #ifndef Value_h
 #define Value_h
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "ConstantsDeclarations.h"
 
 struct Value

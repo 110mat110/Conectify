@@ -1,7 +1,7 @@
 #ifndef Sensors_h
 #define Sensors_h
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "TickTimer.h"
 #include "ConstantsDeclarations.h"
 

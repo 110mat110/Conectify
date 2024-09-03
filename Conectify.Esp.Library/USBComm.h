@@ -1,7 +1,7 @@
 #ifndef USBComm_h
 #define USBComm_h
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 class  USBComm
 {

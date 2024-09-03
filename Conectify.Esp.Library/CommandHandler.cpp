@@ -8,7 +8,7 @@
 #include <EEPROM.h>
 #include "CommandHandler.h"
 #include "ConstantsDeclarations.h"
-#include "Arduino.h"
+#include <Arduino.h>
 #include "EEPRomHandler.h"
 #include "GlobalVariables.h"
 #include "DebugMessageLib.h"

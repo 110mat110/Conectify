@@ -1,7 +1,7 @@
 #ifndef GlobalVariables_h
 #define GlobalVariables_h
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "Sensors.h"
 #include "BaseDevice.h"
 #include "TickTimer.h"

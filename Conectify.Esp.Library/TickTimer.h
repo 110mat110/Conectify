@@ -1,7 +1,7 @@
 #ifndef TickTimer_h
 #define TickTimer_h
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 class TickTimer
 {

@@ -1,6 +1,6 @@
 #include "GlobalVariables.h"
 #include "DebugMessageLib.h"
-#include "Arduino.h"
+#include <Arduino.h>
 
 #define LEDON LOW
 #define LEDOFF HIGH

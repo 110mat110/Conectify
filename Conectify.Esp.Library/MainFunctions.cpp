@@ -17,7 +17,7 @@
 #include <EEPROM.h>
 #include <ArduinoWebsockets.h>
 #include "MainFunctions.h"
-#include "Arduino.h"
+#include <Arduino.h>
 #include "EEPRomHandler.h"
 #include "TickTimer.h"
 #include "Sensors.h"

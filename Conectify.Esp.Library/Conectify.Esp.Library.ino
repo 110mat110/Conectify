@@ -6,7 +6,7 @@
 #include "MainFunctions.h"
 #include "GlobalVariables.h"
 #include "DecodingFunctions.h"
-#include "DHT.h"
+#include <DHT.h>
 
 #define pinDHT 5
 #define typDHT11 DHT11     // DHT 11

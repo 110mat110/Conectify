@@ -1,7 +1,7 @@
 #ifndef ConstantsDeclarations_h
 #define ConstantsDeclarations_h
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 const String type = "type";
 const String IoTDeviceType = "Device";

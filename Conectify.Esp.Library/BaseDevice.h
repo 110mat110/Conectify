@@ -1,7 +1,7 @@
 #ifndef BaseDevice_h
 #define BaseDevice_h
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include "ConstantsDeclarations.h"
 
 struct BaseDevice
