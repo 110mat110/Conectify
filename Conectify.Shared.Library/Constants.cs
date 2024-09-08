@@ -8,6 +8,7 @@ public static class Constants
     {
         public const string ActivityCheck = "activitycheck";
         public const string Active = "active";
+        public const string UpdateAvaliable = "update";
     }
 
     public static class Types

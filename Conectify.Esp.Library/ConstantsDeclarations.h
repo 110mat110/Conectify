@@ -43,6 +43,10 @@ const String inputActuatorSuffix = "/api/actuators";
 const String timeSuffix = "/api/system/time";
 const String inputWebSocketSuffix = "/api/websocket/";
 const String lastSensorValue = "/api/sensors/lastvalue/";
+const String registerUpdate = "/api/update/version/";
+const String getUpdateUrl = "/api/url";
+const String confirmUpdate = "/api/updated";
+
 
 const String HeaderContentType = "Content-Type";
 const String HeaderJsonContentType = "application/json";
@@ -63,6 +67,7 @@ const String CommandReconectWifi = "reconnectwifi";
 const String CommandSaveToEEPRom = "eepromsave";
 const String CommandActivityCheck = "activitycheck";
 const String CommandSaveDevice = "savedevice";
+const String CommandUpdateAvaliable = "update";
 
 const String CommandResponseActive = "active";
 

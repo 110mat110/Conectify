@@ -17,5 +17,5 @@ public class Sensor : Serializable, IMetadatable<Sensor>, IEntity, IDevice
 
 
     public virtual Device SourceDevice { get; set; } = null!;
-    public virtual ICollection<MetadataConnector<Sensor>> Metadata { get; set; } = new HashSet<MetadataConnector<Sensor>>();
+    public virtual ICollection<MetadataConnector<Sensor>> Metadata { get; set; } = [];
 }

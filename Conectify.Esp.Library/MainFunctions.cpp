@@ -38,6 +38,7 @@ WebsocketsClient websocketClient;
 DNSServer dnsServer;
 Value *watchedValuesArray;
 int valuesArrayLength = 0;
+String softwareName = ""; 
 
 bool InitializeNetwork();
 void InitializeDevice(int psensorArrSize, int pactuatorArrSize, void (*SensorsDeclarations)());
@@ -55,6 +56,7 @@ bool ConnectToWifi();
 void InitializeAP();
 void StartWebServer();
 bool ReloadNetwork();
+void RegisterSoftwareVersion();
 
 void StartupMandatoryRoutine(int psensorArrSize, int pactuatorArrSize, void (*SensorsDeclarations)())
 {
@@ -144,6 +146,16 @@ bool ReloadNetwork()
   }
   InitializeAP();
   return false;
+}
+
+void RegisterSoftwareVersion()
+{
+  if (softwareName != "")
+  {
+    DebugMessage("Registering softwareVersion");
+    String version = ESP.getChipModel();
+    SendSoftwareVersion(GetGlobalVariables()->baseDevice, softwareName);
+  }
 }
 
 bool ConnectToWifi()
@@ -402,6 +414,7 @@ void RegisterAllEntities()
     SaveSensorIDsToEEPROM(EEPROM, GetGlobalVariables()->sensorsArr, GetGlobalVariables()->sensorsArrSize);
     RegisterActuator();
     SaveActuatorIDsToEEPROM(EEPROM, GetGlobalVariables()->actuatorsArr, GetGlobalVariables()->actuatorArrSize);
+    RegisterSoftwareVersion();
   }
   else
   {
@@ -455,4 +468,8 @@ void onMessageCallback(WebsocketsMessage message)
 DNSServer *GetDns()
 {
   return &dnsServer;
+}
+
+void SetSoftwareName(String soft){
+  softwareName = soft;
 }

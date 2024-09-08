@@ -316,16 +316,15 @@ String RequestTime(BaseDevice baseDevice)
   String payload = "!";
   HTTPClient http;
   String url = httpPrefix + GetServer(baseDevice) + timeSuffix;
-  // wifiClient.setTimeout(500);
   DebugMessage("Requesting time at: " + url);
-  http.begin(/*wifiClient,*/ url); // Specify request destination
+  http.begin(url);
 
-  int httpCode = http.GET(); // Send the request
+  int httpCode = http.GET();
   DebugMessage("Got response with decodingDevice: " + String(httpCode));
   if (httpCode == HttpOKCode)
   {
-    payload = http.getString(); // Get the response payload
-    DebugMessage(payload);      // Print request response payload
+    payload = http.getString();
+    DebugMessage(payload);
   }
   http.end();
   return payload;
@@ -360,5 +359,22 @@ void RegisterActuator(Actuator &actuator, BaseDevice &baseDevice)
     DecodeRegisteredActuatorValue(response.payload, actuator);
   }
   DebugMessage("-------------End reg. actuator--------------------");
+}
+#pragma endregion
+
+#pragma region Update
+void SendSoftwareVersion(BaseDevice &baseDevice, String swVersion){
+  String url = httpPrefix + GetServer(baseDevice) + registerUpdate + baseDevice.id + "/" + ESP.getChipModel() + "/" + swVersion;
+  HTTPResponse response = HTTPGet(url);
+}
+
+String GetSoftwareUrl(BaseDevice &baseDevice){
+    String url = httpPrefix + GetServer(baseDevice) + getUpdateUrl + baseDevice.id;
+    HTTPResponse response = HTTPGet(url);
+    return response.payload;
+}
+
+void ConfirmUpdate(BaseDevice &baseDevice){
+  String url = httpPrefix + GetServer(baseDevice) + confirmUpdate + baseDevice.id;
 }
 #pragma endregion

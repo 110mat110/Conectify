@@ -14,9 +14,10 @@ public class DeviceProfile : Profile
             .ForMember(x => x.Metadata, opt => opt.Ignore())
             .ForMember(x => x.Sensors, opt => opt.Ignore())
             .ForMember(x => x.Actuators, opt => opt.Ignore())
-            .ForMember(x => x.Preferences, opt => opt.Ignore());
-
+            .ForMember(x => x.Preferences, opt => opt.Ignore())
+            .ForMember(x => x.DeviceVersions, opt => opt.Ignore());
         this.CreateMap<Device, ApiDevice>()
+
             .ForMember(x => x.State, opt => opt.MapFrom(x => ApiDeviceState.Offline));
 
         this.CreateMap<ApiSensor, Sensor>()

@@ -28,4 +28,8 @@ void decodeIncomingJson(String incomingJson,
 );
 
 String RequestTime(BaseDevice baseDevice);
+
+void SendSoftwareVersion(BaseDevice &baseDevice, String swVersion);
+String GetSoftwareUrl(BaseDevice &baseDevice);
+void ConfirmUpdate(BaseDevice &baseDevice);
 #endif
