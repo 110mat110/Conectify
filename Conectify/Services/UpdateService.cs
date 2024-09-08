@@ -17,7 +17,7 @@ public interface IUpdateService
     Task RegisterDeviceAsync(Guid deviceId, string softwareName, string chipVersion, CancellationToken ct = default);
 }
 
-public class UpdateService(ConectifyDb conectifyDb, Configuration configuration, IDataService dataService, IServiceScopeFactory serviceScopeFactory) : IUpdateService
+public class UpdateService(ConectifyDb conectifyDb, Configuration configuration, IServiceScopeFactory serviceScopeFactory) : IUpdateService
 {
     public async Task RegisterDeviceAsync(Guid deviceId, string softwareName, string chipVersion, CancellationToken ct = default)
     {
@@ -77,9 +77,9 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
             // List files in the repository
             var files = await ListFiles(owner, repo, token);
 
-            foreach (var folder in files.Where(f => f["type"].ToString() == "dir"))
+            foreach (var folder in files.Where(f => f["type"]!.ToString() == "dir"))
             {
-                string filePath = folder["path"].ToString();
+                string filePath = folder["path"]!.ToString();
                 Console.WriteLine($"Processing file: {filePath}");
 
                 // Get last modification date for each file
@@ -183,7 +183,7 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
             if (commits.Count > 0)
             {
                 var lastCommit = commits[0];
-                var commitDate = lastCommit["commit"]["committer"]["date"].ToString();
+                var commitDate = lastCommit["commit"]!["committer"]!["date"]!.ToString();
                 return commitDate; // Return the last commit date for the file
             }
 
