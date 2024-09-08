@@ -376,5 +376,6 @@ String GetSoftwareUrl(BaseDevice &baseDevice){
 
 void ConfirmUpdate(BaseDevice &baseDevice){
   String url = httpPrefix + GetServer(baseDevice) + confirmUpdate + baseDevice.id;
+  HTTPResponse response = HTTPGet(url);
 }
 #pragma endregion

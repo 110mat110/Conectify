@@ -44,8 +44,8 @@ const String timeSuffix = "/api/system/time";
 const String inputWebSocketSuffix = "/api/websocket/";
 const String lastSensorValue = "/api/sensors/lastvalue/";
 const String registerUpdate = "/api/update/version/";
-const String getUpdateUrl = "/api/url";
-const String confirmUpdate = "/api/updated";
+const String getUpdateUrl = "/api/update/url";
+const String confirmUpdate = "/api/update/updated";
 
 
 const String HeaderContentType = "Content-Type";

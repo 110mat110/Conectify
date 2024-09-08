@@ -120,7 +120,7 @@ void PerformOTAUpdate(String githubUrl) {
         // End the update process and check the result
         if (Update.end()) {
           if (Update.isFinished()) {
-            DebugMessage("Update successfully completed. Sending confirmaton");
+            DebugMessage("Update successfully completed. Sending confirmation");
             ConfirmUpdate(GetGlobalVariables()->baseDevice);
             DebugMessage("Update confirmed. Rebooting");
             ESP.restart();
