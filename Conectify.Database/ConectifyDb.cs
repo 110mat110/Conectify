@@ -4,6 +4,7 @@ using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
 using Conectify.Database.Models.Automatization;
 using Conectify.Database.Models.Dashboard;
+using Conectify.Database.Models.Updates;
 using Conectify.Database.Models.Values;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,6 +40,11 @@ public class ConectifyDb(DbContextOptions<ConectifyDb> options) : DbContext(opti
 
     public DbSet<DashboardDevice> DashboardsDevice { get; set; }
 
+    //Automatic updated
+    public DbSet<DeviceVersion> DeviceVersions { get; set; }
+    public DbSet<Software> Softwares { get; set; }
+    public DbSet<SoftwareVersion> SoftwareVersions { get; set; }
+
     public async Task<T> AddOrUpdateAsync<T>(T entity, CancellationToken ct = default) where T : class, IEntity
     {
         if (await this.Set<T>().AnyAsync(d => d.Id == entity.Id, ct))
@@ -69,6 +75,13 @@ public class ConectifyDb(DbContextOptions<ConectifyDb> options) : DbContext(opti
             .HasOne(bc => bc.PreviousRule)
             .WithMany(c => c.ContinuingRules)
             .HasForeignKey(bc => bc.PreviousRuleId);
+
+        modelBuilder.Entity<DeviceVersion>()
+            .HasOne(bc => bc.Device)
+            .WithMany(bc => bc.DeviceVersions)
+            .HasForeignKey(bc => bc.DeviceId);
+        modelBuilder.Entity<DeviceVersion>()
+            .HasKey(x => x.DeviceId);
 
         modelBuilder.Entity<RuleParameter>().HasKey(u => new
         {

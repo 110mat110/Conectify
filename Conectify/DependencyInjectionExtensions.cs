@@ -20,6 +20,7 @@ public static class DependencyInjectionExtensions
 		services.AddSingleton<Configuration>();
 		services.AddTransient<IHttpFactory, HttpFactory>();
         services.AddSingleton<IDeviceStatusService, DeviceStatusService>();
+        services.AddTransient<IUpdateService, UpdateService>();
         services.AddTransient<UserService>();
     }
 }

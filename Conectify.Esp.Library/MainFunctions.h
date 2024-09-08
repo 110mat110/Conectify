@@ -13,7 +13,7 @@ DNSServer* GetDns();
 void StartupMandatoryRoutine(int psensorArrSize, int pactuatorArrSize, void(*SensorsDeclarations)());
 void LoopMandatoryRoutines();
 bool IsWiFi();
-
+void SetSoftwareName(String softwareName);
 void SendViaWebSocket(String message);
 
 void SetWatchDog(Value valuesArray[], int valuesLength);

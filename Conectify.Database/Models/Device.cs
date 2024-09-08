@@ -1,6 +1,7 @@
 ﻿namespace Conectify.Database.Models;
 
 using Conectify.Database.Interfaces;
+using Conectify.Database.Models.Updates;
 using Conectify.Shared.Library.Classes;
 using System;
 using System.Collections.Generic;
@@ -22,4 +23,6 @@ public class Device : Serializable, IEntity, IMetadatable<Device>, IDevice
     public virtual ICollection<Actuator> Actuators { get; set; } = null!;
 
     public virtual ICollection<Preference> Preferences { get; set; } = new HashSet<Preference>();
+
+    public virtual ICollection<DeviceVersion> DeviceVersions { get; set; } = [];
 }
