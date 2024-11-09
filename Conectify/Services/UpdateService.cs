@@ -128,8 +128,9 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
         foreach( var device in await conectifyDb.DeviceVersions.Include(x => x.Device).ToListAsync())
         {
 
-            var command = new Command()
+            var command = new Event()
             {
+                Type = Constants.Events.Command,
                 DestinationId = device.DeviceId,
                 Id = Guid.NewGuid(),
                 Name = Constants.Commands.UpdateAvaliable,

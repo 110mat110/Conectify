@@ -11,8 +11,8 @@ public class InputRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
             {
-                new AutomatisationValue { NumericValue = 5, StringValue = "Test", Unit = "Unit" },
-                new AutomatisationValue { NumericValue = 10, StringValue = "Test2", Unit = "Unit2" }
+                new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" },
+                new() { NumericValue = 10, StringValue = "Test2", Unit = "Unit2" }
             };
 
         var masterRule = new RuleDTO { Id = Guid.NewGuid() };

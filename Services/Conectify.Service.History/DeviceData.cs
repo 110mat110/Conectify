@@ -1,6 +1,7 @@
 ﻿namespace Conectify.Service.History;
 
 using Conectify.Services.Library;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Services;
 using Conectify.Shared.Services;
@@ -17,7 +18,7 @@ public class DeviceData(Configuration configuration) : IDeviceData
 
     public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
         {
-            new ApiSensor()
+            new()
             {
                 Id = configuration.SensorId,
                 Name = "History Service Sensor",
@@ -27,7 +28,7 @@ public class DeviceData(Configuration configuration) : IDeviceData
 
     public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>()
         {
-            new ApiActuator()
+            new()
             {
                 Id = configuration.ActuatorId,
                 Name = "History Service Actuator",
@@ -36,20 +37,29 @@ public class DeviceData(Configuration configuration) : IDeviceData
             }
         };
 
-    public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>()
-    {
-        new ApiPreference()
+    public IEnumerable<ApiPreference> Preferences =>
+    [
+                new()
         {
-            SubToValues = true,
-            SubToActionResponse = true,
-            SubToActions = true,
-            SubToCommandResponse = true,
+            EventType = Constants.Events.Value
+        },
+                        new()
+        {
+            EventType = Constants.Events.ActionResponse
+        },
+                                new()
+        {
+            EventType = Constants.Events.Action
+        },
+                                        new()
+        {
+            EventType = Constants.Events.CommandResponse
         }
-    };
+    ];
 
     public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
     {
-        new MetadataServiceConnector()
+        new()
         {
             MaxVal = 1,
             MinVal = 0,

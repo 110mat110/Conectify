@@ -25,8 +25,7 @@ public class DeviceStatusService : IDeviceStatusService, IDisposable
         this.subscribersCache = subscribersCache;
         this.configuration = configuration;
 
-        // Create a timer with a two second interval.
-        aTimer = new System.Timers.Timer(1000 * 60 * 60);
+        aTimer = new System.Timers.Timer(new TimeSpan(1, 0, 0));
         // Hook up the Elapsed event for the timer. 
         aTimer.Elapsed += OnTimedEvent;
         aTimer.AutoReset = true;
@@ -44,8 +43,9 @@ public class DeviceStatusService : IDeviceStatusService, IDisposable
 
        foreach (var device in allDevices.Where(x => x.DeviceId != Guid.Empty).DistinctBy(x => x.DeviceId))
        {
-            var command = new Command()
+            var command = new Event()
             {
+                Type = Constants.Events.Command,
                 DestinationId = device.DeviceId,
                 Id = Guid.NewGuid(),
                 Name = Constants.Commands.ActivityCheck,

@@ -15,6 +15,10 @@ public interface IConnectorService
 {
     Task<bool> RegisterDevice(ApiDevice device, IEnumerable<ApiSensor> apiSensors, IEnumerable<ApiActuator> apiActuators, CancellationToken ct = default);
 
+    Task<bool> RegisterSensors(IEnumerable<ApiSensor> apiSensors, CancellationToken ct = default);
+
+    Task<bool> RegisterActuators(IEnumerable<ApiActuator> apiSensors, CancellationToken ct = default);
+
     Task<bool> SetPreferences(Guid deviceId, IEnumerable<ApiPreference> preferences, CancellationToken ct = default);
 
     Task<IEnumerable<Actuator>> LoadAllActuators(CancellationToken ct = default);
@@ -29,7 +33,7 @@ public interface IConnectorService
 
     Task<IEnumerable<Sensor>> LoadSensorsPerDevice(Guid deviceId, CancellationToken ct = default);
 
-    Task<ApiValue?> LoadLastValue(Guid sensorId, CancellationToken ct = default);
+    Task<ApiEvent?> LoadLastValue(Guid sensorId, CancellationToken ct = default);
 
 }
 
@@ -38,12 +42,23 @@ public class ConnectorService(ILogger<ConnectorService> logger, ConfigurationBas
     public async Task<bool> RegisterDevice(ApiDevice device, IEnumerable<ApiSensor> apiSensors, IEnumerable<ApiActuator> apiActuators, CancellationToken ct = default)
     {
         await PostAsync(device, "{0}/api/device", ct);
+        await RegisterSensors(apiSensors, ct);
+        await RegisterActuators(apiActuators, ct);
+        return true;
+    }
 
+    public async Task<bool> RegisterSensors(IEnumerable<ApiSensor> apiSensors, CancellationToken ct = default)
+    {
         foreach (var apiSensor in apiSensors)
         {
             await PostAsync(apiSensor, "{0}/api/sensors", ct);
         }
 
+        return true;
+    }
+
+    public async Task<bool> RegisterActuators(IEnumerable<ApiActuator> apiActuators, CancellationToken ct = default)
+    {
         foreach (var apiActuator in apiActuators)
         {
             await PostAsync(apiActuator, "{0}/api/actuators", ct);
@@ -124,9 +139,9 @@ public class ConnectorService(ILogger<ConnectorService> logger, ConfigurationBas
         return mapper.Map<IEnumerable<Sensor>>(apiModels);
     }
 
-    public async Task<ApiValue?> LoadLastValue(Guid sensorId, CancellationToken ct = default)
+    public async Task<ApiEvent?> LoadLastValue(Guid sensorId, CancellationToken ct = default)
     {
-        return await GetAsync<ApiValue>("{0}/api/sensors/lastValue/" + sensorId.ToString(), ct);
+        return await GetAsync<ApiEvent>("{0}/api/sensors/lastValue/" + sensorId.ToString(), ct);
     }
 
     private async Task PostAsync<T>(T objectToSend, string urlSuffix, CancellationToken ct = default) where T : IApiModel

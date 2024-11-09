@@ -27,7 +27,7 @@ async void OnEvent(Conectify.Database.Models.Values.Action action)
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
+app.UseWebSockets();
 app.MapControllers();
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.Run();

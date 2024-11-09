@@ -6,14 +6,15 @@ namespace Conectify.Services.ShellyConnector.Services;
 
 public interface IShellyService
 {
-    Task<bool> SetSwitch(bool isOn, CancellationToken cancellationToken = default);
+    Task<bool> SetSwitch(Guid id, bool isOn, CancellationToken cancellationToken = default);
+    Task<bool> Trigger(Guid id, CancellationToken cancellationToken = default);
     Task<bool> SendValueToShelly(Database.Models.Values.Action websocketAction, CancellationToken cancellationToken = default);
-    Task<bool> LongPress(CancellationToken cancellationToken = default);
+    Task<bool> LongPress(Guid id, CancellationToken cancellationToken = default);
 }
 
 public class ShellyService(Configuration configuration, IServicesWebsocketClient websocketClient, ILogger<ShellyService> logger) : IShellyService
 {
-    public async Task<bool> LongPress(CancellationToken cancellationToken = default)
+    public async Task<bool> LongPress(Guid id, CancellationToken cancellationToken = default)
     {
         logger.LogInformation($"Registered long press");
 
@@ -24,7 +25,7 @@ public class ShellyService(Configuration configuration, IServicesWebsocketClient
             SourceId = configuration.LongPressSensorId,
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             Unit = "",
-            Type = Constants.Types.Value,
+            Type = Constants.Events.Value,
         };
 
         await websocketClient.SendMessageAsync(value, cancellationToken);
@@ -32,7 +33,7 @@ public class ShellyService(Configuration configuration, IServicesWebsocketClient
         return true;
     }
 
-    public async Task<bool> SetSwitch(bool isOn, CancellationToken cancellationToken = default)
+    public async Task<bool> SetSwitch(Guid id, bool isOn, CancellationToken cancellationToken = default)
     {
         logger.LogInformation($"Light was turned {LightState(isOn)}");
         var value = new WebsocketBaseModel()
@@ -42,7 +43,7 @@ public class ShellyService(Configuration configuration, IServicesWebsocketClient
             SourceId = configuration.SensorId,
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             Unit = "%",
-            Type = Constants.Types.Value,
+            Type = Constants.Events.Value,
         };
 
         await websocketClient.SendMessageAsync(value, cancellationToken);
@@ -90,11 +91,16 @@ public class ShellyService(Configuration configuration, IServicesWebsocketClient
             NumericValue = websocketAction.NumericValue > 0 ? 100 : 0,
             SourceId = configuration.ActuatorId,
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            Type = Constants.Types.ActionResponse,
+            Type = Constants.Events.ActionResponse,
             Unit = "%",
             ResponseSourceId = websocketAction.Id,
             StringValue = string.Empty
         }, cancellationToken);
         return true;
+    }
+
+    public Task<bool> Trigger(Guid id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -5,13 +5,13 @@ using Conectify.Database.Models;
 using Conectify.Database.Models.Values;
 using Conectify.Server.Caches;
 using Conectify.Server.Services;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Interfaces;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Maps;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Collections;
-using Action = Conectify.Database.Models.Values.Action;
 
 namespace Conectify.Server.Test.Services;
 
@@ -30,7 +30,7 @@ public class PipelineServiceTest
 
         mapper = new MapperConfiguration(cfg =>
         {
-            cfg.AddProfile<ValuesProfile>();
+            cfg.AddProfile<EventProfile>();
             cfg.AddProfile<PreferenceProfile>();
         }).CreateMapper();
     }
@@ -41,12 +41,12 @@ public class PipelineServiceTest
     [ClassData(typeof(CommandClassData))]
     [ClassData(typeof(ActionResponseClassData))]
     [ClassData(typeof(CommandResponseClassData))]
-    public async Task ItShallNotResendWhenNoSubs(IBaseInputType input)
+    public async Task ItShallNotResendWhenNoSubs(Event input)
     {
         var websocketService = A.Fake<IWebSocketService>();
         var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), websocketService, mapper, A.Fake<ILogger<PipelineService>>());
 
-        await service.ResendValueToSubscribers(input);
+        await service.ResendEventToSubscribers(input);
         A.CallTo(() => websocketService.SendToDeviceAsync(A<Guid>.Ignored, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();
     }
 
@@ -55,7 +55,7 @@ public class PipelineServiceTest
     {
         var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
 
-        await service.ResendValueToSubscribers(new TestValue());
+        await service.ResendEventToSubscribers(new TestEvent());
     }
 
     [Theory]
@@ -64,15 +64,15 @@ public class PipelineServiceTest
     [ClassData(typeof(CommandClassData))]
     [ClassData(typeof(ActionResponseClassData))]
     [ClassData(typeof(CommandResponseClassData))]
-    public async Task ItShallResendToDevicesThatAreSubbedToAll(IBaseInputType input)
+    public async Task ItShallResendToDevicesThatAreSubbedToAll(Event input)
     {
         var websocketService = A.Fake<IWebSocketService>();
         var subCahce = A.Fake<ISubscribersCache>();
         var targetDeviceId = Guid.NewGuid();
-        A.CallTo(() => subCahce.AllSubscribers()).Returns(new List<Subscriber>() { new Subscriber() { DeviceId = targetDeviceId, IsSubedToAll = true } });
+        A.CallTo(() => subCahce.AllSubscribers()).Returns(new List<Subscriber>() { new() { DeviceId = targetDeviceId, IsSubedToAll = true } });
         var service = new PipelineService(new ConectifyDb(dbContextoptions), subCahce, websocketService, mapper, A.Fake<ILogger<PipelineService>>());
 
-        await service.ResendValueToSubscribers(input);
+        await service.ResendEventToSubscribers(input);
         A.CallTo(() => websocketService.SendToDeviceAsync(targetDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustHaveHappened();
     }
 
@@ -82,105 +82,23 @@ public class PipelineServiceTest
     [ClassData(typeof(CommandClassData))]
     [ClassData(typeof(ActionResponseClassData))]
     [ClassData(typeof(CommandResponseClassData))]
-    public async Task ItShallResendToDevicesThatAreSubbedToSource(IBaseInputType input)
+    public async Task ItShallNotResendToDevicesThatAreSubbedButNotToCorrectValue(Event input)
     {
         var websocketService = A.Fake<IWebSocketService>();
         var subCahce = A.Fake<ISubscribersCache>();
         var targetDeviceId = Guid.NewGuid();
         A.CallTo(() => subCahce.AllSubscribers())
             .Returns(new List<Subscriber>() {
-                new Subscriber() {
+                new() {
                     DeviceId = targetDeviceId,
                     IsSubedToAll = false,
                     Preferences = new List<Preference>()
-                    { new Preference()
-                        {
-                        SensorId = sourceDeviceId,
-                        ActuatorId = sourceDeviceId,
-                        DeviceId = sourceDeviceId,
-                        SubToActionResponse = true,
-                        SubToActions = true,
-                        SubToCommandResponse = true,
-                        SubToValues = true,
-                        SubToCommands = true,
-                        }
+                    {
                     }
                 }});
         var service = new PipelineService(new ConectifyDb(dbContextoptions), subCahce, websocketService, mapper, A.Fake<ILogger<PipelineService>>());
 
-        await service.ResendValueToSubscribers(input);
-        A.CallTo(() => websocketService.SendToDeviceAsync(targetDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustHaveHappened();
-    }
-
-    [Theory]
-    [ClassData(typeof(ValueClassData))]
-    [ClassData(typeof(ActionClassData))]
-    [ClassData(typeof(CommandClassData))]
-    [ClassData(typeof(ActionResponseClassData))]
-    [ClassData(typeof(CommandResponseClassData))]
-    public async Task ItShallResendToDevicesThatAreSubbedWithoutSource(IBaseInputType input)
-    {
-        var websocketService = A.Fake<IWebSocketService>();
-        var subCahce = A.Fake<ISubscribersCache>();
-        var targetDeviceId = Guid.NewGuid();
-        A.CallTo(() => subCahce.AllSubscribers())
-            .Returns(new List<Subscriber>() {
-                new Subscriber() {
-                    DeviceId = targetDeviceId,
-                    IsSubedToAll = false,
-                    Preferences = new List<Preference>()
-                    { new Preference()
-                        {
-                        SensorId = null,
-                        ActuatorId = null,
-                        DeviceId = null,
-                        SubToActionResponse = true,
-                        SubToActions = true,
-                        SubToCommandResponse = true,
-                        SubToValues = true,
-                        SubToCommands = true,
-                        }
-                    }
-                }});
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCahce, websocketService, mapper, A.Fake<ILogger<PipelineService>>());
-
-        await service.ResendValueToSubscribers(input);
-        A.CallTo(() => websocketService.SendToDeviceAsync(targetDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustHaveHappened();
-    }
-
-    [Theory]
-    [ClassData(typeof(ValueClassData))]
-    [ClassData(typeof(ActionClassData))]
-    [ClassData(typeof(CommandClassData))]
-    [ClassData(typeof(ActionResponseClassData))]
-    [ClassData(typeof(CommandResponseClassData))]
-    public async Task ItShallNotResendToDevicesThatAreSubbedButNotToCorrectValue(IBaseInputType input)
-    {
-        var websocketService = A.Fake<IWebSocketService>();
-        var subCahce = A.Fake<ISubscribersCache>();
-        var targetDeviceId = Guid.NewGuid();
-        A.CallTo(() => subCahce.AllSubscribers())
-            .Returns(new List<Subscriber>() {
-                new Subscriber() {
-                    DeviceId = targetDeviceId,
-                    IsSubedToAll = false,
-                    Preferences = new List<Preference>()
-                    { new Preference()
-                        {
-                        SensorId = sourceDeviceId,
-                        ActuatorId = sourceDeviceId,
-                        DeviceId = sourceDeviceId,
-                        SubToActionResponse = false,
-                        SubToActions = false,
-                        SubToCommandResponse = false,
-                        SubToValues = false,
-                        SubToCommands = false,
-                        }
-                    }
-                }});
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCahce, websocketService, mapper, A.Fake<ILogger<PipelineService>>());
-
-        await service.ResendValueToSubscribers(input);
+        await service.ResendEventToSubscribers(input);
         A.CallTo(() => websocketService.SendToDeviceAsync(targetDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();
     }
 
@@ -193,22 +111,9 @@ public class PipelineServiceTest
 
         var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
 
-        await service.SetPreference(sourceDeviceId, new List<ApiPreference>() { new ApiPreference() });
+        await service.SetPreference(sourceDeviceId, new List<ApiPreference>() { new() });
 
         Assert.Empty(new ConectifyDb(dbContextoptions).Set<Preference>().ToList());
-    }
-    [Fact]
-    public async Task ItShallSubToAllWithoutCallingSubToAll()
-    {
-        var db = new ConectifyDb(dbContextoptions);
-        db.Add(new Device() { Id = sourceDeviceId, IsKnown = true });
-        db.SaveChanges();
-
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
-
-        await service.SetPreference(sourceDeviceId, new List<ApiPreference>() { new ApiPreference() { SubToActionResponse = true, SubToActions = true, SubToCommandResponse = true, SubToCommands = true, SubToValues = true } });
-
-        Assert.True(new ConectifyDb(dbContextoptions).Set<Device>().First().SubscribeToAll);
     }
 
     [Fact]
@@ -220,24 +125,9 @@ public class PipelineServiceTest
         var sensorId = Guid.NewGuid();
         var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
 
-        await service.SetPreference(sourceDeviceId, new List<ApiPreference>() { new ApiPreference() { SensorId = sensorId } });
+        await service.SetPreference(sourceDeviceId, new List<ApiPreference>() { new() { SubscibeeId = sensorId } });
 
-        Assert.Equal(sensorId, new ConectifyDb(dbContextoptions).Set<Device>().Include(i => i.Preferences).First().Preferences.First().SensorId);
-    }
-
-    [Fact]
-    public async Task ItShallUnsubsrcribeFromSensorPreference()
-    {
-        var sensorId = Guid.NewGuid();
-        var db = new ConectifyDb(dbContextoptions);
-        db.Add(new Device() { Id = sourceDeviceId, IsKnown = true, Preferences = new List<Preference>() { new Preference() { SensorId = sensorId, SubToValues = true } } });
-        db.SaveChanges();
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
-
-        await service.SetPreference(sourceDeviceId, new List<ApiPreference>() { new ApiPreference() { SensorId = sensorId, SubToValues = false } });
-
-        Assert.Equal(sensorId, new ConectifyDb(dbContextoptions).Set<Device>().Include(i => i.Preferences).First().Preferences.First().SensorId);
-        Assert.False(new ConectifyDb(dbContextoptions).Set<Device>().Include(i => i.Preferences).First().Preferences.First().SubToValues);
+        Assert.Equal(sensorId, new ConectifyDb(dbContextoptions).Set<Device>().Include(i => i.Preferences).First().Preferences.First().SubscibeeId);
     }
 
     [Fact]
@@ -249,7 +139,7 @@ public class PipelineServiceTest
         var subCache = A.Fake<ISubscribersCache>();
         var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
 
-        await service.SetPreference(sourceDeviceId, new List<ApiPreference>() { new ApiPreference() });
+        await service.SetPreference(sourceDeviceId, new List<ApiPreference>() { new() });
         A.CallTo(() => subCache.UpdateSubscriber(sourceDeviceId, A<CancellationToken>.Ignored)).MustHaveHappened();
     }
 
@@ -311,7 +201,7 @@ public class PipelineServiceTest
         public IEnumerator<object[]> GetEnumerator()
         {
             yield return new object[] {
-            new Value
+            new Event
             {
                 Id = Guid.NewGuid(),
                 SourceId = sourceDeviceId,
@@ -326,7 +216,7 @@ public class PipelineServiceTest
         public IEnumerator<object[]> GetEnumerator()
         {
             yield return new object[] {
-            new Command
+            new Event
             {
                 Id = Guid.NewGuid(),
                 SourceId = sourceDeviceId,
@@ -341,7 +231,7 @@ public class PipelineServiceTest
         public IEnumerator<object[]> GetEnumerator()
         {
             yield return new object[] {
-            new Action
+            new Event
             {
                 Id = Guid.NewGuid(),
                 SourceId = sourceDeviceId,
@@ -356,7 +246,7 @@ public class PipelineServiceTest
         public IEnumerator<object[]> GetEnumerator()
         {
             yield return new object[] {
-            new ActionResponse
+            new Event
             {
                 Id = Guid.NewGuid(),
                 SourceId = sourceDeviceId,
@@ -370,7 +260,7 @@ public class PipelineServiceTest
         public IEnumerator<object[]> GetEnumerator()
         {
             yield return new object[] {
-            new CommandResponse
+            new Event
             {
                 Id = Guid.NewGuid(),
                 SourceId = sourceDeviceId,
@@ -380,7 +270,7 @@ public class PipelineServiceTest
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    private class TestValue : IBaseInputType
+    private class TestEvent : Event
     {
         public Guid SourceId { get; set; }
         public string Name { get; set; } = string.Empty;

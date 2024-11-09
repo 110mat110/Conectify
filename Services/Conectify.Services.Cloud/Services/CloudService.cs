@@ -13,20 +13,26 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
 {
     private readonly IServicesWebsocketClient websocketClient = websocketClient;
 
-    private readonly Dictionary<Guid, List<IWebsocketBaseModel>> valueCache = [];
+    private readonly Dictionary<Guid, List<IWebsocketEvent>> valueCache = [];
 
     private DateTime LastRefresh = DateTime.MinValue;
 
     public async Task StartServiceAsync()
     {
-        websocketClient.OnIncomingValue += WebsocketClient_OnIncomingValue;
-        websocketClient.OnIncomingAction += WebsocketClient_OnIncomingAction;
-        websocketClient.OnIncomingCommand += WebsocketClient_OnIncomingCommand;
+        websocketClient.OnIncomingEvent += WebsocketClient_OnIncomingEvent; ;
         await websocketClient.ConnectAsync();
 
         await RefreshCloudDevices();
 
         Timer timer = new(CallCloud, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
+    }
+
+    private void WebsocketClient_OnIncomingEvent(Event evnt)
+    {
+        if(evnt.Type == Constants.Events.Command)
+        {
+            WebsocketClient_OnIncomingCommand(evnt);
+        }
     }
 
     private async void CallCloud(object? state)
@@ -43,7 +49,7 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
 
         foreach(var value in values?.Actuators?? [])
         {
-            var action = new WebsocketBaseModel()
+            var action = new WebsocketEvent()
             {
                 DestinationId = Guid.Parse(value.ActuatorId),
                 Name = "cloud",
@@ -52,7 +58,7 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
                 TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 Unit = "",
                 SourceId = cloudConfiguration.SensorId,
-                Type = Constants.Types.Action,
+                Type = Constants.Events.Action,
             };
            await websocketClient.SendMessageAsync(action);
         }
@@ -94,9 +100,9 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
         }
     }
 
-    private void WebsocketClient_OnIncomingCommand(Command command)
+    private void WebsocketClient_OnIncomingCommand(Event command)
     {
-        var value = mapper.Map<WebsocketBaseModel>(command);
+        var value = mapper.Map<WebsocketEvent>(command);
         var targetDevice = deviceService.GetDeviceById(value.SourceId);
 
         if (targetDevice is not null)
@@ -106,16 +112,6 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
                 values.Add(value);
             }
         }
-    }
-
-    private void WebsocketClient_OnIncomingAction(Database.Models.Values.Action action)
-    {
-        
-    }
-
-    private async void WebsocketClient_OnIncomingValue(Value value)
-    {
-        await RefreshCloudDevices();
     }
 
     private record ApiCloudActuator(string ActuatorId, string ActuatorName, string StringValue, float NumericValue, string Unit, string ActuatorType);

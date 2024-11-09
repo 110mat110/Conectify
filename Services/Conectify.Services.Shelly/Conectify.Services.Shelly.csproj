@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>001ffbbd-47f6-4ea6-aa0e-b0d42c1a882a</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Conectify.Shared.Library\Conectify.Shared.Library.csproj" />
+    <ProjectReference Include="..\..\Conectify.Shared.Maps\Conectify.Shared.Maps.csproj" />
+    <ProjectReference Include="..\..\Conectify.Shared.Services\Conectify.Shared.Services.csproj" />
+    <ProjectReference Include="..\Conectify.Services.Dashboard\Conectify.Services.Dashboard.csproj" />
+    <ProjectReference Include="..\Conectify.Services.Library\Conectify.Services.Library.csproj" />
+  </ItemGroup>
+
+</Project>

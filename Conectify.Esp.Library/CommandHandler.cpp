@@ -63,9 +63,8 @@ void SendCommandResponseToServer(String commandId, String response){
     }
 
     DynamicJsonDocument doc(512);
-    doc[DTResponseSourceId] = commandId;
     doc[type] = CommandResponseType;
-    doc[DTSourceId] = GetGlobalVariables() -> baseDevice.id;
+    doc[DTSourceId] = commandId;
     doc[timeCreated] = GetGlobalVariables() -> dateTime.ToJSONString();
     doc[DTvalueName] = response;
     doc[DTstringValue] = "";

@@ -15,7 +15,7 @@ public interface ISensorService : IUniversalDeviceService<ApiSensor>
 {
     Task<IEnumerable<ApiSensor>> GetAllSensorsPerDevice(Guid deviceId, CancellationToken ct = default);
     Task<ApiSensor?> GetSensorByActuator(Guid id, CancellationToken ct = default);
-    Task<ApiValue?> GetLastValue(Guid sensorId, CancellationToken ct = default);
+    Task<ApiEvent?> GetLastValue(Guid sensorId, CancellationToken ct = default);
 }
 
 public class SensorService(ConectifyDb database, IMapper mapper, IDeviceService deviceService, ILogger<SensorService> logger, IHttpFactory httpFactory, Configuration configuration) : UniversalDeviceService<Sensor, ApiSensor>(database, mapper, logger, httpFactory, configuration), ISensorService
@@ -94,8 +94,8 @@ public class SensorService(ConectifyDb database, IMapper mapper, IDeviceService 
         return await database.Set<Sensor>().AsNoTracking().Where(x => !exclude.Contains(x.Id)).ProjectTo<ApiSensor>(mapper.ConfigurationProvider).ToListAsync(ct);
     }
 
-    public async Task<ApiValue?> GetLastValue(Guid sensorId, CancellationToken ct = default)
+    public async Task<ApiEvent?> GetLastValue(Guid sensorId, CancellationToken ct = default)
     {
-        return await database.Set<Value>().AsNoTracking().Where(x => x.SourceId == sensorId).OrderByDescending(x => x.TimeCreated).ProjectTo<ApiValue>(mapper.ConfigurationProvider).FirstOrDefaultAsync(ct);
+        return await database.Set<Event>().AsNoTracking().Where(x => x.SourceId == sensorId && x.Type == Constants.Events.Value).OrderByDescending(x => x.TimeCreated).ProjectTo<ApiEvent>(mapper.ConfigurationProvider).FirstOrDefaultAsync(ct);
     }
 }

@@ -364,40 +364,17 @@ namespace Conectify.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ActuatorId")
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("SubscibeeId")
                         .HasColumnType("uuid");
-
-                    b.Property<Guid?>("DeviceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("SensorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("SubToActionResponse")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("SubToActions")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("SubToCommandResponse")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("SubToCommands")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("SubToValues")
-                        .HasColumnType("boolean");
 
                     b.Property<Guid>("SubscriberId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ActuatorId");
-
-                    b.HasIndex("DeviceId");
-
-                    b.HasIndex("SensorId");
 
                     b.HasIndex("SubscriberId");
 
@@ -487,7 +464,7 @@ namespace Conectify.Database.Migrations
                     b.ToTable("SoftwareVersions");
                 });
 
-            modelBuilder.Entity("Conectify.Database.Models.Values.Action", b =>
+            modelBuilder.Entity("Conectify.Database.Models.Values.Event", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -513,44 +490,9 @@ namespace Conectify.Database.Migrations
                     b.Property<long>("TimeCreated")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Unit")
+                    b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DestinationId");
-
-                    b.HasIndex("SourceId");
-
-                    b.ToTable("Actions");
-                });
-
-            modelBuilder.Entity("Conectify.Database.Models.Values.ActionResponse", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ActionId1")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<float?>("NumericValue")
-                        .HasColumnType("real");
-
-                    b.Property<Guid>("SourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("StringValue")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("TimeCreated")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("Unit")
                         .IsRequired()
@@ -558,123 +500,7 @@ namespace Conectify.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ActionId1");
-
-                    b.HasIndex("SourceId");
-
-                    b.ToTable("ActionResponses");
-                });
-
-            modelBuilder.Entity("Conectify.Database.Models.Values.Command", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("DestinationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<float?>("NumericValue")
-                        .HasColumnType("real");
-
-                    b.Property<Guid>("SourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("StringValue")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("TimeCreated")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DestinationId");
-
-                    b.HasIndex("SourceId");
-
-                    b.ToTable("Commands");
-                });
-
-            modelBuilder.Entity("Conectify.Database.Models.Values.CommandResponse", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CommandId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<float?>("NumericValue")
-                        .HasColumnType("real");
-
-                    b.Property<Guid>("SourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("StringValue")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("TimeCreated")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CommandId");
-
-                    b.HasIndex("SourceId");
-
-                    b.ToTable("CommandResponses");
-                });
-
-            modelBuilder.Entity("Conectify.Database.Models.Values.Value", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<float?>("NumericValue")
-                        .HasColumnType("real");
-
-                    b.Property<Guid>("SourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("StringValue")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("TimeCreated")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SourceId");
-
-                    b.ToTable("Values");
+                    b.ToTable("Events");
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>
@@ -804,29 +630,11 @@ namespace Conectify.Database.Migrations
 
             modelBuilder.Entity("Conectify.Database.Models.Preference", b =>
                 {
-                    b.HasOne("Conectify.Database.Models.Actuator", "Actuator")
-                        .WithMany()
-                        .HasForeignKey("ActuatorId");
-
-                    b.HasOne("Conectify.Database.Models.Device", "Device")
-                        .WithMany()
-                        .HasForeignKey("DeviceId");
-
-                    b.HasOne("Conectify.Database.Models.Sensor", "Sensor")
-                        .WithMany()
-                        .HasForeignKey("SensorId");
-
                     b.HasOne("Conectify.Database.Models.Device", "Subscriber")
                         .WithMany("Preferences")
                         .HasForeignKey("SubscriberId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Actuator");
-
-                    b.Navigation("Device");
-
-                    b.Navigation("Sensor");
 
                     b.Navigation("Subscriber");
                 });
@@ -870,91 +678,6 @@ namespace Conectify.Database.Migrations
                         .IsRequired();
 
                     b.Navigation("Software");
-                });
-
-            modelBuilder.Entity("Conectify.Database.Models.Values.Action", b =>
-                {
-                    b.HasOne("Conectify.Database.Models.Actuator", "Destination")
-                        .WithMany()
-                        .HasForeignKey("DestinationId");
-
-                    b.HasOne("Conectify.Database.Models.Sensor", "Source")
-                        .WithMany()
-                        .HasForeignKey("SourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Destination");
-
-                    b.Navigation("Source");
-                });
-
-            modelBuilder.Entity("Conectify.Database.Models.Values.ActionResponse", b =>
-                {
-                    b.HasOne("Conectify.Database.Models.Values.Action", "Action")
-                        .WithMany()
-                        .HasForeignKey("ActionId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Conectify.Database.Models.Actuator", "Source")
-                        .WithMany()
-                        .HasForeignKey("SourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Action");
-
-                    b.Navigation("Source");
-                });
-
-            modelBuilder.Entity("Conectify.Database.Models.Values.Command", b =>
-                {
-                    b.HasOne("Conectify.Database.Models.Device", "Destination")
-                        .WithMany()
-                        .HasForeignKey("DestinationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Conectify.Database.Models.Device", "Source")
-                        .WithMany()
-                        .HasForeignKey("SourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Destination");
-
-                    b.Navigation("Source");
-                });
-
-            modelBuilder.Entity("Conectify.Database.Models.Values.CommandResponse", b =>
-                {
-                    b.HasOne("Conectify.Database.Models.Values.Command", "Command")
-                        .WithMany()
-                        .HasForeignKey("CommandId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Conectify.Database.Models.Device", "Source")
-                        .WithMany()
-                        .HasForeignKey("SourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Command");
-
-                    b.Navigation("Source");
-                });
-
-            modelBuilder.Entity("Conectify.Database.Models.Values.Value", b =>
-                {
-                    b.HasOne("Conectify.Database.Models.Sensor", "Source")
-                        .WithMany()
-                        .HasForeignKey("SourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Source");
                 });
 
             modelBuilder.Entity("Conectify.Database.Models.Actuator", b =>

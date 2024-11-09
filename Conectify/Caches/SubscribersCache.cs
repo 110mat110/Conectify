@@ -18,7 +18,7 @@ public interface ISubscribersCache
 
 public class SubscribersCache(IServiceProvider serviceProvider, IMapper mapper) : ISubscribersCache
 {
-    private static Dictionary<Guid, Subscriber> subscribers = new Dictionary<Guid, Subscriber>();
+    private static Dictionary<Guid, Subscriber> subscribers = new();
     private readonly object locker = new();
 
     public IEnumerable<Subscriber> AllSubscribers() => subscribers.Select(x => x.Value);

@@ -7,25 +7,33 @@ namespace Conectify.Services.ShellyConnector.Controllers;
 [ApiController]
 public class SwitchController(IShellyService shellyService) : ControllerBase
 {
-    [HttpGet("Off")]
-    public async Task<IActionResult> Off()
+    [HttpGet("{id}/Off")]
+    public async Task<IActionResult> Off(Guid id)
     {
-        await shellyService.SetSwitch(false);
+        await shellyService.SetSwitch(id, false);
         return Ok();
     }
 
-    [HttpGet("On")]
-    public async Task<IActionResult> On()
+    [HttpGet("{id}/On")]
+    public async Task<IActionResult> On(Guid id)
     {
-        await shellyService.SetSwitch(true);
+        await shellyService.SetSwitch(id,true);
 
         return Ok();
     }
 
-    [HttpGet("LongPress")]
-    public async Task<IActionResult> LongPress()
+    [HttpGet("{id}/Trigger")]
+    public async Task<IActionResult> Trigger(Guid id)
     {
-        await shellyService.LongPress();
+        await shellyService.Trigger(id);
+
+        return Ok();
+    }
+
+    [HttpGet("{id}/LongPress")]
+    public async Task<IActionResult> LongPress(Guid id)
+    {
+        await shellyService.LongPress(id);
         return Ok();
     }
 }

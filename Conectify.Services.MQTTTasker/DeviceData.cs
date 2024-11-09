@@ -1,9 +1,11 @@
 ﻿namespace Conectify.Services.MQTTTasker;
 
 using Conectify.Services.Library;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Services;
 using Conectify.Shared.Services;
+using System.Reflection.Metadata;
 
 public class DeviceData(Configuration configuration) : IDeviceData
 {
@@ -19,7 +21,7 @@ public class DeviceData(Configuration configuration) : IDeviceData
 
 	public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>()
 		{
-			new ApiActuator()
+			new()
 			{
 				Id = configuration.ActuatorId,
 				Name = "MQTTActuator",
@@ -30,15 +32,15 @@ public class DeviceData(Configuration configuration) : IDeviceData
 
 	public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>()
 	{
-		new ApiPreference()
+		new()
 		{
-			SubToValues = true
+			EventType = Constants.Events.Value
 		}
 	};
 
 	public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
 	{
-		new MetadataServiceConnector()
+		new()
 		{
 			MaxVal = 1,
 			MinVal = 0,
@@ -54,7 +56,7 @@ public class DeviceData(Configuration configuration) : IDeviceData
     {
         var sensors = new List<ApiSensor>()
         {
-            new ApiSensor()
+            new()
             {
                 Id = configuration.SensorId,
                 Name = configuration.DeviceName,

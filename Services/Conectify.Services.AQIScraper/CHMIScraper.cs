@@ -29,7 +29,7 @@ public class CHMIScraper(IServicesWebsocketClient websocketClient, Configuration
 
             AQI = float.Parse(aqi.Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator));
 
-            var value = new WebsocketBaseModel()
+            var value = new WebsocketEvent()
             {
                 Name = "AQI",
                 NumericValue = AQI,
@@ -37,7 +37,7 @@ public class CHMIScraper(IServicesWebsocketClient websocketClient, Configuration
                 SourceId = configuration.SensorId,
                 TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 Unit = "PM10",
-                Type = Constants.Types.Value,
+                Type = Constants.Events.Value,
             };
             logger.LogInformation($"Got values! AQI is {AQI}");
             await websocketClient.SendMessageAsync(value);

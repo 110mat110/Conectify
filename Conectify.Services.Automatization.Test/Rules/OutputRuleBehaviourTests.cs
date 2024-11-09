@@ -11,8 +11,8 @@ public class OutputRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
         {
-            new AutomatisationValue { NumericValue = 5, StringValue = "Test", Unit = "Unit", TimeCreated = 1 },
-            new AutomatisationValue { NumericValue = 10, StringValue = "Test2", Unit = "Unit2", TimeCreated = 2 }
+            new() { NumericValue = 5, StringValue = "Test", Unit = "Unit", TimeCreated = 1 },
+            new() { NumericValue = 10, StringValue = "Test2", Unit = "Unit2", TimeCreated = 2 }
         };
 
         var masterRule = new RuleDTO { Id = Guid.NewGuid(), DestinationActuatorId = Guid.NewGuid() };

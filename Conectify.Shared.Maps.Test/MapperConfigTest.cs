@@ -13,7 +13,7 @@ public class Tests
     {
         var config = new MapperConfiguration(configuration =>
         {
-            configuration.AddMaps(typeof(ValuesProfile).GetTypeInfo().Assembly);
+            configuration.AddMaps(typeof(EventProfile).GetTypeInfo().Assembly);
             configuration.AddMaps(typeof(SubscriberProfile).GetTypeInfo().Assembly);
             configuration.AddMaps(typeof(RuleProfile).GetTypeInfo().Assembly);
         });

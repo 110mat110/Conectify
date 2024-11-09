@@ -47,7 +47,7 @@ public class OccupancyService(IServicesWebsocketClient websocketClient, Configur
 
                     Console.WriteLine(result);
 
-                    var value = new WebsocketBaseModel()
+                    var value = new WebsocketEvent()
                     {
                         Name = "Occupancy",
                         NumericValue = result ? 1 : 0,
@@ -55,7 +55,7 @@ public class OccupancyService(IServicesWebsocketClient websocketClient, Configur
                         SourceId = configuration.SensorId,
                         TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         Unit = "",
-                        Type = Constants.Types.Value,
+                        Type = Constants.Events.Value,
                     };
                     await websocketClient.SendMessageAsync(value);
 

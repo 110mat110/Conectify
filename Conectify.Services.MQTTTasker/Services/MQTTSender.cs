@@ -1,17 +1,18 @@
 ﻿using Conectify.Database.Interfaces;
 using MQTTnet.Client;
 using MQTTnet;
+using Conectify.Database.Models.Values;
 
 namespace Conectify.Services.MQTTTasker.Services;
 
 public interface IMQTTSender
 {
-	Task SendValueToBroker(IBaseInputType input, CancellationToken cancellationToken);
+	Task SendValueToBroker(Event input, CancellationToken cancellationToken);
 }
 
 internal class MQTTSender(Configuration configuration) : IMQTTSender
 {
-    public async Task SendValueToBroker(IBaseInputType input, CancellationToken cancellationToken)
+    public async Task SendValueToBroker(Event input, CancellationToken cancellationToken)
 	{
 		if (!input.NumericValue.HasValue)
 		{

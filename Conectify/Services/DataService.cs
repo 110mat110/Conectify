@@ -2,14 +2,14 @@
 
 using AutoMapper;
 using Conectify.Database;
-using Conectify.Database.Interfaces;
+using Conectify.Shared.Library;
 using Conectify.Shared.Services.Data;
 using Database.Models.Values;
 
 public interface IDataService
 {
     Task InsertJsonModel(string rawJson, Guid deviceId, CancellationToken ct = default);
-    Task ProcessEntity(IBaseInputType mapedEntity, Guid deviceId, CancellationToken ct = default);
+    Task ProcessEntity(Event mapedEntity, Guid deviceId, CancellationToken ct = default);
 }
 
 public class DataService(ILogger<DataService> logger, ConectifyDb database, IPipelineService pipelineService, IDeviceService deviceService, ISensorService sensorService, IActuatorService actuatorService, IMapper mapper) : IDataService
@@ -18,9 +18,15 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
     {
         try
         {
-            var (mapedEntity, _) = SharedDataService.DeserializeJson(rawJson, mapper);
+            var e = SharedDataService.DeserializeJson(rawJson, mapper);
 
-            await ProcessEntity(mapedEntity, deviceId, ct);
+            if (e == null)
+            {
+                logger.LogError("Could not deserialize incoming event {message}", rawJson);
+                return;
+            }
+
+            await ProcessEntity(e, deviceId, ct);
         }
         catch (Exception ex)
         {
@@ -31,46 +37,48 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
         }
     }
 
-    public async Task ProcessEntity(IBaseInputType mapedEntity, Guid deviceId, CancellationToken ct = default)
+    public async Task ProcessEntity(Event e, Guid deviceId, CancellationToken ct = default)
     {
-        if (await ValidateAndRepairEntity(mapedEntity, deviceId, ct))
+        try
         {
-            await SaveToDatabase(mapedEntity);
-            await pipelineService.ResendValueToSubscribers(mapedEntity);
+            if (await ValidateAndRepairEvent(e, deviceId, ct))
+            {
+                await pipelineService.ResendEventToSubscribers(e);
+                await SaveToDatabase(e);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError($"{ex.Message}", ex);
         }
     }
 
-    private async Task<bool> ValidateAndRepairEntity(IBaseInputType mapedEntity, Guid deviceId, CancellationToken ct = default)
+    private async Task<bool> ValidateAndRepairEvent(Event? evnt, Guid deviceId, CancellationToken ct = default)
     {
         //TODO validations will have place here
 
+        if (evnt == null)
+        {
+            return false;
+        }
+
         // repairs of unknown references
-        if (mapedEntity is Value or Action)
+        if (evnt.Type is Constants.Events.Value or Constants.Events.Value)
         {
-            await sensorService.TryAddUnknownDevice(mapedEntity.SourceId, deviceId, ct);
+            await sensorService.TryAddUnknownDevice(evnt.SourceId, deviceId, ct);
         }
 
-        if (mapedEntity is Command or CommandResponse)
+        if (evnt.Type is Constants.Events.Command)
         {
-            await deviceService.TryAddUnknownDevice(mapedEntity.SourceId, mapedEntity.SourceId, ct);
-        }
-
-        if (mapedEntity is ActionResponse)
-        {
-            await actuatorService.TryAddUnknownDevice(mapedEntity.SourceId, deviceId, ct);
+            await deviceService.TryAddUnknownDevice(evnt.SourceId, evnt.SourceId, ct);
         }
 
         return true;
     }
 
-    private async Task SaveToDatabase(IBaseInputType mapedEntity)
+    private async Task SaveToDatabase(Event mapedEntity)
     {
-
-        var existingEntity = await database.FindAsync(mapedEntity.GetType(), mapedEntity.Id);
-        if (existingEntity is null)
-        {
-            await database.AddAsync(mapedEntity);
+            await database.Events.AddAsync(mapedEntity);
             await database.SaveChangesAsync();
-        }
     }
 }

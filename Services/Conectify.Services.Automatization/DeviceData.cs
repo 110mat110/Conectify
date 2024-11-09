@@ -1,4 +1,5 @@
 ﻿using Conectify.Services.Library;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Services;
 using Conectify.Shared.Services;
@@ -17,7 +18,7 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
 
     public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
         {
-            new ApiSensor()
+            new()
             {
                 Id = configuration.SensorId,
                 Name = "Automatization Sensor",
@@ -27,7 +28,7 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
 
     public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>()
         {
-            new ApiActuator()
+            new()
             {
                 Id = configuration.ActuatorId,
                 Name = "Automatization Actuator",
@@ -36,19 +37,17 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
             }
         };
 
-    public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>()
-    {
-        new ApiPreference()
+    public IEnumerable<ApiPreference> Preferences =>
+    [
+        new()
         {
-            SubToValues = true,
-            SubToActions = true,
-            SubToCommands = true,
+            EventType = Constants.Events.All
         }
-    };
+    ];
 
 	public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
 	{
-		new MetadataServiceConnector()
+		new()
 		{
 			MaxVal = 1,
 			MinVal = 0,

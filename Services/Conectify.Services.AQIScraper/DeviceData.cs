@@ -17,7 +17,7 @@ public class DeviceData(Configuration configuration) : IDeviceData
 
     public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
     {
-        new ApiSensor()
+        new()
         {
             Id = configuration.SensorId,
             Name = "AQI",
