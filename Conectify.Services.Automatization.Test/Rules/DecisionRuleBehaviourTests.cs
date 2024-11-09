@@ -12,7 +12,7 @@ public class DecisionRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
         {
-            new AutomatisationValue { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
+            new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
         var parameterID = Guid.NewGuid();
         var masterRule = new RuleDTO
@@ -24,7 +24,7 @@ public class DecisionRuleBehaviourTests
 
         var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
         {
-            new Tuple<Guid, AutomatisationValue>(parameterID, new AutomatisationValue { NumericValue = 3 })
+            new(parameterID, new AutomatisationValue { NumericValue = 3 })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();
@@ -47,7 +47,7 @@ public class DecisionRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
         {
-            new AutomatisationValue { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
+            new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
 
         var parameterID = Guid.NewGuid();
@@ -60,7 +60,7 @@ public class DecisionRuleBehaviourTests
 
         var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
         {
-            new Tuple<Guid, AutomatisationValue>(parameterID, new AutomatisationValue { NumericValue = 7 })
+            new(parameterID, new AutomatisationValue { NumericValue = 7 })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();
@@ -78,7 +78,7 @@ public class DecisionRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
         {
-            new AutomatisationValue { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
+            new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
 
         var masterRule = new RuleDTO
@@ -90,7 +90,7 @@ public class DecisionRuleBehaviourTests
 
         var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
         {
-            new Tuple<Guid, AutomatisationValue>(Guid.NewGuid(), new AutomatisationValue { NumericValue = 3 })
+            new(Guid.NewGuid(), new AutomatisationValue { NumericValue = 3 })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();
@@ -108,7 +108,7 @@ public class DecisionRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
         {
-            new AutomatisationValue { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
+            new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
 
         var masterRule = new RuleDTO
@@ -135,7 +135,7 @@ public class DecisionRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
         {
-            new AutomatisationValue { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
+            new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
 
         var parameterID = Guid.NewGuid();
@@ -148,7 +148,7 @@ public class DecisionRuleBehaviourTests
 
         var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
         {
-            new Tuple<Guid, AutomatisationValue>(parameterID, new AutomatisationValue { NumericValue = 3 })
+            new(parameterID, new AutomatisationValue { NumericValue = 3 })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();
@@ -166,7 +166,7 @@ public class DecisionRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
         {
-            new AutomatisationValue { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
+            new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
 
         var parameterID = Guid.NewGuid();
@@ -179,7 +179,7 @@ public class DecisionRuleBehaviourTests
 
         var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
         {
-            new Tuple<Guid, AutomatisationValue>(parameterID, new AutomatisationValue { NumericValue = 3 })
+            new(parameterID, new AutomatisationValue { NumericValue = 3 })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();
@@ -238,7 +238,7 @@ public class DecisionRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
         {
-            new AutomatisationValue { NumericValue = input, StringValue = "Test", Unit = "Unit" }
+            new() { NumericValue = input, StringValue = "Test", Unit = "Unit" }
         };
         var parameterID = Guid.NewGuid();
         var masterRule = new RuleDTO
@@ -250,7 +250,7 @@ public class DecisionRuleBehaviourTests
 
         var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
         {
-            new Tuple<Guid, AutomatisationValue>(parameterID, new AutomatisationValue { NumericValue = comparingValue })
+            new(parameterID, new AutomatisationValue { NumericValue = comparingValue })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();

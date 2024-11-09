@@ -12,14 +12,9 @@ public class ConectifyDb(DbContextOptions<ConectifyDb> options) : DbContext(opti
 {
 
     //Values
-    public DbSet<Value> Values { get; set; } = null!;
-    //Actions
-    public DbSet<Action> Actions { get; set; } = null!;
-    public DbSet<ActionResponse> ActionResponses { get; set; } = null!;
-    //Commands
-    public DbSet<Command> Commands { get; set; } = null!;
-    public DbSet<CommandResponse> CommandResponses { get; set; } = null!;
+    public DbSet<Event> Events { get; set; } = null!;
 
+    //Devices
     public DbSet<Device> Devices { get; set; } = null!;
     public DbSet<Sensor> Sensors { get; set; } = null!;
     public DbSet<Actuator> Actuators { get; set; } = null!;

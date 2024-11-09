@@ -4,6 +4,8 @@ using Conectify.Services.Automatization.Rules;
 using Conectify.Services.Library;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
+using Google.Protobuf.WellKnownTypes;
+using System;
 
 namespace Conectify.Services.Automatization.Services;
 
@@ -21,31 +23,29 @@ public class AutomatizationService(IAutomatizationCache automatizationCache,
 {
     public void StartServiceAsync()
     {
-        websocketClient.OnIncomingValue += WebsocketClient_OnIncomingValue;
-        websocketClient.OnIncomingAction += WebsocketClient_OnIncomingAction;
+        websocketClient.OnIncomingEvent += WebsocketClient_OnIncomingEvent;
         websocketClient.ConnectAsync();
     }
 
-    private async void WebsocketClient_OnIncomingAction(Database.Models.Values.Action action)
+    private async void WebsocketClient_OnIncomingEvent(Event evnt)
     {
-        if (action.DestinationId != null)
+        if(evnt.Type == Constants.Events.Action && evnt.DestinationId is not null)
         {
-            var sourceRules = automatizationCache.GetRulesForSource(action.DestinationId.Value);
+            var sourceRules = automatizationCache.GetRulesForSource(evnt.DestinationId.Value);
             foreach (var sourceRule in sourceRules)
             {
-                sourceRule.InsertValue(action);
+                sourceRule.InsertEvent(evnt);
                 await ExecuteRule(sourceRule);
             }
         }
-    }
-
-    private async void WebsocketClient_OnIncomingValue(Value value)
-    {
-        var sourceRules = automatizationCache.GetRulesForSource(value.SourceId);
-        foreach (var sourceRule in sourceRules)
+        if(evnt.Type == Constants.Events.Value)
         {
-            sourceRule.InsertValue(value);
-            await ExecuteRule(sourceRule);
+            var sourceRules = automatizationCache.GetRulesForSource(evnt.SourceId);
+            foreach (var sourceRule in sourceRules)
+            {
+                sourceRule.InsertEvent(evnt);
+                await ExecuteRule(sourceRule);
+            }
         }
     }
 
@@ -97,7 +97,7 @@ public class AutomatizationService(IAutomatizationCache automatizationCache,
     {
         if (ruleDTO.DestinationActuatorId != null && ruleDTO.DestinationActuatorId != Guid.Empty)
         {
-            var command = new WebsocketBaseModel()
+            var command = new WebsocketEvent()
             {
                 DestinationId = ruleDTO.DestinationActuatorId.Value,
                 Name = automatisationValue.Name,
@@ -106,7 +106,7 @@ public class AutomatizationService(IAutomatizationCache automatizationCache,
                 TimeCreated = automatisationValue.TimeCreated,
                 Unit = automatisationValue.Unit,
                 SourceId = configuration.SensorId,
-                Type = Constants.Types.Action,
+                Type = Constants.Events.Action,
             };
 
             websocketClient.SendMessageAsync(command);

@@ -13,7 +13,7 @@ internal class ValueService(IServicesWebsocketClient websocketClient, IDeviceDat
 {
     public async Task<bool> SetAction(Guid actuatorId, float value)
 	{
-		var response = new WebsocketBaseModel()
+		var response = new WebsocketEvent()
 		{
 			Id = Guid.NewGuid(),
 			DestinationId = actuatorId,
@@ -22,7 +22,7 @@ internal class ValueService(IServicesWebsocketClient websocketClient, IDeviceDat
 			SourceId = deviceData.Sensors.First().Id,
 			TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
 			Unit = string.Empty,
-			Type = Constants.Types.Action,
+			Type = Constants.Events.Action,
 			StringValue = string.Empty
 		};
 

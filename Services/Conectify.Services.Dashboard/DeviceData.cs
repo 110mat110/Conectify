@@ -27,7 +27,7 @@ public class DeviceData(Configuration configuration) : IDeviceData
     {
         var sensors = new List<ApiSensor>()
         {
-            new ApiSensor()
+            new()
             {
                 Id = configuration.SensorId,
                 Name = "Dashboard Sensor",

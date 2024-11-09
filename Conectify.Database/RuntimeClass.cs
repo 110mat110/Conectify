@@ -13,7 +13,7 @@ public class DesignTimeContextFactory : IDesignTimeDbContextFactory<ConectifyDb>
     {
         var configuration = new ConfigurationBuilder()
            .SetBasePath(Directory.GetCurrentDirectory())
-           .AddJsonFile("appsettingsDbs.Development.json")
+           .AddJsonFile("appsettingsDbs.json")
            .Build();
 
         var options = new DbContextOptionsBuilder<ConectifyDb>();

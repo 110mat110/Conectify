@@ -18,7 +18,7 @@ public interface IWebsocketCache
 
 public class WebsocketCache(IServiceProvider serviceProvider) : IWebsocketCache
 {
-    private static readonly Dictionary<Guid, WSCahceItem> sockets = new Dictionary<Guid, WSCahceItem>();
+    private static readonly Dictionary<Guid, WSCahceItem> sockets = new();
     private readonly object locker = new();
 
     public bool AddNewWebsocket(Guid deviceId, WebSocket webSocket)

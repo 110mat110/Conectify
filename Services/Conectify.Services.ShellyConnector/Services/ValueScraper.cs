@@ -32,7 +32,7 @@ public class ValueScraper(Configuration configuration, IServicesWebsocketClient 
                         NumericValue = powerReading.apower,
                         SourceId = configuration.PowerSensorId,
                         TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                        Type = Constants.Types.Value,
+                        Type = Constants.Events.Value,
                         Unit = "W",
                         StringValue = string.Empty
                     }, stoppingToken);
@@ -64,7 +64,7 @@ public class ValueScraper(Configuration configuration, IServicesWebsocketClient 
 						NumericValue = powerReading.power,
 						SourceId = configuration.PowerSensorId,
 						TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-						Type = Constants.Types.Value,
+						Type = Constants.Events.Value,
 						Unit = "W",
 						StringValue = string.Empty
 					}, stoppingToken);

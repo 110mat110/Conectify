@@ -6,7 +6,7 @@ namespace Conectify.Services.Automatization.Models;
 
 public class RuleDTO
 {
-    private readonly Dictionary<Guid, AutomatisationValue> cachedValues = new Dictionary<Guid, AutomatisationValue>();
+    private readonly Dictionary<Guid, AutomatisationValue> cachedValues = new();
 
     public Guid Id { get; set; }
 
@@ -28,33 +28,17 @@ public class RuleDTO
 
     public AutomatisationValue? OutputValue { get; set; }
 
-    public void InsertValue(Value value)
+    public void InsertEvent(Event evnt)
     {
         var automationValue = new AutomatisationValue()
         {
-            Id = value.Id,
-            Name = value.Name,
-            NumericValue = value.NumericValue,
-            StringValue = value.StringValue,
-            SourceId = value.SourceId,
-            TimeCreated = value.TimeCreated,
-            Unit = value.Unit,
-        };
-
-        InsertValue(automationValue);
-    }
-
-    public void InsertValue(Database.Models.Values.Action action)
-    {
-        var automationValue = new AutomatisationValue()
-        {
-            Id = action.Id,
-            Name = action.Name,
-            NumericValue = action.NumericValue,
-            StringValue = action.StringValue,
-            SourceId = action.SourceId,
-            TimeCreated = action.TimeCreated,
-            Unit = action.Unit,
+            Id = evnt.Id,
+            Name = evnt.Name,
+            NumericValue = evnt.NumericValue,
+            StringValue = evnt.StringValue,
+            SourceId = evnt.SourceId,
+            TimeCreated = evnt.TimeCreated,
+            Unit = evnt.Unit,
         };
 
         InsertValue(automationValue);

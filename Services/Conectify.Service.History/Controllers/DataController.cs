@@ -9,13 +9,13 @@ namespace Conectify.Service.History.Controllers;
 public class DataController(ILogger<DataController> logger, IDataCachingService dataCachingService) : ControllerBase
 {
     [HttpGet("{sensorId}/values")]
-    public async Task<IEnumerable<ApiValue>> Get(Guid sensorId)
+    public async Task<IEnumerable<ApiEvent>> Get(Guid sensorId)
     {
         return await dataCachingService.GetDataForLast24h(sensorId);
     }
 
     [HttpGet("{sensorId}/latest")]
-    public async Task<ApiValue?> GetLatestAsync(Guid sensorId)
+    public async Task<ApiEvent?> GetLatestAsync(Guid sensorId)
     {
         return await dataCachingService.GetLatestValueAsync(sensorId);
     }

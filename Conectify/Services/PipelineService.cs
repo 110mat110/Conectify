@@ -6,6 +6,7 @@ using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
 using Conectify.Database.Models.Values;
 using Conectify.Server.Caches;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Interfaces;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Websocket;
@@ -15,7 +16,7 @@ using System.Linq;
 
 public interface IPipelineService
 {
-    Task ResendValueToSubscribers(IBaseInputType entity);
+    Task ResendEventToSubscribers(Event e);
 
     Task SetPreference(Guid deviceId, IEnumerable<ApiPreference> apiPreferences, CancellationToken ct = default);
 
@@ -25,57 +26,6 @@ public interface IPipelineService
 
 public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscribersCache, IWebSocketService webSocketService, IMapper mapper, ILogger<PipelineService> logger) : IPipelineService
 {
-    public async Task ResendValueToSubscribers(IBaseInputType entity)
-    {
-        IWebsocketModel? apiModel = null;
-        IEnumerable<Guid> targetingSubscribers = new List<Guid>();
-        if (entity is Value v)
-        {
-            apiModel = mapper.Map<WebsocketBaseModel>(entity);
-            targetingSubscribers = ValueTargetingSubscribers(v.SourceId);
-        }
-
-        if (entity is Command command)
-        {
-            apiModel = mapper.Map<WebsocketBaseModel>(entity);
-            targetingSubscribers = targetingSubscribers.Concat(CommandTargetingSubscribers(command.DestinationId, command.SourceId));
-        }
-
-        if (entity is Action action)
-        {
-            apiModel = mapper.Map<WebsocketBaseModel>(entity);
-            targetingSubscribers = ActionTargetingSubscribers(action.SourceId, action.DestinationId);
-        }
-
-        if (entity is CommandResponse cr)
-        {
-            var commandSourceId = conectifyDb.Commands.FirstOrDefault(x => x.Id == cr.CommandId)?.SourceId;
-
-            apiModel = mapper.Map<WebsocketBaseModel>(entity);
-            targetingSubscribers = CommandResponseTargetingSubscribers(cr.SourceId, commandSourceId);
-        }
-
-        if (entity is ActionResponse ar)
-        {
-            var actionSourceId = conectifyDb.Actions.FirstOrDefault(x => x.Id == ar.ActionId)?.SourceId;
-
-
-            apiModel = mapper.Map<WebsocketBaseModel>(entity);
-            targetingSubscribers = ActionResponseTargetingSubscribers(ar.SourceId, actionSourceId);
-        }
-
-        if (apiModel is null)
-        {
-            return;
-        }
-
-        foreach (var subscriber in targetingSubscribers.Distinct())
-        {
-            logger.LogWarning("Sending from pipeline to " + subscriber.ToString());
-            await webSocketService.SendToDeviceAsync(subscriber, apiModel);
-        }
-    }
-
     public async Task SetPreference(Guid deviceId, IEnumerable<ApiPreference> apiPreferences, CancellationToken ct = default)
     {
         var device = await conectifyDb
@@ -91,16 +41,16 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
             preference.SubscriberId = deviceId;
         };
 
-        var preferencesToRemove = device.Preferences
-            .Where(x => preferences.Any(p =>
-                p.ActuatorId == x.ActuatorId &&
-                p.SensorId == x.SensorId &&
-                p.DeviceId == x.DeviceId
-                ));
-        device.Preferences = device.Preferences.Except(preferencesToRemove).ToHashSet();
-        device.Preferences.Concat(preferences);
-        await conectifyDb.AddRangeAsync(preferences);
-        device.SubscribeToAll = device.Preferences.Any(IsSubbedToAll);
+        var filteredPreferences = preferences
+            .Where(newPref => !device.Preferences.Any(existingPref =>
+                existingPref.SubscibeeId == newPref.SubscibeeId &&
+                existingPref.EventType == newPref.EventType))
+            .ToList();
+
+
+        device.Preferences.Concat(filteredPreferences);
+        await conectifyDb.AddRangeAsync(filteredPreferences);
+        device.SubscribeToAll = device.Preferences.Any(x => x.EventType == Constants.Events.All);
         conectifyDb.Update(device);
         await conectifyDb.SaveChangesAsync(ct);
 
@@ -121,65 +71,40 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
 
     public IEnumerable<Subscriber> GetAllSubscribers() => subscribersCache.AllSubscribers();
 
-    private IEnumerable<Guid> ActionResponseTargetingSubscribers(Guid sourceId, Guid? actionSourceId) =>
-    GetAllSubscribers()
-    .Where(x =>
-        x is not null && (
-        x.IsSubedToAll ||
-        (actionSourceId is not null && x.Sensors.Contains(actionSourceId.Value)) ||
-        x.Preferences.Any(preference =>
-            preference.SubToActionResponse &&
-                (preference.SensorId is null ||
-                preference.SensorId == sourceId))))
-    .Select(s => s.DeviceId);
+    public async Task ResendEventToSubscribers(Event evnt)
+    {
+        var apiModel = mapper.Map<WebsocketEvent>(evnt);
 
-    private IEnumerable<Guid> CommandResponseTargetingSubscribers(Guid sourceId, Guid? commandSourceId) =>
-        GetAllSubscribers()
-        .Where(x =>
-            x is not null && (
-            x.IsSubedToAll ||
-            x.DeviceId == commandSourceId ||
-            x.Preferences.Any(preference =>
-                preference.SubToCommandResponse &&
-                    (preference.DeviceId is null ||
-                    preference.DeviceId == sourceId))))
-        .Select(s => s.DeviceId);
+        if (apiModel is null)
+        {
+            return;
+        }
 
-    private IEnumerable<Guid> ValueTargetingSubscribers(Guid sourceId) =>
-        GetAllSubscribers()
-        .Where(x =>
-            x is not null && (
-            x.IsSubedToAll ||
-            x.Preferences.Any(preference =>
-                preference.SubToValues &&
-                    (preference.SensorId is null ||
-                    preference.SensorId == sourceId))))
-        .Select(s => s.DeviceId);
+        IEnumerable<Guid> targetingSubscribers = GetTargetsForEvent(evnt);
 
-    private IEnumerable<Guid> CommandTargetingSubscribers(Guid targetId, Guid sourceId) =>
-         GetAllSubscribers()
-        .Where(x => x is not null && (x.IsSubedToAll || x.DeviceId == targetId || x.Preferences.Any(preference =>
-                preference.SubToCommands &&
-                    (preference.SensorId is null ||
-                    preference.SensorId == sourceId))))
-        .Select(x => x.DeviceId);
+        foreach (var subscriber in targetingSubscribers.Distinct())
+        {
+            logger.LogWarning("Sending from pipeline to " + subscriber.ToString());
+            await webSocketService.SendToDeviceAsync(subscriber, apiModel);
+        }
+    }
 
-    private IEnumerable<Guid> ActionTargetingSubscribers(Guid sourceId, Guid? destinationId) =>
-        GetAllSubscribers()
-        .Where(x => x is not null && (x.IsSubedToAll || (destinationId != null && x.Actuators.Contains(destinationId.Value)) || x.Preferences.Any(preference =>
-                preference.SubToActions &&
-                    (preference.SensorId is null ||
-                    preference.SensorId == sourceId))))
-        .Select(x => x.DeviceId);
+    private IEnumerable<Guid> GetTargetsForEvent(Event evnt)
+    {
+        var subs = GetAllSubscribers().Where(x => x.IsSubedToAll || x.Preferences.Any(x => x.EventType == evnt.Type && (x.SubscibeeId is null || x.SubscibeeId == evnt.SourceId))).Select(x => x.DeviceId);
 
-    private readonly Func<Preference, bool> IsSubbedToAll = x =>
-        x.SensorId is null &&
-        x.DeviceId is null &&
-        x.SensorId is null &&
-        x.SubToValues &&
-        x.SubToCommands &&
-        x.SubToActions &&
-        x.SubToActionResponse &&
-        x.SubToCommandResponse;
+        if (evnt.DestinationId.HasValue)
+        {
+            var target = GetAllSubscribers().FirstOrDefault(x => x.AllDependantIds.Contains(evnt.DestinationId.Value));
+
+            if(target is not null)
+            {
+                subs = subs.Append(target.DeviceId);
+            }
+        }
+
+        return subs;        
+    
+    }
 
 }

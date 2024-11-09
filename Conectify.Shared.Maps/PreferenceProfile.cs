@@ -10,10 +10,8 @@ public class PreferenceProfile : Profile
     {
         CreateMap<ApiPreference, Preference>()
             .ForMember(x => x.Id, opt => opt.Ignore())
-            .ForMember(x => x.Actuator, opt => opt.Ignore())
-            .ForMember(x => x.Sensor, opt => opt.Ignore())
             .ForMember(x => x.Subscriber, opt => opt.Ignore())
             .ForMember(x => x.SubscriberId, opt => opt.Ignore())
-            .ForMember(x => x.Device, opt => opt.Ignore());
+            .ForMember(x => x.Subscriber, opt => opt.Ignore());
     }
 }

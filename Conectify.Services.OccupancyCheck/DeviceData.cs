@@ -17,7 +17,7 @@ public class DeviceData(Configuration configuration) : IDeviceData
 
     public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
     {
-        new ApiSensor()
+        new()
         {
             Id = configuration.SensorId,
             Name = "Occupancy",
@@ -29,7 +29,7 @@ public class DeviceData(Configuration configuration) : IDeviceData
 
     public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
     {
-        new MetadataServiceConnector()
+        new()
         {
             MaxVal = 1,
             MinVal = 0,

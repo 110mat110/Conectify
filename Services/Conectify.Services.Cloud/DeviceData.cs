@@ -1,5 +1,6 @@
 ﻿using Conectify.Services.Cloud;
 using Conectify.Services.Library;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Services;
 using Conectify.Shared.Services;
@@ -20,7 +21,7 @@ public class DeviceData(CloudConfiguration configuration) : IDeviceData
 
     public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
         {
-            new ApiSensor()
+            new()
             {
                 Id = configuration.SensorId,
                 Name = "Cloud sensor",
@@ -30,7 +31,7 @@ public class DeviceData(CloudConfiguration configuration) : IDeviceData
 
     public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>()
         {
-            new ApiActuator()
+            new()
             {
                 Id = configuration.ActuatorId,
                 Name = "Cloud actuator",
@@ -39,19 +40,29 @@ public class DeviceData(CloudConfiguration configuration) : IDeviceData
             }
         };
 
-    public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>()
-    {
-        new ApiPreference()
+    public IEnumerable<ApiPreference> Preferences =>
+    [
+                new()
         {
-            SubToValues = true,
-            SubToActions = true,
-            SubToCommands = true,
+            EventType = Constants.Events.Value
+        },
+                        new()
+        {
+            EventType = Constants.Events.Command
+        },
+                                new()
+        {
+            EventType = Constants.Events.Action
+        },
+                                        new()
+        {
+            EventType = Constants.Events.CommandResponse
         }
-    };
+    ];
 
-	public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
 	{
-		new MetadataServiceConnector()
+		new()
 		{
 			MaxVal = 1,
 			MinVal = 0,

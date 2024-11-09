@@ -7,11 +7,11 @@ namespace Conectify.Services.Library;
 
 public interface IInternalCommandService
 {
-    Task<bool> HandleInternalCommand(Command command, CancellationToken ct);
+    Task<bool> HandleInternalCommand(Event command, CancellationToken ct);
 }
 internal class InternalCommandService(ConfigurationBase configuration, IServiceProvider serviceProvider) : IInternalCommandService
 {
-    public async Task<bool> HandleInternalCommand(Command command, CancellationToken ct)
+    public async Task<bool> HandleInternalCommand(Event command, CancellationToken ct)
     {
         if (command.DestinationId != configuration.DeviceId)
         {
@@ -24,17 +24,16 @@ internal class InternalCommandService(ConfigurationBase configuration, IServiceP
         }
     }
 
-    private async Task SendActivityResponse(Command command, CancellationToken ct)
+    private async Task SendActivityResponse(Event command, CancellationToken ct)
     {
-        var response = new WebsocketBaseModel()
+        var response = new WebsocketEvent()
         {
             Name = Constants.Commands.Active,
             NumericValue = 1,
-            SourceId = configuration.DeviceId,
+            SourceId = command.Id,
             StringValue = string.Empty,
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            Type = Constants.Types.CommandResponse,
-            ResponseSourceId = command.Id
+            Type = Constants.Events.CommandResponse,
         };
         var websocketClient = serviceProvider.GetRequiredService<IServicesWebsocketClient>();
         await websocketClient.SendMessageAsync(response, ct);

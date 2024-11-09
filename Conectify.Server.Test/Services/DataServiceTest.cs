@@ -7,7 +7,6 @@ using Conectify.Shared.Maps;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Newtonsoft.Json;
-using Action = Conectify.Database.Models.Values.Action;
 
 namespace Conectify.Server.Test.Services;
 
@@ -42,15 +41,12 @@ public class DataServiceTest
 
     [Theory]
     [InlineData("Value")]
-    [InlineData("Action")]
-    [InlineData("ActionResponse")]
     [InlineData("Command")]
-    [InlineData("CommandResponse")]
     public async void ItShallRegisterIncomingJsonToCorespondingService(string valueType)
     {
         var mapper = new MapperConfiguration(cfg =>
         {
-            cfg.AddProfile<ValuesProfile>();
+            cfg.AddProfile<EventProfile>();
         }).CreateMapper();
 
         var sensorService = A.Fake<ISensorService>();
@@ -60,7 +56,7 @@ public class DataServiceTest
 
         var sensorId = Guid.NewGuid();
         var deviceId = Guid.NewGuid();
-        var validValue = new WebsocketBaseModel()
+        var validValue = new WebsocketEvent()
         {
             Id = Guid.NewGuid(),
             Name = "testName",
@@ -74,44 +70,34 @@ public class DataServiceTest
 
         await ds.InsertJsonModel(JsonConvert.SerializeObject(validValue), deviceId);
 
-        if (valueType == "Value" || valueType == "Action")
+        if (valueType == "Value")
         {
             A.CallTo(() => sensorService.TryAddUnknownDevice(A<Guid>.That.IsEqualTo(sensorId), A<Guid>.That.IsEqualTo(deviceId), A<CancellationToken>.Ignored)).MustHaveHappenedOnceExactly();
             A.CallTo(() => deviceService.TryAddUnknownDevice(A<Guid>.Ignored, A<Guid>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();
             A.CallTo(() => actuatorService.TryAddUnknownDevice(A<Guid>.Ignored, A<Guid>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();
         }
-        if (valueType == "Command" || valueType == "CommandResponse")
+        if (valueType == "Command")
         {
             A.CallTo(() => deviceService.TryAddUnknownDevice(A<Guid>.That.IsEqualTo(sensorId), A<Guid>.That.IsEqualTo(sensorId), A<CancellationToken>.Ignored)).MustHaveHappenedOnceExactly();
             A.CallTo(() => sensorService.TryAddUnknownDevice(A<Guid>.Ignored, A<Guid>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();
             A.CallTo(() => actuatorService.TryAddUnknownDevice(A<Guid>.Ignored, A<Guid>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();
         }
-        if (valueType == "ActionResponse")
-        {
-            A.CallTo(() => actuatorService.TryAddUnknownDevice(A<Guid>.That.IsEqualTo(sensorId), A<Guid>.That.IsEqualTo(deviceId), A<CancellationToken>.Ignored)).MustHaveHappenedOnceExactly();
-            A.CallTo(() => deviceService.TryAddUnknownDevice(A<Guid>.Ignored, A<Guid>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();
-            A.CallTo(() => sensorService.TryAddUnknownDevice(A<Guid>.Ignored, A<Guid>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();
-        }
     }
 
     [Theory]
-    [InlineData(typeof(Value))]
-    [InlineData(typeof(Action))]
-    [InlineData(typeof(ActionResponse))]
-    [InlineData(typeof(Command))]
-    [InlineData(typeof(CommandResponse))]
+    [InlineData(typeof(Event))]
     public async void ItShallSaveValueToDatabase(Type valueType)
     {
         var mapper = new MapperConfiguration(cfg =>
         {
-            cfg.AddProfile<ValuesProfile>();
+            cfg.AddProfile<EventProfile>();
         }).CreateMapper();
 
         DataService ds = new(A.Fake<ILogger<DataService>>(), dbContext, A.Fake<IPipelineService>(), A.Fake<IDeviceService>(), A.Fake<ISensorService>(), A.Fake<IActuatorService>(), mapper);
 
         var id = Guid.NewGuid();
         var deviceId = Guid.NewGuid();
-        var validValue = new WebsocketBaseModel()
+        var validValue = new WebsocketEvent()
         {
             Id = id,
             Name = "testName",

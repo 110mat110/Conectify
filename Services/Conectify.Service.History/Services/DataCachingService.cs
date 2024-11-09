@@ -2,6 +2,7 @@
 using Conectify.Database;
 using Conectify.Database.Models.Values;
 using Conectify.Service.History.Models;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Values;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,16 +10,16 @@ namespace Conectify.Service.History.Services;
 
 public interface IDataCachingService
 {
-    Task InsertValue(Value websocketValue, CancellationToken ct = default);
-    Task<IEnumerable<ApiValue>> GetDataForLast24h(Guid sourceId, CancellationToken ct = default);
+    Task InsertValue(Event websocketValue, CancellationToken ct = default);
+    Task<IEnumerable<ApiEvent>> GetDataForLast24h(Guid sourceId, CancellationToken ct = default);
 
-    Task<ApiValue?> GetLatestValueAsync(Guid sourceId, CancellationToken ct = default);
+    Task<ApiEvent?> GetLatestValueAsync(Guid sourceId, CancellationToken ct = default);
 }
 
 public class DataCachingService : IDataCachingService
 {
     private readonly object locker = new();
-    private readonly IDictionary<Guid, CacheItem<Value>> valueCache = new Dictionary<Guid, CacheItem<Value>>(); //TODO check if I should not use Concurency dictionary here
+    private readonly IDictionary<Guid, CacheItem<Event>> valueCache = new Dictionary<Guid, CacheItem<Event>>(); //TODO check if I should not use Concurency dictionary here
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
     private readonly ILogger<DataCachingService> logger;
@@ -42,21 +43,26 @@ public class DataCachingService : IDataCachingService
             logger.LogInformation("Preloading all active sensors to the cache from time {time}", yesterdayUnixTime);
             using var scope = this.serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-            var groups = db.Set<Value>().Where(x => x.TimeCreated > yesterdayUnixTime).ToList().GroupBy(x => x.SourceId);
+            var groups = db.Set<Event>().Where( x => x.TimeCreated > yesterdayUnixTime && x.Type == Constants.Events.Value).ToList().GroupBy(x => x.SourceId);
 
 
             foreach (var valueGroup in groups)
             {
-                deviceCachingService.ObserveSensorFromValue(valueGroup.Last());
-                valueCache.Add(valueGroup.Key, new CacheItem<Value>());
+                deviceCachingService.ObserveSensorFromEvent(valueGroup.Last());
+                valueCache.Add(valueGroup.Key, new CacheItem<Event>());
                 valueCache[valueGroup.Key].AddRange(valueGroup);
                 valueCache[valueGroup.Key].Reorder(x => x.TimeCreated);
             }
         }
     }
 
-    public async Task InsertValue(Value value, CancellationToken ct = default)
+    public async Task InsertValue(Event value, CancellationToken ct = default)
     {
+        if(value.Type != Constants.Events.Value)
+        {
+            return;
+        }
+
         await ReloadCache(value.SourceId, ct);
 
         if (valueCache.ContainsKey(value.SourceId))
@@ -73,7 +79,7 @@ public class DataCachingService : IDataCachingService
         {
             lock (locker)
             {
-                valueCache.Add(value.SourceId, new CacheItem<Value>(value));
+                valueCache.Add(value.SourceId, new CacheItem<Event>(value));
             }
         }
     }
@@ -97,7 +103,7 @@ public class DataCachingService : IDataCachingService
         logger.LogInformation("Preloading cache from time {time}", yesterdayUnixTime);
         using var scope = this.serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var values = await db.Set<Value>().Where(x => x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime).ToListAsync(ct);
+        var values = await db.Set<Event>().Where(x => x.Type == Constants.Events.Value && x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime).ToListAsync(ct);
 
         if (!values.Any())
         {
@@ -106,26 +112,26 @@ public class DataCachingService : IDataCachingService
 
         lock (locker)
         {
-            valueCache.Add(sensorId, new CacheItem<Value>());
+            valueCache.Add(sensorId, new CacheItem<Event>());
             valueCache[sensorId].AddRange(values);
             valueCache[sensorId].Reorder(x => x.TimeCreated);
         }
     }
 
-    public async Task<IEnumerable<ApiValue>> GetDataForLast24h(Guid sourceId, CancellationToken ct = default)
+    public async Task<IEnumerable<ApiEvent>> GetDataForLast24h(Guid sourceId, CancellationToken ct = default)
     {
         await ReloadCache(sourceId, ct);
-        return mapper.Map<IEnumerable<ApiValue>>(valueCache[sourceId]);
+        return mapper.Map<IEnumerable<ApiEvent>>(valueCache[sourceId]);
     }
 
-    public async Task<ApiValue?> GetLatestValueAsync(Guid sourceId, CancellationToken ct = default)
+    public async Task<ApiEvent?> GetLatestValueAsync(Guid sourceId, CancellationToken ct = default)
     {
         await ReloadCache(sourceId, ct);
 
         if (valueCache.ContainsKey(sourceId))
         {
             var value = valueCache[sourceId].OrderByDescending(x => x.TimeCreated).FirstOrDefault();
-            return mapper.Map<ApiValue>(value);
+            return mapper.Map<ApiEvent>(value);
         }
         return null;
     }

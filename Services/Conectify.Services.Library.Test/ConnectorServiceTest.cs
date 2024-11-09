@@ -44,7 +44,7 @@ public class ConnectorServiceTest
         A.CallTo(() => provider.HttpClient).Returns(client);
         var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
 
-        await service.RegisterDevice(new ApiDevice(), new List<ApiSensor>() { new ApiSensor(), new ApiSensor(), new ApiSensor() }, new List<ApiActuator>() { new ApiActuator(), new ApiActuator() });
+        await service.RegisterDevice(new ApiDevice(), new List<ApiSensor>() { new(), new(), new() }, new List<ApiActuator>() { new(), new() });
 
         var deviceResultUrl = serverUrl + "/api/device";
         var sensorResultUrl = serverUrl + "/api/sensors";
@@ -74,7 +74,7 @@ public class ConnectorServiceTest
         var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
         var deviceId = Guid.NewGuid();
 
-        var result = await service.SetPreferences(deviceId, new List<ApiPreference>() { new ApiPreference(), new ApiPreference() });
+        var result = await service.SetPreferences(deviceId, new List<ApiPreference>() { new(), new() });
 
         var subsribeUrl = serverUrl + "/api/subscribe/" + deviceId.ToString();
         A.CallTo(() => client.SendAsync(A<HttpRequestMessage>.That.Matches(x => x.Method.Method == HttpMethod.Post.Method && x.RequestUri!.OriginalString == subsribeUrl), A<CancellationToken>.Ignored)).MustHaveHappenedOnceExactly();

@@ -3,6 +3,7 @@ using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Server.Caches;
 using Conectify.Server.Mapper;
+using Conectify.Shared.Library;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,11 +66,11 @@ public class SubscribersCacheTest
             IPAdress = "test",
             Preferences = new List<Preference>()
             {
-                new Preference()
+                new()
                 {
                     SubscriberId=deviceId,
                     Id = Guid.NewGuid(),
-                    SubToValues = true,
+                    EventType = Constants.Events.Value
                 }
             }
         };
@@ -104,11 +105,11 @@ public class SubscribersCacheTest
             IPAdress = "test",
             Preferences = new List<Preference>()
             {
-                new Preference()
+                new()
                 {
                     SubscriberId=deviceId,
                     Id = Guid.NewGuid(),
-                    SubToValues = true,
+                    EventType = Constants.Events.Value
                 }
             }
         };

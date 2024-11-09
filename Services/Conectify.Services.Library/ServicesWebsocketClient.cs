@@ -14,11 +14,7 @@ namespace Conectify.Services.Library;
 
 public interface IServicesWebsocketClient
 {
-    event IncomingActionDelegate? OnIncomingAction;
-    event IncomingActionResponseDelegate? OnIncomingActionResponse;
-    event IncomingCommandDelegate? OnIncomingCommand;
-    event IncomingCommandResponseDelegate? OnIncomingCommandResponse;
-    event IncomingValueDelegate? OnIncomingValue;
+    event IncomingEventDelegate? OnIncomingEvent;
 
     Task ConnectAsync();
     Task ConnectAsync(string url);
@@ -37,7 +33,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         var timer = new System.Timers.Timer(2000);
         timer.Elapsed += Timer_Elapsed;
         timer.AutoReset = true;
-        timer.Enabled = true;
+        //timer.Enabled = true;
     }
 
     private async void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
@@ -47,11 +43,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
 
     public int ReceiveBufferSize { get; set; } = 8192;
 
-    public event IncomingValueDelegate? OnIncomingValue;
-    public event IncomingActionDelegate? OnIncomingAction;
-    public event IncomingCommandDelegate? OnIncomingCommand;
-    public event IncomingActionResponseDelegate? OnIncomingActionResponse;
-    public event IncomingCommandResponseDelegate? OnIncomingCommandResponse;
+    public event IncomingEventDelegate? OnIncomingEvent;
 
     public async Task ConnectAsync()
     {
@@ -156,8 +148,8 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         stream.Dispose();
 
         logger.LogInformation("WS recieved message {serializedMessage}", serializedMessage);
-        var (entity, _) = SharedDataService.DeserializeJson(serializedMessage, this.mapper);
-        await NotifyAboutIncomingMessage(entity, ct);
+        var evnt = SharedDataService.DeserializeJson(serializedMessage, this.mapper);
+        await NotifyAboutIncomingMessage(evnt, ct);
     }
 
 
@@ -168,39 +160,16 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
     private readonly IMapper mapper;
     private readonly ILogger<ServicesWebsocketClient> logger;
 
-    private async Task NotifyAboutIncomingMessage(IBaseInputType inputEntity, CancellationToken ct)
+    private async Task NotifyAboutIncomingMessage(Event evnt, CancellationToken ct)
     {
-        if (inputEntity is Value inputValue)
+        bool handled = false;
+        if(evnt.Type == Constants.Events.Command)
         {
-            OnIncomingValue?.Invoke(inputValue);
-            return;
-        }
+            handled = await internalCommandService.HandleInternalCommand(evnt, ct);
+        };
 
-        if (inputEntity is Database.Models.Values.Action action)
-        {
-            OnIncomingAction?.Invoke(action);
-            return;
-        }
-
-        if (inputEntity is Command command)
-        {
-            if (!await internalCommandService.HandleInternalCommand(command, ct))
-            {
-                OnIncomingCommand?.Invoke(command);
-            }
-            return;
-        }
-
-        if (inputEntity is ActionResponse actionResponse)
-        {
-            OnIncomingActionResponse?.Invoke(actionResponse);
-            return;
-        }
-
-        if (inputEntity is CommandResponse commandResponse)
-        {
-            OnIncomingCommandResponse?.Invoke(commandResponse);
-            return;
+        if (!handled) {
+            OnIncomingEvent?.Invoke(evnt);
         }
     }
 }

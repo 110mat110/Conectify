@@ -4,7 +4,6 @@ using Conectify.Shared.Library.ErrorHandling;
 using Conectify.Shared.Library.Models.Websocket;
 using Conectify.Shared.Maps;
 using Conectify.Shared.Services.Data;
-using Action = Conectify.Database.Models.Values.Action;
 
 namespace Conectify.Shared.Services.Test;
 
@@ -16,7 +15,7 @@ public class SharedDataServiceTest
     {
         Mapper = new MapperConfiguration(cfg =>
         {
-            cfg.AddProfile<ValuesProfile>();
+            cfg.AddProfile<EventProfile>();
         }).CreateMapper();
     }
 
@@ -29,7 +28,7 @@ public class SharedDataServiceTest
         }
         catch (ConectifyException ex)
         {
-            Assert.Matches(ex.Message, "Json to deserialize is not in valid format!!");
+            Assert.Matches(ex.Message, "Json to deserialize is not an event!!");
         }
     }
 
@@ -42,7 +41,7 @@ public class SharedDataServiceTest
         }
         catch (ConectifyException ex)
         {
-            Assert.Matches(ex.Message, "Json to deserialize is not in valid format!!");
+            Assert.Matches(ex.Message, "Json to deserialize is not an event!!");
         }
     }
 
@@ -66,7 +65,7 @@ public class SharedDataServiceTest
         {
         }).CreateMapper();
 
-        var websocketValue = new WebsocketBaseModel()
+        var websocketValue = new WebsocketEvent()
         {
             Id = Guid.NewGuid(),
             Name = "Test",
@@ -89,15 +88,11 @@ public class SharedDataServiceTest
     }
 
     [Theory]
-    [InlineData(typeof(Value))]
-    [InlineData(typeof(Action))]
-    [InlineData(typeof(ActionResponse))]
-    [InlineData(typeof(Command))]
-    [InlineData(typeof(CommandResponse))]
+    [InlineData(typeof(Event))]
     public void ItShallPass(Type valueType)
     {
 
-        var websocketValue = new WebsocketBaseModel()
+        var websocketValue = new WebsocketEvent()
         {
             Id = Guid.NewGuid(),
             Name = "Test",
@@ -111,9 +106,8 @@ public class SharedDataServiceTest
 
         var result = SharedDataService.DeserializeJson(websocketValue, Mapper);
 
-        Assert.Equal("Test", result.Item1.Name);
-        Assert.Equal(10, result.Item1.NumericValue);
-        Assert.Equal(valueType, result.Item2);
+        Assert.Equal("Test", result.Name);
+        Assert.Equal(10, result.NumericValue);
     }
 
 }

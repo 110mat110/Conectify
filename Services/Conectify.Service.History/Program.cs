@@ -32,22 +32,13 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 await app.Services.ConnectToConectifyServer();
 var ws = app.Services.GetRequiredService<IServicesWebsocketClient>();
-ws.OnIncomingValue += async (ws_IncomingValue) =>
+ws.OnIncomingEvent += async (ws_IncomingValue) =>
 {
     var dataCache = app.Services.GetRequiredService<IDataCachingService>();
     var deviceCache = app.Services.GetRequiredService<IDeviceCachingService>();
     await dataCache.InsertValue(ws_IncomingValue);
-    deviceCache.ObserveSensorFromValue(ws_IncomingValue);
+    deviceCache.ObserveSensorFromEvent(ws_IncomingValue);
 };
-
-ws.OnIncomingActionResponse += ws_IncomingActionResponse =>
-    app.Services.GetRequiredService<IDeviceCachingService>().ObserveActuatorFromResponse(ws_IncomingActionResponse);
-
-ws.OnIncomingAction += ws_IncomingAciton =>
-    app.Services.GetRequiredService<IDeviceCachingService>().ObserveSensorFromAction(ws_IncomingAciton);
-
-ws.OnIncomingCommandResponse += ws_IncomingCommandResponse =>
-    app.Services.GetRequiredService<IDeviceCachingService>().ObserveDeviceFromActivityReport(ws_IncomingCommandResponse, default);
 
 app.MapControllers();
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());

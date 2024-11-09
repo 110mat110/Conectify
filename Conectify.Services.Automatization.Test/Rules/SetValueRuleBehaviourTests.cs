@@ -12,7 +12,7 @@ public class SetValueRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
         {
-            new AutomatisationValue { NumericValue = 5, StringValue = "Test", Unit = "Unit", TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), SourceId = Guid.NewGuid() }
+            new() { NumericValue = 5, StringValue = "Test", Unit = "Unit", TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), SourceId = Guid.NewGuid() }
         };
 
         var masterRule = new RuleDTO
@@ -44,7 +44,7 @@ public class SetValueRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
         {
-            new AutomatisationValue { NumericValue = 5, StringValue = "Test", Unit = "Unit", TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), SourceId = Guid.NewGuid() }
+            new() { NumericValue = 5, StringValue = "Test", Unit = "Unit", TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), SourceId = Guid.NewGuid() }
         };
 
         var masterRule = new RuleDTO

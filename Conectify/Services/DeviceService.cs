@@ -84,8 +84,9 @@ public class DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceS
             }
             else
             {
-                if (await database.CommandResponses.AsNoTracking().AnyAsync(
+                if (await database.Events.AsNoTracking().AnyAsync(
                     x => x.Name == Constants.Commands.Active 
+                    && x.Type == Constants.Events.CommandResponse
                     && x.SourceId == device.Id 
                     && x.TimeCreated > currentTime, cancellationToken: ct))
                 {

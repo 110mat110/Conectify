@@ -11,10 +11,12 @@ public static class Constants
         public const string UpdateAvaliable = "update";
     }
 
-    public static class Types
+    public static class Events
     {
+        public const string All = "all";
         public const string Value = "Value";
         public const string Action = "Action";
+        public const string Command = "Command";
         public const string ActionResponse = "ActionResponse";
         public const string CommandResponse = "CommandResponse";
     }

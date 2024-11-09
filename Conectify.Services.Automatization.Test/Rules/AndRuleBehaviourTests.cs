@@ -16,8 +16,8 @@ public class AndRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
     {
-        new AutomatisationValue { NumericValue = 2 },
-        new AutomatisationValue { NumericValue = 3 }
+        new() { NumericValue = 2 },
+        new() { NumericValue = 3 }
         // Add more AutomatisationValue objects as needed
     };
 
@@ -44,8 +44,8 @@ public class AndRuleBehaviourTests
         // Arrange
         var automatisationValues = new List<AutomatisationValue>
     {
-        new AutomatisationValue { NumericValue = 2 },
-        new AutomatisationValue { NumericValue = 0 }
+        new() { NumericValue = 2 },
+        new() { NumericValue = 0 }
         // Add more AutomatisationValue objects as needed
     };
 

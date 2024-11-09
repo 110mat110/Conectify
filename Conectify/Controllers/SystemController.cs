@@ -71,7 +71,7 @@ public class SystemController(ConectifyDb database) : ControllerBase
                     });
                 }
                 for (int v = 0; v < random.Next(); v++) { }
-                database.Values.Add(new Database.Models.Values.Value()
+                database.Events.Add(new Database.Models.Values.Event()
                 {
                     Id = Guid.NewGuid(),
                     Name = "Test value",
