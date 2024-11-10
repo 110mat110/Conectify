@@ -25,6 +25,8 @@ public enum ShellyType
 
 public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IServicesWebsocketClient websocketClient, ILogger<ShellyService> logger) : IShellyService
 {
+    private static readonly string[] SupportedEvents = { "double_push", "triple_push", "long_push", "single_push" };
+
     public async Task ReceiveMessages(WebSocket webSocket, CancellationToken cancellationToken = default)
     {
         var buffer = new byte[1024 * 4];
@@ -83,12 +85,18 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
     private async Task WebsocketStateInput(ShellyWS message, ShellyDeviceCacheItem shelly)
     {
-        if (message.Params?.Switch0 is not null && shelly.Shelly is not null)
+        if (shelly.Shelly is null)
+        {
+            return;
+        }
+
+
+        if (message.Params?.Switch0?.Output is not null)
         {
             var value = new WebsocketEvent()
             {
                 Name = "Light",
-                NumericValue = message.Params.Switch0.on ? 100 : 0,
+                NumericValue = message.Params.Switch0.Output.Value ? 100 : 0,
                 StringValue = "",
                 TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 Unit = "%",
@@ -114,7 +122,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                 await websocketClient.SendMessageAsync(pwr);
             }
         }
-        if (message.Params?.Switch1 is not null && shelly.Shelly is not null)
+        if (message.Params?.Switch1 is not null)
         {
             var value = new WebsocketEvent()
             {
@@ -146,7 +154,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             }
         }
 
-        if (message.Params?.Switch2 is not null && shelly.Shelly is not null)
+        if (message.Params?.Switch2 is not null)
         {
             var value = new WebsocketEvent()
             {
@@ -176,6 +184,25 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
                 await websocketClient.SendMessageAsync(pwr);
             }
+        }
+
+        if (message.Params?.events is not null && message.Params?.events.Length != 0 && SupportedEvents.Contains(message.Params?.events[0].@event))
+        {
+            var input = message.Params?.events[0]?.id;
+
+            if(input is null)
+            {
+                return;
+            }
+            
+            var evnt = new WebsocketEvent()
+            {
+                Name = "Input",
+                TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                SourceId = shelly.Shelly.DetachedInputs[input.Value].SensorId,
+                Type = message.Params?.events[0].@event!,
+            };
+            await websocketClient.SendMessageAsync(evnt);
         }
     }
 

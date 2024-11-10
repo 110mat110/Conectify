@@ -91,7 +91,7 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
 
     private IEnumerable<Guid> GetTargetsForEvent(Event evnt)
     {
-        var subs = GetAllSubscribers().Where(x => x.IsSubedToAll || x.Preferences.Any(x => x.EventType == evnt.Type && (x.SubscibeeId is null || x.SubscibeeId == evnt.SourceId))).Select(x => x.DeviceId);
+        var subs = GetAllSubscribers().Where(x => x.IsSubedToAll || x.Preferences.Any(x => x.EventType == Constants.Events.All || (x.EventType == evnt.Type && (x.SubscibeeId is null || x.SubscibeeId == evnt.SourceId)))).Select(x => x.DeviceId);
 
         if (evnt.DestinationId.HasValue)
         {

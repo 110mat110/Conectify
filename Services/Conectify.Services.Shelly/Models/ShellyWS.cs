@@ -52,8 +52,18 @@ public class Params
     public Sys Sys { get; set; }
     public Wifi Wifi { get; set; }
     public Ws Ws { get; set; }
+
+    public Event[] events { get; set; }
 }
 
+public class Event
+{
+    public string component { get; set; }
+
+    public int id { get; set; }
+
+    public string @event { get; set; }
+}
 public class Ble
 {
 }
@@ -78,7 +88,7 @@ public class Switch
 {
     public int id { get; set; }
     public string Source { get; set; }
-    public bool Output { get; set; }
+    public bool? Output { get; set; }
     public bool on { get; set; }
     public Temperature Temperature { get; set; }
 
