@@ -4,9 +4,9 @@
 
 export const environment = {
   production: false,
-  serverUrl: "http://localhost:5000",
-  automatizationURL: "http://server.home:5021",
-  historyUrl: "http://localhost:5020",
+  serverUrl: "http://server.home:5000",
+  automatizationURL: "http://localhost:5021",
+  historyUrl: "http://server.home:5020",
   dashboardUrl: "http://server.home:5022",
-  websocketUrl: "ws://localhost:5000/api/websocket/"
+  websocketUrl: "ws://server.home:5000/api/websocket/"
 };

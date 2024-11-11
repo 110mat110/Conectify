@@ -4,6 +4,7 @@ using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
 using Conectify.Database.Models.Automatization;
 using Conectify.Database.Models.Dashboard;
+using Conectify.Database.Models.Shelly;
 using Conectify.Database.Models.Updates;
 using Conectify.Database.Models.Values;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,9 @@ public class ConectifyDb(DbContextOptions<ConectifyDb> options) : DbContext(opti
     public DbSet<DeviceVersion> DeviceVersions { get; set; }
     public DbSet<Software> Softwares { get; set; }
     public DbSet<SoftwareVersion> SoftwareVersions { get; set; }
+
+    //Shelly
+    public DbSet<Shelly> Shellys { get; set; }
 
     public async Task<T> AddOrUpdateAsync<T>(T entity, CancellationToken ct = default) where T : class, IEntity
     {

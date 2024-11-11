@@ -1,4 +1,10 @@
 <div class="component">
     <button (click)="SelectSource()">Select Source</button>
     <p>{{Rule?.behaviour?.Name}}</p>
+    <br/>
+    <mat-form-field class="string-input" style="margin-top: -5px; margin-bottom: -10px;">
+        <mat-label>Event name</mat-label>
+        <input matInput placeholder="all" value={{eventtype}} [(ngModel)]="eventtype" #numericInput (ngModelChange)="onChange()">
+      </mat-form-field>
+      <p>Let empty or set all to react to all events</p>
 </div>

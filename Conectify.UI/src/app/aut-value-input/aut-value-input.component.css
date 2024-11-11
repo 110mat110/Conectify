@@ -1,0 +1,17 @@
+.string-input {
+    font-size: 0.8rem; /* Adjust font size */
+    height: 40px; /* Adjust height */
+    margin-top: -5px;
+    margin-bottom: -10px;
+    width: 80%;
+  }
+  
+  .string-input input {
+    padding: 4px 8px; /* Adjust padding */
+    font-size: 0.8rem; /* Ensure font size matches parent */
+    height: 30px; /* Adjust input height */
+  }
+  
+  .string-input .mat-form-field-label {
+    font-size: 0.75rem; /* Adjust label font size */
+  }

@@ -15,12 +15,20 @@ import { Sensor } from 'src/models/sensor';
 })
 export class AutValueInputComponent implements OnInit  {
   @Input() Rule?: ValueInitRule;
-
+  eventtype: string = "all";
   constructor(  private be: BefetchAutomatizationService, public messenger: MessagesService, public dialog: MatDialog) {
 
   }
   ngOnInit(): void {
-    
+    if(this.Rule?.behaviour){
+      this.eventtype = this.Rule.behaviour.Event;
+    }
+  }
+
+  onChange(): void{
+    if(this.Rule?.behaviour){
+      this.Rule.behaviour.Event = this.eventtype;
+    }
   }
 
   SelectSource(){

@@ -1,12 +1,12 @@
-﻿using Conectify.Services.Library;
+﻿using Conectify.Database;
+using Conectify.Services.Library;
 using Conectify.Services.Shelly.Models.Shelly;
 using Conectify.Shared.Library.Models;
 using Newtonsoft.Json;
-using System.Transactions;
 
 namespace Conectify.Services.Shelly.Services;
 
-public class ShellyFactory(IConnectorService connectorService, Configuration configuration)
+public class ShellyFactory(IConnectorService connectorService, Configuration configuration, ConectifyDb conectifyDb)
 {
     private readonly Dictionary<string, Type> shellyTypes = new()
     {
@@ -15,7 +15,7 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
         { "S3SW-002P16EU", typeof(Shelly2PMG3) },
         { "SPSW-003XE16EU", typeof(Shelly3Pro) }
     };
-    public IShelly GetShelly(string model, string id, string name)
+    public async Task<IShelly> GetShelly(string model, string id, string name)
     {
         IShelly? shelly = null;
 
@@ -24,15 +24,14 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
             throw new ArgumentNullException($"We do not support {model}");
         }
 
+        var shellyDb = conectifyDb.Shellys.FirstOrDefault(x => x.ShellyId == id);
 
-        var jsonString = File.ReadAllText("Shelly.json");
-        ShellyData? database = JsonConvert.DeserializeObject<ShellyData>(jsonString) ?? throw new ArgumentNullException("Database does not work");
-        if (database.shellyData.TryGetValue(id, out string? shellyJson))
-        {
-            shelly = JsonConvert.DeserializeObject(shellyJson,shellyType) as IShelly;
+        if (shellyDb is not null) {
+            shelly = JsonConvert.DeserializeObject(shellyDb.Json, shellyType) as IShelly;
         }
 
-        if(shelly is null)
+
+        if (shelly is null)
         {
             object[] parameters = { name, id};
             shelly = Activator.CreateInstance(shellyType, parameters) as IShelly;
@@ -40,22 +39,31 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
 
         if (shelly is not null)
         {
-            ConectToConectify(shelly);
+            await ConectToConectify(shelly);
 
             var serializedShelly = JsonConvert.SerializeObject(shelly);
 
-            if (!database.shellyData.TryAdd(id, serializedShelly))
+            if (shellyDb is null)
             {
-                database.shellyData[id] = serializedShelly;
+                await conectifyDb.Shellys.AddAsync(new Database.Models.Shelly.Shelly()
+                {
+
+                    ShellyId = id,
+                    Json = serializedShelly
+                });
+            }
+            else
+            {
+                shellyDb.Json = serializedShelly;
             }
 
-            File.WriteAllText("Shelly.json", JsonConvert.SerializeObject(database));
+            await conectifyDb.SaveChangesAsync();
         }
 
         return shelly;
     }
 
-    private void ConectToConectify(IShelly shelly)
+    private async Task ConectToConectify(IShelly shelly)
     {
         List<ApiSensor> sensors = [];
         List<ApiActuator> actuators = [];
@@ -106,8 +114,8 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
             });
         }
 
-        connectorService.RegisterSensors(sensors);
-        connectorService.RegisterActuators(actuators);
+        await connectorService.RegisterSensors(sensors);
+        await connectorService.RegisterActuators(actuators);
     }
 }
 

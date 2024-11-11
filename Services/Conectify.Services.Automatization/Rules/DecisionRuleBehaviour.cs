@@ -37,6 +37,8 @@ public class DecisionRuleBehaviour : IRuleBehaviour
         return null;
     }
 
+    public string DisplayName() => "DECISION";
+
     public Guid GetId()
     {
         return Guid.Parse("62d50548-fff0-44c4-8bf3-b592042b1c2b");

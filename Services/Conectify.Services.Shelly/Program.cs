@@ -2,6 +2,8 @@ using Conectify.Services.Library;
 using Conectify.Services.Shelly.Components;
 using Conectify.Services.Shelly.Services;
 using Conectify.Services.Shelly;
+using Conectify.Database;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddControllers();
+builder.Services.AddDbContext<ConectifyDb>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DatabaseString")));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

@@ -6,6 +6,8 @@ import { ChangeDestinationRule } from 'src/models/Automatization/ChangeDestinati
 import { BefetchAutomatizationService } from '../befetch-automatization.service';
 import { MessagesService } from '../messages.service';
 import { SelectDestinationActuatorOverlayComponent } from '../select-destination-actuator-overlay/select-destination-actuator-overlay.component';
+import { MatDialog } from '@angular/material/dialog';
+import { Actuator } from 'src/models/actuator';
 
 @Component({
   selector: 'app-aut-change-destination',
@@ -17,7 +19,7 @@ export class AutChangeDestinationComponent implements OnInit {
   @Input() Rule?: ChangeDestinationRule;
   overlayRef: any;
 
-  constructor(  private be: BefetchAutomatizationService, public messenger: MessagesService, public overlay: Overlay, public viewContainerRef: ViewContainerRef) {
+  constructor(  private be: BefetchAutomatizationService, public messenger: MessagesService, public overlay: Overlay, public dialog: MatDialog) {
 
   }
 
@@ -30,22 +32,18 @@ export class AutChangeDestinationComponent implements OnInit {
   }
 
   selectDestination(){
-    let config = new OverlayConfig();
-
-    config.positionStrategy = this.overlay.position()
-        .global().centerHorizontally();
-
-    config.hasBackdrop = true;
-    config.width = "500px";
-    config.height = "500px";
-
-    this.overlayRef  = this.overlay.create(config);
-    this.overlayRef.backdropClick().subscribe(() => {
-      this.overlayRef.dispose();
+    const dialogRef = this.dialog.open(SelectDestinationActuatorOverlayComponent, {
+      width: '50%',
+      height: '100%',
+      restoreFocus: false
     });
-  
-    let ref = this.overlayRef.attach(new ComponentPortal(SelectDestinationActuatorOverlayComponent, this.viewContainerRef));
-    ref.instance.creatorComponent = this;
+
+    dialogRef.afterClosed().subscribe(result => {
+      var actuator = result as Actuator;
+      if(this.Rule?.behaviour && actuator){
+        this.Rule.behaviour.DestinationId = actuator.id;
+      }
+    });
   }
 
 }

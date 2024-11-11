@@ -20,20 +20,17 @@ public class Shelly1G3 : IShelly
             new Switch() {
                 SensorId = Guid.NewGuid(),
                 ActuatorId = Guid.NewGuid(),
-                ShellyId = 0,
-                DoublePress = new DoublePress(){
-                    SensorId = Guid.NewGuid(),
-                    ShellyId = 0,
-                },
-                LongPress = new LongPress(){
-                    SensorId = Guid.NewGuid(),
-                    ShellyId= 0,
-                }
+                ShellyId = 0
             }
         ];
+        DetachedInputs = [
+            new DetachedInput()
+            {
+                SensorId = Guid.NewGuid(),
+                ShellyId = 0
+            }
+            ];
     }
-
-    public ShellyType ShellyType { get; set; }  = ShellyType.Shelly1g3;
 
     public string Name { get; set; }
     public List<Switch> Switches { get; set;  } 

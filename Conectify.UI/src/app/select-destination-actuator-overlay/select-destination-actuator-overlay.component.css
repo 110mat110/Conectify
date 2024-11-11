@@ -8,11 +8,11 @@ mat-grid-tile {
     border-radius: 3px;
   }
   .grid-layout-custom{
-    width: 50vw;
-    height: 50vh;
+    width: 500vw;
+    height: 500vh;
   }
   .example-list {
-    width: 100px;
+    width: 400px;
     border: solid 1px #ccc;
     border-radius: 5px;
     background: #fff;

@@ -9,6 +9,8 @@ public class InputRuleBehaviour : IRuleBehaviour
         return automatisationValues.FirstOrDefault();
     }
 
+    public string DisplayName() => "ON EVENT";
+
     public Guid GetId()
     {
         return Guid.Parse("24ff4530-887b-48d1-a4fa-38cc83925797");

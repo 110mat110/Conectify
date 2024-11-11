@@ -6,4 +6,5 @@ export class ValueInitRule extends AutomatizationBaseGeneric<ValueInitBehaviour>
 interface ValueInitBehaviour{
     SourceSensorId: string;
     Name: string;
+    Event: string;
 }

@@ -14,15 +14,6 @@ public interface IShellyService
     Task SendValueToShelly(Database.Models.Values.Event action);
 }
 
-public enum ShellyType
-{
-    Unknown,
-    Shelly1g3,
-    Shellyi4,
-    Shelly2pmg3,
-    ShellyPro3,
-}
-
 public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IServicesWebsocketClient websocketClient, ILogger<ShellyService> logger) : IShellyService
 {
     private static readonly string[] SupportedEvents = { "double_push", "triple_push", "long_push", "single_push" };
@@ -114,7 +105,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                     NumericValue = message.Params.Switch0.aenergy.ByMinute[0],
                     StringValue = "",
                     TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-                    Unit = "%",
+                    Unit = "W",
                     SourceId = shelly.Shelly.Switches[0].Power.SensorId,
                     Type = Constants.Events.Value,
                 };
@@ -145,7 +136,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                     NumericValue = message.Params.Switch1.aenergy.ByMinute[0],
                     StringValue = "",
                     TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-                    Unit = "%",
+                    Unit = "W",
                     SourceId = shelly.Shelly.Switches[1].Power.SensorId,
                     Type = Constants.Events.Value,
                 };
@@ -177,7 +168,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                     NumericValue = message.Params.Switch2.aenergy.ByMinute[0],
                     StringValue = "",
                     TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-                    Unit = "%",
+                    Unit = "W",
                     SourceId = shelly.Shelly.Switches[2].Power.SensorId,
                     Type = Constants.Events.Value,
                 };
@@ -210,7 +201,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
     {
         if (message.Result is not null && !string.IsNullOrEmpty(message.Result.Model))
         {
-            var shellyModel = shellyFactory.GetShelly(message.Result.Model, src, message.Result.Name);
+            var shellyModel = await shellyFactory.GetShelly(message.Result.Model, src, message.Result.Name);
             if(!cache.Cache.TryAdd(src, new ShellyDeviceCacheItem()
             {
                 ShellyId = src,

@@ -16,6 +16,7 @@ public class RunAtRuleBehaviour : IRuleBehaviour
         };
     }
 
+    public string DisplayName() => "RUN AT";
     public Guid GetId()
     {
         return Guid.Parse("3dff4530-887b-48d1-a4fa-38cc8392469a");

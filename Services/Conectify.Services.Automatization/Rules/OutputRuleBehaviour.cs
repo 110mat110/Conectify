@@ -16,6 +16,8 @@ public class OutputRuleBehaviour : IRuleBehaviour
         return value;
     }
 
+    public string DisplayName() => "OUTPUT";
+
     public Guid GetId()
     {
         return Guid.Parse("d274c7f0-211e-413a-8689-f2543dbfc818");

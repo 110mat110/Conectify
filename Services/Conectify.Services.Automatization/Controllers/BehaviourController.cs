@@ -14,6 +14,6 @@ public class BehaviourController : ControllerBase
         var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes())
        .Where(t => t.GetInterfaces().Contains(typeof(IRuleBehaviour))).Select(x => Activator.CreateInstance(x) as IRuleBehaviour).ToList();
 
-        return types.Where(x => x is not null).Select(x => new BehaviourMenuApiModel(x!.GetId(), x.GetType().Name.Replace("Behaviour", "")));
+        return types.Where(x => x is not null).Select(x => new BehaviourMenuApiModel(x!.GetId(), x.DisplayName()));
     }
 }

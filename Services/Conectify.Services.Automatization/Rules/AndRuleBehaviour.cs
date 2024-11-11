@@ -19,6 +19,8 @@ public class AndRuleBehaviour : IRuleBehaviour
 
     }
 
+    public string DisplayName() => "AND Rule";
+
     public Guid GetId()
     {
         return Guid.Parse("28ff4530-887b-48d1-a4fa-38dc839257a4");

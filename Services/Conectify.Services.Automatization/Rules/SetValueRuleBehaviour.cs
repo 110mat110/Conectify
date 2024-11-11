@@ -35,6 +35,7 @@ public class SetValueRuleBehaviour : IRuleBehaviour
         };
     }
 
+    public string DisplayName() => "SET VALUE";
     public Guid GetId()
     {
         return Guid.Parse("8c173ffc-7243-4675-9a0d-28c2ce19a18f");

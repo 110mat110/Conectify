@@ -49,11 +49,8 @@ export class SelectInputSensorOverlayComponent implements OnInit {
     );
   }
   setColNum() {
-    //this.columnNum=2;
-    
     let width = this.theContainer.nativeElement.offsetWidth;
     this.columnNum = Math.trunc(width / this.tileSize);
-    
   }
 
   //recalculating upon browser window resize

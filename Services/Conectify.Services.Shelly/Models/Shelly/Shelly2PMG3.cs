@@ -19,14 +19,6 @@ public class Shelly2PMG3 : IShelly
                 SensorId = Guid.NewGuid(),
                 ActuatorId = Guid.NewGuid(),
                 ShellyId = 0,
-                DoublePress = new DoublePress(){
-                    SensorId = Guid.NewGuid(),
-                    ShellyId = 0,
-                },
-                LongPress = new LongPress(){
-                    SensorId = Guid.NewGuid(),
-                    ShellyId= 0,
-                },
                 Power = new(){
                     SensorId = Guid.NewGuid(),
                     ShellyId = 0
@@ -36,23 +28,26 @@ public class Shelly2PMG3 : IShelly
                 SensorId = Guid.NewGuid(),
                 ActuatorId = Guid.NewGuid(),
                 ShellyId = 1,
-                DoublePress = new DoublePress(){
-                    SensorId = Guid.NewGuid(),
-                    ShellyId = 1,
-                },
-                LongPress = new LongPress(){
-                    SensorId = Guid.NewGuid(),
-                    ShellyId= 1,
-                },
                 Power = new(){
                     SensorId = Guid.NewGuid(),
                     ShellyId = 1
                 }
             }
         ];
+        DetachedInputs =
+[
+    new DetachedInput()
+            {
+                SensorId = Guid.NewGuid(),
+                ShellyId = 0,
+            },
+            new DetachedInput()
+            {
+                SensorId = Guid.NewGuid(),
+                ShellyId = 1,
+            }
+            ];
     }
-
-    public ShellyType ShellyType { get; set; } = ShellyType.Shelly2pmg3;
 
     public string Name { get; set; }
     public List<Switch> Switches { get; set; }

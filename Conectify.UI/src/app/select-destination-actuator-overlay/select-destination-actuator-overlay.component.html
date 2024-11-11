@@ -1,6 +1,6 @@
-<div *ngIf="actuators" class="overlayDiv">
-    <div #theContainer>
-  <mat-grid-list cols="{{columnNum}}" rowHeight="100px" gutterSize="6px">
+<div *ngIf="actuators" class="overlayDiv"  style="width: 100%;">
+    <div #theContainer style="width: 100%;">
+  <mat-grid-list cols="{{columnNum}}" rowHeight="100px" gutterSize="6px" style="width: 100%;">
       <mat-grid-tile *ngFor="let actuator of actuators" style="background-color: {{actuator.color}};">
         <div (click)="select(actuator)" class="cube">
             {{actuator.actuator.name}}
