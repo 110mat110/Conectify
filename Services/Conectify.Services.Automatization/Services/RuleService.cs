@@ -235,16 +235,16 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 
         if (rule.RuleType == new InputRuleBehaviour().GetId())
         {
-            var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceSensorId = Guid.Empty })?.SourceSensorId;
-            if (id is null || id == Guid.Empty)
+            var behaviour = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceSensorId = Guid.Empty, Name = string.Empty, Event = string.Empty });
+            if (behaviour is null || behaviour.SourceSensorId == Guid.Empty)
                 return;
 
-            var sensor = await connectorService.LoadSensor(id!.Value, cancellationToken);
+            var sensor = await connectorService.LoadSensor(behaviour.SourceSensorId, cancellationToken);
             if (sensor is null)
             {
                 return;
             }
-            rule.ParametersJson = JsonConvert.SerializeObject(new { SourceSensorId = sensor.Id, sensor.Name });
+            rule.ParametersJson = JsonConvert.SerializeObject(new { SourceSensorId = sensor.Id, sensor.Name, behaviour.Event });
 
             rule.Name = sensor.Name;
             rule.Description = sensor.Name;

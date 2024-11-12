@@ -33,6 +33,7 @@ public class RuleDTO
         var automationValue = new AutomatisationValue()
         {
             Id = evnt.Id,
+            Type = evnt.Type,
             Name = evnt.Name,
             NumericValue = evnt.NumericValue,
             StringValue = evnt.StringValue,

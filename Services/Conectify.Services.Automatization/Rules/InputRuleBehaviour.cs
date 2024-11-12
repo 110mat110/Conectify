@@ -1,4 +1,5 @@
 ﻿using Conectify.Services.Automatization.Models;
+using Conectify.Shared.Library;
 
 namespace Conectify.Services.Automatization.Rules;
 
@@ -6,7 +7,7 @@ public class InputRuleBehaviour : IRuleBehaviour
 {
     public AutomatisationValue? Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule, IEnumerable<Tuple<Guid, AutomatisationValue>> parameterValues)
     {
-        return automatisationValues.FirstOrDefault();
+        return automatisationValues.FirstOrDefault(x => string.IsNullOrEmpty(EventType) || EventType == Constants.Events.All || x.Type == EventType);
     }
 
     public string DisplayName() => "ON EVENT";
@@ -20,4 +21,6 @@ public class InputRuleBehaviour : IRuleBehaviour
     {
         return null;
     }
+
+    public string EventType { get; set; }
 }

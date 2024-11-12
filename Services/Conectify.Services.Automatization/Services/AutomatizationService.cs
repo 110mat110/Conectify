@@ -37,8 +37,8 @@ public class AutomatizationService(IAutomatizationCache automatizationCache,
                 sourceRule.InsertEvent(evnt);
                 await ExecuteRule(sourceRule);
             }
-        }
-        if(evnt.Type == Constants.Events.Value)
+        } 
+        else
         {
             var sourceRules = automatizationCache.GetRulesForSource(evnt.SourceId);
             foreach (var sourceRule in sourceRules)

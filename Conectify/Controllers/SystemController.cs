@@ -2,12 +2,14 @@
 
 using Conectify.Database;
 using Conectify.Database.Models;
+using Conectify.Database.Models.Values;
+using Conectify.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 [Route("api/[controller]")]
 [ApiController]
-public class SystemController(ConectifyDb database) : ControllerBase
+public class SystemController(ConectifyDb database, IDataService dataService) : ControllerBase
 {
     [HttpGet("Ping")]
     public string GetPing()
@@ -26,6 +28,12 @@ public class SystemController(ConectifyDb database) : ControllerBase
     {
         database.Database.Migrate();
         return "database update";
+    }
+
+    [HttpPost("{deviceId}/Event")]
+    public async Task InsertJson(Guid deviceId, Event evnt)
+    {
+        await dataService.ProcessEntity(evnt, deviceId);
     }
 
     [HttpGet("SeedTestData")]
