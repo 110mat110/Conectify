@@ -53,7 +53,17 @@ public class Params
     public Wifi Wifi { get; set; }
     public Ws Ws { get; set; }
 
+    [JsonProperty("pm:0")]
+    public Pm10? Pm0 { get; set; }
+    [JsonProperty("pm:1")]
+    public Pm10? Pm1 { get; set; }
     public Event[] events { get; set; }
+}
+
+public class Pm10
+{
+    public int Id { get; set; }
+    public Energy aenergy { get; set; }
 }
 
 public class Event

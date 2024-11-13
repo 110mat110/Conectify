@@ -39,7 +39,8 @@ if (!app.Environment.IsDevelopment())
 app.Services.GetRequiredService<IServicesWebsocketClient>().OnIncomingEvent += OnEvent;
 async void OnEvent(Conectify.Database.Models.Values.Event action)
 {
-    var shellyService = app.Services.GetRequiredService<IShellyService>();
+    using var scope = app.Services.CreateScope();
+    var shellyService = scope.ServiceProvider.GetRequiredService<IShellyService>();
     await shellyService.SendValueToShelly(action);
 }
 

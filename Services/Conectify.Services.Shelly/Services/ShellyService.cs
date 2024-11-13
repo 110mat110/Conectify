@@ -102,7 +102,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                 var pwr = new WebsocketEvent()
                 {
                     Name = "Power",
-                    NumericValue = message.Params.Switch0.aenergy.ByMinute[0],
+                    NumericValue = message.Params.Switch0.aenergy.ByMinute[0]/1000,
                     StringValue = "",
                     TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                     Unit = "W",
@@ -133,7 +133,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                 var pwr = new WebsocketEvent()
                 {
                     Name = "Power",
-                    NumericValue = message.Params.Switch1.aenergy.ByMinute[0],
+                    NumericValue = message.Params.Switch1.aenergy.ByMinute[0]/1000,
                     StringValue = "",
                     TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                     Unit = "W",
@@ -165,7 +165,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                 var pwr = new WebsocketEvent()
                 {
                     Name = "Power",
-                    NumericValue = message.Params.Switch2.aenergy.ByMinute[0],
+                    NumericValue = message.Params.Switch2.aenergy.ByMinute[0]/1000,
                     StringValue = "",
                     TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                     Unit = "W",
@@ -194,6 +194,38 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                 Type = message.Params?.events[0].@event!,
             };
             await websocketClient.SendMessageAsync(evnt);
+        }
+
+        if(message.Params?.Pm0?.aenergy is not null && shelly.Shelly.Powers[0] is not null)
+        {
+            var pwr = new WebsocketEvent()
+            {
+                Name = "Power",
+                NumericValue = message.Params.Pm0.aenergy.ByMinute[0] / 1000,
+                StringValue = "",
+                TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                Unit = "W",
+                SourceId = shelly.Shelly.Powers[0].SensorId,
+                Type = Constants.Events.Value,
+            };
+
+            await websocketClient.SendMessageAsync(pwr);
+        }
+
+        if (message.Params?.Pm1?.aenergy is not null && shelly.Shelly.Powers[1] is not null)
+        {
+            var pwr = new WebsocketEvent()
+            {
+                Name = "Power",
+                NumericValue = message.Params.Pm1.aenergy.ByMinute[0]/1000,
+                StringValue = "",
+                TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                Unit = "W",
+                SourceId = shelly.Shelly.Powers[1].SensorId,
+                Type = Constants.Events.Value,
+            };
+
+            await websocketClient.SendMessageAsync(pwr);
         }
     }
 
