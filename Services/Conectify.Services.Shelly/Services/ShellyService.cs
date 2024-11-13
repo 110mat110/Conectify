@@ -102,7 +102,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                 var pwr = new WebsocketEvent()
                 {
                     Name = "Power",
-                    NumericValue = message.Params.Switch0.aenergy.ByMinute[0]/1000,
+                    NumericValue = CalculatePower(message.Params.Switch0.aenergy.ByMinute[0]),
                     StringValue = "",
                     TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                     Unit = "W",
@@ -133,7 +133,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                 var pwr = new WebsocketEvent()
                 {
                     Name = "Power",
-                    NumericValue = message.Params.Switch1.aenergy.ByMinute[0]/1000,
+                    NumericValue = CalculatePower(message.Params.Switch1.aenergy.ByMinute[0]),
                     StringValue = "",
                     TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                     Unit = "W",
@@ -165,7 +165,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                 var pwr = new WebsocketEvent()
                 {
                     Name = "Power",
-                    NumericValue = message.Params.Switch2.aenergy.ByMinute[0]/1000,
+                    NumericValue = CalculatePower(message.Params.Switch2.aenergy.ByMinute[0]),
                     StringValue = "",
                     TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                     Unit = "W",
@@ -201,7 +201,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             var pwr = new WebsocketEvent()
             {
                 Name = "Power",
-                NumericValue = message.Params.Pm0.aenergy.ByMinute[0] / 1000,
+                NumericValue = CalculatePower(message.Params.Pm0.aenergy.ByMinute[0]),
                 StringValue = "",
                 TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 Unit = "W",
@@ -217,7 +217,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             var pwr = new WebsocketEvent()
             {
                 Name = "Power",
-                NumericValue = message.Params.Pm1.aenergy.ByMinute[0]/1000,
+                NumericValue = CalculatePower(message.Params.Pm1.aenergy.ByMinute[0]),
                 StringValue = "",
                 TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 Unit = "W",
@@ -293,5 +293,10 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         var target = shelly.Shelly.Switches.First(x => x.ActuatorId == evnt.DestinationId);
 
         await SendMessage(shelly.ShellyId, "Switch.Set", new { id = target.ShellyId, on = evnt.NumericValue != 0 });
+    }
+
+    private static float CalculatePower(float aenergy)
+    {
+        return aenergy * 60 / 1000;
     }
 }
