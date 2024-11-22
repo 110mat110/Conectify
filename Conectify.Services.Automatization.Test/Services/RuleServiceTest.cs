@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Conectify.Database;
-using Conectify.Database.Models.Automatization;
 using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Services;
 using Conectify.Services.Library;
@@ -17,6 +16,7 @@ using System.Data.Entity;
 using System.Net.WebSockets;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Xunit;
+using Conectify.Services.Automatization.Models.Database;
 
 namespace Conectify.Services.Tests.Automatization.Services
 {

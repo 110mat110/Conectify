@@ -2,7 +2,6 @@
 
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
-using Conectify.Database.Models.Automatization;
 using Conectify.Database.Models.Dashboard;
 using Conectify.Database.Models.Shelly;
 using Conectify.Database.Models.Updates;
@@ -25,10 +24,6 @@ public class ConectifyDb(DbContextOptions<ConectifyDb> options) : DbContext(opti
     public DbSet<MetadataConnector<Actuator>> ActuatorMetadatas { get; set; } = null!;
     public DbSet<MetadataConnector<Device>> DeviceMetadata { get; set; } = null!;
     public DbSet<MetadataConnector<Sensor>> SensorMetadata { get; set; } = null!;
-
-
-    //Rules
-    public DbSet<Rule> Rules { get; set; } = null!;
 
     //Dashboard
     public DbSet<Dashboard> Dashboards { get; set; }
@@ -60,20 +55,6 @@ public class ConectifyDb(DbContextOptions<ConectifyDb> options) : DbContext(opti
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<RuleConnector>().HasKey(u => new
-        {
-            u.PreviousRuleId,
-            u.ContinuingRuleId,
-        });
-
-        modelBuilder.Entity<RuleConnector>()
-            .HasOne(bc => bc.ContinuingRule)
-            .WithMany(b => b.PreviousRules)
-            .HasForeignKey(bc => bc.ContinuingRuleId);
-        modelBuilder.Entity<RuleConnector>()
-            .HasOne(bc => bc.PreviousRule)
-            .WithMany(c => c.ContinuingRules)
-            .HasForeignKey(bc => bc.PreviousRuleId);
 
         modelBuilder.Entity<DeviceVersion>()
             .HasOne(bc => bc.Device)
@@ -81,21 +62,6 @@ public class ConectifyDb(DbContextOptions<ConectifyDb> options) : DbContext(opti
             .HasForeignKey(bc => bc.DeviceId);
         modelBuilder.Entity<DeviceVersion>()
             .HasKey(x => x.DeviceId);
-
-        modelBuilder.Entity<RuleParameter>().HasKey(u => new
-        {
-            u.SourceRuleId,
-            u.TargetRuleId,
-        });
-
-        modelBuilder.Entity<RuleParameter>()
-            .HasOne(bc => bc.SourceRule)
-            .WithMany(b => b.TargetParameters)
-            .HasForeignKey(bc => bc.SourceRuleId);
-        modelBuilder.Entity<RuleParameter>()
-            .HasOne(bc => bc.TargetRule)
-            .WithMany(c => c.SourceParameters)
-            .HasForeignKey(bc => bc.TargetRuleId);
 
         modelBuilder.Entity<Preference>()
             .HasOne(bc => bc.Subscriber)

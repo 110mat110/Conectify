@@ -10,7 +10,7 @@ public class TimeRuleBehaviourTests
     public void Execute_WhenTriggerTimeIsNow_ReturnsAutomatisationValueWithTrueValues()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>();
+        var automatisationValues = new List<AutomatisationEvent>();
         var triggerTime = DateTime.UtcNow;
         var masterRule = new RuleDTO
         {
@@ -19,7 +19,7 @@ public class TimeRuleBehaviourTests
             Parameters = new List<Guid>()
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var timeRuleBehaviour = new TimeRuleBehaviour();
 
@@ -40,7 +40,7 @@ public class TimeRuleBehaviourTests
     public void Execute_WhenTriggerTimeIsNotNow_ReturnsAutomatisationValueWithFalseValues()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>();
+        var automatisationValues = new List<AutomatisationEvent>();
         var triggerTime = DateTime.UtcNow.AddMinutes(1); // Future time
         var masterRule = new RuleDTO
         {
@@ -49,7 +49,7 @@ public class TimeRuleBehaviourTests
             Parameters = new List<Guid>()
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var timeRuleBehaviour = new TimeRuleBehaviour();
 
@@ -70,7 +70,7 @@ public class TimeRuleBehaviourTests
     public void Execute_WhenOptionsIsNull_ReturnsAutomatisationValueWithFalseValues()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>();
+        var automatisationValues = new List<AutomatisationEvent>();
         var masterRule = new RuleDTO
         {
             Id = Guid.NewGuid(),
@@ -78,7 +78,7 @@ public class TimeRuleBehaviourTests
             Parameters = new List<Guid>()
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var timeRuleBehaviour = new TimeRuleBehaviour();
 

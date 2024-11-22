@@ -9,14 +9,14 @@ public class UserInputRuleBehaviourTests
     public void Execute_WhenAutomatisationValuesNotEmpty_ReturnsFirstAutomatisationValue()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
         {
             new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" },
             new() { NumericValue = 10, StringValue = "Test2", Unit = "Unit2" }
         };
 
         var masterRule = new RuleDTO { Id = Guid.NewGuid() };
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var userInputRuleBehaviour = new UserInputRuleBehaviour();
 
@@ -34,9 +34,9 @@ public class UserInputRuleBehaviourTests
     public void Execute_WhenAutomatisationValuesEmpty_ReturnsNull()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>();
+        var automatisationValues = new List<AutomatisationEvent>();
         var masterRule = new RuleDTO { Id = Guid.NewGuid() };
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var userInputRuleBehaviour = new UserInputRuleBehaviour();
 

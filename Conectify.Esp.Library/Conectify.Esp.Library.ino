@@ -14,7 +14,11 @@ void UserSetupRoutines(){
 }
 
 void ActuatorNumericRoutine(float value, String unit){
-    digitalWrite(2, value > 0);
+    if(value > 0){
+    digitalWrite(0, HIGH);
+    delay(300);
+    digitalWrite(0, LOW);
+    }
 }
 
 
@@ -32,10 +36,6 @@ void DeclareSensors(){
 
 //This will perform each loop
 void UserLoopRoutines(){
-  if(GetGlobalVariables()->SensoricTimer.IsTriggered()){
-    GetGlobalVariables()->SensoricTimer.ResetTimer();
-    GetGlobalVariables()->sensorsArr[0].SetNumericValue(random(0,100));
-  }
 }
 
 #pragma region HiddenRoutines

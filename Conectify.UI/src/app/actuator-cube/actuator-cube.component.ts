@@ -40,7 +40,6 @@ export class ActuatorCubeComponent implements OnInit {
     this.refreshActualStatus();
     this.determineType();
     this.websocketService.receivedMessages.subscribe(msg => {
-      this.messenger.addMessage("actuator cube has value");
       this.HandleIncomingValue(msg);
     });
   }

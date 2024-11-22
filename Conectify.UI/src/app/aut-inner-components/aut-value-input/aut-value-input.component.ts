@@ -1,12 +1,10 @@
-import { Overlay, OverlayConfig } from '@angular/cdk/overlay';
-import { ComponentPortal, PortalInjector } from '@angular/cdk/portal';
 import { Component, Injectable, InjectionToken, Injector, Input, OnInit, ViewContainerRef } from '@angular/core';
 import { ValueInitRule } from 'src/models/Automatization/ValueInitRule';
-import { BefetchAutomatizationService } from '../befetch-automatization.service';
-import { MessagesService } from '../messages.service';
-import { SelectInputSensorOverlayComponent } from '../select-input-sensor-overlay/select-input-sensor-overlay.component';
 import { MatDialog } from '@angular/material/dialog';
 import { Sensor } from 'src/models/sensor';
+import { BefetchAutomatizationService } from 'src/app/befetch-automatization.service';
+import { MessagesService } from 'src/app/messages.service';
+import { SelectInputSensorOverlayComponent } from 'src/app/select-input-sensor-overlay/select-input-sensor-overlay.component';
 
 @Component({
   selector: 'app-aut-value-input',

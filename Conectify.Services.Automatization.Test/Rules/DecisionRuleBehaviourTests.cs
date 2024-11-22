@@ -10,7 +10,7 @@ public class DecisionRuleBehaviourTests
     public void Execute_WhenParametersAndParameterValuesExistAndComparisonIsTrue_ReturnsAutomatisationValue()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
         {
             new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
@@ -22,9 +22,9 @@ public class DecisionRuleBehaviourTests
             Parameters = new List<Guid> { parameterID }
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>
         {
-            new(parameterID, new AutomatisationValue { NumericValue = 3 })
+            new(parameterID, new AutomatisationEvent { NumericValue = 3 })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();
@@ -45,7 +45,7 @@ public class DecisionRuleBehaviourTests
     public void Execute_WhenParametersAndParameterValuesExistAndComparisonIsFalse_ReturnsNull()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
         {
             new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
@@ -58,9 +58,9 @@ public class DecisionRuleBehaviourTests
             Parameters = new List<Guid> { parameterID }
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>
         {
-            new(parameterID, new AutomatisationValue { NumericValue = 7 })
+            new(parameterID, new AutomatisationEvent { NumericValue = 7 })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();
@@ -76,7 +76,7 @@ public class DecisionRuleBehaviourTests
     public void Execute_WhenParametersDoNotExist_ReturnsNull()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
         {
             new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
@@ -88,9 +88,9 @@ public class DecisionRuleBehaviourTests
             Parameters = new List<Guid>() // No parameters
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>
         {
-            new(Guid.NewGuid(), new AutomatisationValue { NumericValue = 3 })
+            new(Guid.NewGuid(), new AutomatisationEvent { NumericValue = 3 })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();
@@ -106,7 +106,7 @@ public class DecisionRuleBehaviourTests
     public void Execute_WhenParameterValuesDoNotExist_ReturnsNull()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
         {
             new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
@@ -118,7 +118,7 @@ public class DecisionRuleBehaviourTests
             Parameters = new List<Guid> { Guid.NewGuid() }
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>(); // No parameter values
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>(); // No parameter values
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();
 
@@ -133,7 +133,7 @@ public class DecisionRuleBehaviourTests
     public void Execute_WhenParametersJsonIsInvalid_ReturnsNull()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
         {
             new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
@@ -146,9 +146,9 @@ public class DecisionRuleBehaviourTests
             Parameters = new List<Guid> { parameterID }
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>
         {
-            new(parameterID, new AutomatisationValue { NumericValue = 3 })
+            new(parameterID, new AutomatisationEvent { NumericValue = 3 })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();
@@ -164,7 +164,7 @@ public class DecisionRuleBehaviourTests
     public void Execute_WhenDeserializedValueIsNull_ReturnsNull()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
         {
             new() { NumericValue = 5, StringValue = "Test", Unit = "Unit" }
         };
@@ -177,9 +177,9 @@ public class DecisionRuleBehaviourTests
             Parameters = new List<Guid> { parameterID }
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>
         {
-            new(parameterID, new AutomatisationValue { NumericValue = 3 })
+            new(parameterID, new AutomatisationEvent { NumericValue = 3 })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();
@@ -236,7 +236,7 @@ public class DecisionRuleBehaviourTests
     public void ComputeValue_WhenGivenComparisonRule_ReturnsCorrectResult(string rule, float input, float comparingValue, bool expected)
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
         {
             new() { NumericValue = input, StringValue = "Test", Unit = "Unit" }
         };
@@ -248,9 +248,9 @@ public class DecisionRuleBehaviourTests
             Parameters = new List<Guid> { parameterID }
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>
         {
-            new(parameterID, new AutomatisationValue { NumericValue = comparingValue })
+            new(parameterID, new AutomatisationEvent { NumericValue = comparingValue })
         };
 
         var decisionRuleBehaviour = new DecisionRuleBehaviour();

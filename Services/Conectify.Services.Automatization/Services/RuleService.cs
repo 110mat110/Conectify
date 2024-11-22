@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Conectify.Database;
-using Conectify.Database.Models.Automatization;
+using Conectify.Services.Automatization.Database;
 using Conectify.Services.Automatization.Models.ApiModels;
+using Conectify.Services.Automatization.Models.Database;
+using Conectify.Services.Automatization.Models.DTO;
 using Conectify.Services.Automatization.Rules;
 using Conectify.Services.Library;
 using Conectify.Shared.Library.Models;
@@ -11,41 +12,106 @@ using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Services;
 
-public class RuleService(IAutomatizationCache automatizationCache, IMapper mapper, ConectifyDb conectifyDb, IConnectorService connectorService, IDeviceData configuration, ITimingService timingService)
+public class RuleService(IAutomatizationCache automatizationCache, IMapper mapper, AutomatizationDb database, IConnectorService connectorService, IDeviceData configuration, IServiceProvider services)
 {
-    public async Task<Guid> AddNewRule(CreateRuleApiModel apiModel, CancellationToken cancellationToken)
+    public async Task<GetRuleApiModel> AddNewRule(Guid behaviourId, CancellationToken cancellationToken)
     {
-        var rule = mapper.Map<Rule>(apiModel);
+        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(behaviourId, services);
+
+        var inputs = new List<InputPoint>();
+        int inputIndex = 0;
+        foreach (var input in behaviour.DefaultInputs)
+        {
+            for(int i =0; i< input.Item2; i++)
+            inputs.Add(new InputPoint()
+            {
+                Index = inputIndex++,
+                Type = input.Item1,
+            });
+        }
+        var outputs = new List<OutputPoint>();
+
+        for (int i = 0; i < behaviour.DefaultOutputs; i++)
+            outputs.Add(new OutputPoint()
+            {
+                Index = i,
+            });
+
+        var rule = new Rule()
+        {
+            ParametersJson = "{}",
+            RuleType = behaviourId,
+            X = 0,
+            Y = 0,
+            InputConnectors = inputs,
+            OutputConnectors = outputs
+        };
 
         await AddExtraParamsToModel(rule, cancellationToken);
 
         var savedRuleId = await automatizationCache.AddNewRule(rule, cancellationToken);
 
-        timingService.HandleTimers();
+        return mapper.Map<GetRuleApiModel>(rule);
+    }
 
-        return savedRuleId;
+    public async Task<Guid> AddInput(AddInputApiModel apiInput, CancellationToken ct = default)
+    {
+        var input = mapper.Map<InputPoint>(apiInput);
+        var rule = await automatizationCache.GetRuleByIdAsync(input.RuleId) ?? throw new ArgumentException("Rule does not exist!");
+
+        if (!rule.CanAddInput())
+        {
+            throw new Exception("Cannot add new input");
+        }
+
+        var inputDTO = mapper.Map<InputPointDTO>(input);
+
+        inputDTO.Rule = rule;
+        input.RuleId = rule.Id;
+        rule.Inputs.ToList().Add(inputDTO);
+
+        await database.InputConnectors.AddAsync(input, ct);
+        await database.SaveChangesAsync(ct);
+
+        return input.Id;
+    }
+
+    public async Task<Guid> AddOutput(AddOutputApiModel apiOutput, CancellationToken ct = default)
+    {
+        var output = mapper.Map<OutputPoint>(apiOutput);
+        var rule = await automatizationCache.GetRuleByIdAsync(output.RuleId) ?? throw new ArgumentException("Rule does not exist!");
+
+        if (!rule.CanAddOutput())
+        {
+            throw new Exception("Cannot add new output");
+        }
+
+        var outputDTO = new OutputPointDTO(rule.Id, services);
+
+        output.RuleId = rule.Id;
+        rule.Outputs.ToList().Add(outputDTO);
+
+        await database.OutputConnectors.AddAsync(output, ct);
+        await database.SaveChangesAsync(ct);
+
+        return output.Id;
     }
 
     public async Task<IEnumerable<GetRuleApiModel>> GetAllRules()
     {
-        var result = await conectifyDb.Set<Rule>().Include(i => i.ContinuingRules).Include(i => i.SourceParameters).ProjectTo<GetRuleApiModel>(mapper.ConfigurationProvider).ToListAsync();
+        var result = await database.Set<Rule>().AsNoTracking().Include(i => i.InputConnectors).Include(i => i.OutputConnectors).ProjectTo<GetRuleApiModel>(mapper.ConfigurationProvider).ToListAsync();
 
         return result;
     }
 
     public async Task<IEnumerable<ConnectionApiModel>> GetAllConnections()
     {
-        return await conectifyDb.Set<RuleConnector>().ProjectTo<ConnectionApiModel>(mapper.ConfigurationProvider).ToListAsync();
-    }
-
-    public async Task<IEnumerable<ConnectionApiModel>> GetAllParameters()
-    {
-        return await conectifyDb.Set<RuleParameter>().ProjectTo<ConnectionApiModel>(mapper.ConfigurationProvider).ToListAsync();
+        return await database.Set<RuleConnector>().ProjectTo<ConnectionApiModel>(mapper.ConfigurationProvider).ToListAsync();
     }
 
     public async Task<bool> EditRule(Guid ruleId, EditRuleApiModel apiRule, CancellationToken cancellationToken = default)
     {
-        var rule = await conectifyDb.Set<Rule>().FirstOrDefaultAsync(x => x.Id == ruleId, cancellationToken: cancellationToken);
+        var rule = await database.Set<Rule>().FirstOrDefaultAsync(x => x.Id == ruleId, cancellationToken: cancellationToken);
         if (rule is null)
         {
             return false;
@@ -56,110 +122,62 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
         rule.Y = apiRule.Y;
 
         await AddExtraParamsToModel(rule, cancellationToken);
-        await conectifyDb.SaveChangesAsync(cancellationToken);
+        await database.SaveChangesAsync(cancellationToken);
 
         await automatizationCache.Reload(ruleId, cancellationToken);
-        timingService.HandleTimers();
 
         return true;
     }
 
-    public async Task<bool> AddConnection(Guid sourceId, Guid destinationId)
+    public async Task<bool> SetConnection(Guid sourceId, Guid destinationId, CancellationToken ct = default)
     {
-        var sourceRule = await automatizationCache.GetRuleByIdAsync(sourceId);
-        var destinationRule = await automatizationCache.GetRuleByIdAsync(destinationId);
+        var sourcePoint = await automatizationCache.GetOutputPointById(sourceId);
+        var destinationPoint = await automatizationCache.GetInputPointById(destinationId);
 
-        if (sourceRule is null || destinationRule is null || sourceRule.NextRules.Contains(destinationId))
+        if (sourcePoint is null || destinationPoint is null)
         {
             return false;
         }
 
-        sourceRule.NextRules = sourceRule.NextRules.Append(destinationId);
-
-        var ruleConnector = await conectifyDb.Set<RuleConnector>().FirstOrDefaultAsync(x => x.PreviousRuleId == sourceId && x.ContinuingRuleId == destinationId);
-        if (ruleConnector != null)
+        if (automatizationCache.ConnectionExist(sourceId, destinationId))
         {
-            return false;
+            var rule = await database.Set<RuleConnector>().FirstOrDefaultAsync(x => x.SourceRuleId == sourceId && x.TargetRuleId == destinationId, ct);
+
+            if (rule is not null)
+            {
+                database.Set<RuleConnector>().Remove(rule);
+                await database.SaveChangesAsync(ct);
+
+
+                await automatizationCache.ReloadConnections();
+                return true;
+            }
         }
 
-        await conectifyDb.Set<RuleConnector>().AddAsync(new RuleConnector() { ContinuingRuleId = destinationId, PreviousRuleId = sourceId });
-        await conectifyDb.SaveChangesAsync();
+        var connection = new RuleConnector()
+        {
+            SourceRuleId = sourceId,
+            TargetRuleId = destinationId,
+        };
 
+        await database.Set<RuleConnector>().AddAsync(connection, ct);
+        await database.SaveChangesAsync(ct);
+
+        await automatizationCache.ReloadConnections();
         return true;
     }
 
-    public async Task<bool> RemoveConnection(Guid sourceId, Guid destinationId)
+    public async Task<bool> RemoveConnection(Guid sourceId, Guid destinationId, CancellationToken ct = default)
     {
-        var sourceRule = await automatizationCache.GetRuleByIdAsync(sourceId);
-        var destinationRule = await automatizationCache.GetRuleByIdAsync(destinationId);
+        var rule = await database.Set<RuleConnector>().FirstOrDefaultAsync(x => x.SourceRuleId == sourceId && x.TargetRuleId == destinationId, ct);
 
-        if (sourceRule is null || destinationRule is null || !sourceRule.NextRules.Contains(destinationId))
+        if (rule is null)
         {
             return false;
         }
 
-        var list = sourceRule.NextRules.ToList();
-        list.Remove(destinationId);
-        sourceRule.NextRules = list;
-
-        var sourceRuleDb = await conectifyDb.Set<RuleConnector>().FirstOrDefaultAsync(x => x.PreviousRuleId == sourceId && x.ContinuingRuleId == destinationId);
-        if (sourceRuleDb is null)
-        {
-            return false;
-        }
-
-        conectifyDb.Set<RuleConnector>().Remove(sourceRuleDb);
-        await conectifyDb.SaveChangesAsync();
-
-        return true;
-    }
-
-    public async Task<bool> AddParameter(Guid sourceId, Guid destinationId)
-    {
-        var sourceRule = await automatizationCache.GetRuleByIdAsync(sourceId);
-        var destinationRule = await automatizationCache.GetRuleByIdAsync(destinationId);
-
-        if (sourceRule is null || destinationRule is null || destinationRule.NextRules.Contains(destinationId))
-        {
-            return false;
-        }
-
-        var ruleConnector = await conectifyDb.Set<RuleParameter>().FirstOrDefaultAsync(x => x.SourceRuleId == sourceId && x.TargetRuleId == destinationId);
-        if (ruleConnector is not null)
-        {
-            return false;
-        }
-
-        await conectifyDb.Set<RuleParameter>().AddAsync(new RuleParameter() { TargetRuleId = destinationId, SourceRuleId = sourceId });
-        await conectifyDb.SaveChangesAsync();
-
-        destinationRule.Parameters = destinationRule.Parameters.Append(sourceId);
-
-        return true;
-    }
-
-    public async Task<bool> RemoveParameter(Guid sourceId, Guid destinationId)
-    {
-        var sourceRule = await automatizationCache.GetRuleByIdAsync(sourceId);
-        var destinationRule = await automatizationCache.GetRuleByIdAsync(destinationId);
-
-        if (sourceRule is null || destinationRule is null || !destinationRule.Parameters.Contains(sourceId))
-        {
-            return false;
-        }
-
-        var paramDb = await conectifyDb.Set<RuleParameter>().FirstOrDefaultAsync(x => x.SourceRuleId == sourceId && x.TargetRuleId == destinationId);
-        if (paramDb is null)
-        {
-            return false;
-        }
-
-        conectifyDb.Set<RuleParameter>().Remove(paramDb);
-        await conectifyDb.SaveChangesAsync();
-
-        var list = destinationRule.Parameters.ToList();
-        list.Remove(sourceId);
-        destinationRule.Parameters = list;
+        database.Set<RuleConnector>().Remove(rule);
+        await database.SaveChangesAsync(ct);
 
         return true;
     }
@@ -179,14 +197,14 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
             SensorId = apiSensor.Id,
             SourceDeviceId = configuration.Device.Id,
         };
-        await connectorService.RegisterDevice(configuration.Device, new List<ApiSensor>() { apiSensor }, new List<ApiActuator>() { apiActuator }, cancellationToken);
+        await connectorService.RegisterDevice(configuration.Device, [apiSensor], [apiActuator], cancellationToken);
 
         var rule = new Rule()
         {
             Id = Guid.NewGuid(),
             Name = apiActuator.Name,
             ParametersJson = "{\"SourceSensorId\" : \"" + apiActuator.Id + "\"}",
-            RuleType = new UserInputRuleBehaviour().GetId(),
+            RuleType = new UserInputRuleBehaviour(services).GetId(),
             Description = "Automatically created from UI",
         };
 
@@ -199,7 +217,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
     {
         if (rule is null) return;
 
-        if (rule.RuleType == new OutputRuleBehaviour().GetId())
+        if (rule.RuleType == new OutputRuleBehaviour(services).GetId())
         {
             var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { DestinationId = Guid.Empty })?.DestinationId;
             if (id is null || id == Guid.Empty)
@@ -216,7 +234,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
             rule.Description = actuator.Name;
         }
 
-        if (rule.RuleType == new UserInputRuleBehaviour().GetId())
+        if (rule.RuleType == new UserInputRuleBehaviour(services).GetId())
         {
             var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceActuatorId = Guid.Empty })?.SourceActuatorId;
             if (id is null || id == Guid.Empty)
@@ -233,7 +251,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
             rule.Description = actuator.Name;
         }
 
-        if (rule.RuleType == new InputRuleBehaviour().GetId())
+        if (rule.RuleType == new InputRuleBehaviour(services).GetId())
         {
             var behaviour = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceSensorId = Guid.Empty, Name = string.Empty, Event = string.Empty });
             if (behaviour is null || behaviour.SourceSensorId == Guid.Empty)

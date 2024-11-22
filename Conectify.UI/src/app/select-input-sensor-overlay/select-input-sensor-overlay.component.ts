@@ -7,9 +7,9 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Sensor } from 'src/models/sensor';
-import { AutValueInputComponent } from '../aut-value-input/aut-value-input.component';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
+import { AutValueInputComponent } from '../aut-inner-components/aut-value-input/aut-value-input.component';
 
 @Component({
   selector: 'app-select-input-sensor-overlay',

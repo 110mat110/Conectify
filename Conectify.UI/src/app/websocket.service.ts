@@ -45,7 +45,6 @@ export class WebsocketService {
     }
 
     private trigger = (v: any) => {
-        console.warn("Trigger triggered!");
         this.subs.forEach((sub) => {
           sub.next(v)
         })

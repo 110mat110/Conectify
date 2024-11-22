@@ -1,101 +1,92 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { ChangeDestinationRule } from 'src/models/Automatization/ChangeDestinationRule';
-import { EditRule } from 'src/models/Automatization/EditRule';
-import { UserInputRule } from 'src/models/Automatization/UserInputRule';
-import { ValueInitRule } from 'src/models/Automatization/ValueInitRule';
-import { AutomatizationBase } from 'src/models/automatizationComponent';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
+import { AutomatizationBase, InputApiModel, OutputApiModel } from 'src/models/automatizationComponent';
 import { AutomatizationComponent } from '../automatization/automatization.component';
 import { BefetchAutomatizationService } from '../befetch-automatization.service';
 import { MessagesService } from '../messages.service';
-import { SetTimeRule } from 'src/models/Automatization/SetTimeRule';
-import { SetValueRule } from 'src/models/Automatization/SetValueRule';
-import { DecisionRule } from 'src/models/Automatization/DecisionRule';
-import { AndRule } from 'src/models/Automatization/AndRule';
+import { MatDialog } from '@angular/material/dialog';
+import { AutomatizationEditComponent } from '../automatization-edit/automatization-edit.component';
+import { EditRule } from 'src/models/Automatization/EditRule';
+import { MatButton } from '@angular/material/button';
 
 @Component({
   selector: 'app-automatization-component',
   templateUrl: './automatization-component.component.html',
   styleUrls: ['./automatization-component.component.css']
 })
-export class AutomatizationComponentComponent implements OnInit {
+export class AutomatizationComponentComponent implements OnInit, AfterViewInit {
 
-  @Input() Component?: AutomatizationBase;
-  @Input() ComponentCage?: AutomatizationComponent;
-  ValueInitRule?: ValueInitRule;
-  ChangeDestinationRule?: ChangeDestinationRule;
-  UserInputRule?: UserInputRule;
-  SetTimeRule?: SetTimeRule;
-  SetValueRule?: SetValueRule;
-  DecisionRule?: DecisionRule;
-  AndRule?: AndRule;
-  isSource: boolean = false;
-  isDestination: boolean = false;
-  hasParameters: boolean = false;
-  constructor(public messenger: MessagesService, public be: BefetchAutomatizationService) { }
+  @Input() Rule?: AutomatizationBase;
+  @Input() Cage?: AutomatizationComponent;
+  @ViewChildren('buttonRef') buttonRefs!: QueryList<MatButton>;
+  @ViewChildren('outputRef') outputRefs!: QueryList<MatButton>;
+
+  @Output() buttonGenerated = new EventEmitter<{ elementRef: MatButton; id: string }>();
+  inputMapping: { [key: number]: string } = {
+    0: 'P',
+    1: 'T',
+    2: 'V'
+  };
+  constructor(public messenger: MessagesService, public be: BefetchAutomatizationService, private dialog: MatDialog) { }
 
   ngOnInit(): void {
-    if(this.Component instanceof ValueInitRule){
-      this.ValueInitRule = this.Component;
-      this.isDestination = false;
-      this.isSource = true;
-    }
-    if(this.Component instanceof ChangeDestinationRule){
-      this.ChangeDestinationRule = this.Component;
-      this.isDestination = true;
-      this.isSource = true;
-    }
 
-    if(this.Component instanceof UserInputRule){
-      this.UserInputRule = this.Component;
-      this.isDestination = false;
-      this.isSource = true;
-    }
-
-    if(this.Component instanceof SetTimeRule){
-      this.SetTimeRule = this.Component;
-      this.isDestination = false;
-      this.isSource = true;
-    }
-
-    if(this.Component instanceof SetValueRule){
-      this.SetValueRule = this.Component;
-      this.isDestination = true;
-      this.isSource = true;
-    }
-
-    if(this.Component instanceof DecisionRule){
-      this.DecisionRule = this.Component;
-      this.isDestination = true;
-      this.isSource = true;
-      this.hasParameters = true;
-    }
-
-    if(this.Component instanceof AndRule){
-      this.AndRule = this.Component;
-      this.isDestination = true;
-      this.isSource = true;
-      this.hasParameters = false;
-    }
   }
 
-  SourceClick(){
-    if(this.ComponentCage && this.Component )//&& this.Component instanceof AutomatizationBaseWithTargetGeneric ) //Check this twice!
-      this.ComponentCage.SourceClick(this.Component);
+  ngAfterViewInit(): void {
+    // Detect changes when buttons are rendered
+    this.buttonRefs.changes.subscribe((buttons: QueryList<MatButton>) => {
+      buttons.forEach((button, index) => {
+        const id = this.Rule?.inputs[index].id;
+        if(id)
+        this.buttonGenerated.emit({ elementRef: button, id });
+      });
+    });
+
+    // Emit already rendered buttons
+    this.buttonRefs.forEach((button, index) => {
+      const id = this.Rule?.inputs[index].id;
+      if(id)
+      this.buttonGenerated.emit({ elementRef: button, id });
+    });
+
+    this.outputRefs.changes.subscribe((buttons: QueryList<MatButton>) => {
+      buttons.forEach((button, index) => {
+        const id = this.Rule?.outputs[index].id;
+        if(id)
+        this.buttonGenerated.emit({ elementRef: button, id });
+      });
+    });
+
+    // Emit already rendered buttons
+    this.outputRefs.forEach((button, index) => {
+      const id = this.Rule?.outputs[index].id;
+      if(id)
+      this.buttonGenerated.emit({ elementRef: button, id });
+    });
   }
 
-  DestinationClick(){
-    if(this.ComponentCage && this.Component)
-    this.ComponentCage.DestinationClick(this.Component);
+
+  SourceClick(id: string){
+    if(this.Cage)//&& this.Component instanceof AutomatizationBaseWithTargetGeneric ) //Check this twice!
+      this.Cage.SourceClick(id);
   }
 
-  ParameterClick(){
-    if(this.ComponentCage && this.Component)
-    this.ComponentCage.ParameterClick(this.Component);
+  DestinationClick(id: string){
+    if(this.Cage)
+    this.Cage.DestinationClick(id);
+  }
+
+  public editClick(){
+    this.dialog.open(AutomatizationEditComponent, {
+      width: '500px', // Adjust width as needed
+      data: { rule: this.Rule} // Pass any data to the dialog
+    });
+
   }
 
   public saveClick(){
-    if(this.Component){
-      let apiModel: EditRule = {id: this.Component.id, x: this.Component.dragPosition.x, y: this.Component.dragPosition.y, behaviourId: this.Component.behaviorId, parameters: this.Component.getParametersJSon() };
+    if(this.Rule){
+      let apiModel: EditRule = {id: this.Rule.id, x: this.Rule.dragPosition.x, y: this.Rule.dragPosition.y, behaviourId: this.Rule.behaviorId, parameters: this.Rule.getParametersJSon() };
       this.be.saveRule(apiModel); 
     }
   }

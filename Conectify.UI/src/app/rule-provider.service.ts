@@ -10,6 +10,8 @@ import { SetTimeRule } from 'src/models/Automatization/SetTimeRule';
 import { SetValueRule } from 'src/models/Automatization/SetValueRule';
 import { DecisionRule } from 'src/models/Automatization/DecisionRule';
 import { AndRule } from 'src/models/Automatization/AndRule';
+import { BehaviourMenuItem } from 'src/models/Automatization/BehaviourMenuItem';
+import { RuleModel } from 'src/models/Automatization/RuleModel';
 
 @Injectable({
   providedIn: 'root',
@@ -24,33 +26,46 @@ export class RuleProviderService {
   LoadAllRules() {
     this.Rules = [];
     this.be.getAllRules().subscribe(x => {x.forEach((rule) => {
-        var createdRule = (this.RuleFactoryCreateRuleBasedOnBehaviourId(rule.behaviourId, rule.id, rule.propertyJson));
-        if(createdRule){
-          createdRule.dragPosition = {x: rule.x, y: rule.y};
-          createdRule.targets = rule.targets;
-          createdRule.parameters = rule.parameters;
-          this.SaveComponent(createdRule);
-        }
+        this.LoadRule(rule);
       })
     });
   }
 
-  SaveComponent(component: AutomatizationBase) {
-    if (component.dragPosition.x == 0 && component.dragPosition.y == 0) {
+  private LoadRule(rule: RuleModel) {
+    var createdRule = (this.RuleFactoryCreateRuleBasedOnBehaviourId(rule.behaviourId, rule.id, rule.propertyJson, rule.name));
+    if (createdRule) {
+      createdRule.dragPosition = { x: rule.x, y: rule.y };
+      createdRule.outputs = [...rule.outputs].sort((a, b) => a.index - b.index);
+      createdRule.inputs = [...rule.inputs].sort((a, b) => a.index - b.index);
+      this.SaveComponent(createdRule);
+    }
+  }
+
+  CreateInputNode(ruleId: string, type: number, index: number){
+    this.be.addInputNode({ruleId: ruleId, inputType: type, index: index}).subscribe(x => {
+      this.Rules.find(x => x.id == ruleId)?.inputs.push({id: x, index: index, type: type});
+     });
+  }
+
+  CreateOutputNode(ruleId: string, index: number){
+    this.be.addOutputNode({ruleId: ruleId, index: index}).subscribe(x => {
+      this.Rules.find(x => x.id == ruleId)?.outputs.push({id: x, index: index});
+     });
+  }
+
+  SaveComponent(rule: AutomatizationBase) {
+    if (rule.dragPosition.x == 0 && rule.dragPosition.y == 0) {
       var ypos = 150;
       var xpos = 150;
-      component.dragPosition = { x: xpos, y: ypos };
+      rule.dragPosition = { x: xpos, y: ypos };
     }
-    component.drawingPos = {x: component.dragPosition.x -110, y: component.dragPosition.y -75};
-    this.Rules.push(component);
+    rule.drawingPos = {x: rule.dragPosition.x -110, y: rule.dragPosition.y -75};
+    this.Rules.push(rule);
   }
 
   createRule(selectedRuleId: string) {
-    this.be.createRule({x: 100, y:100, behaviourId: selectedRuleId, propertyJson:"{}"}).subscribe(x => {
-        let component = this.RuleFactoryCreateRuleBasedOnBehaviourId(selectedRuleId, x, "{}");
-        if(component){
-          this.SaveComponent(component);
-        }
+    this.be.createRule(selectedRuleId).subscribe(rule=> {
+      this.LoadRule(rule);
     });
   }
 
@@ -58,16 +73,16 @@ export class RuleProviderService {
     return this.Rules.find((x) => x.id == id);
   }
 
-  RuleFactoryCreateRuleBasedOnBehaviourId(behaviourId: string, id: string, parametersJson: string): AutomatizationBase | undefined
+  RuleFactoryCreateRuleBasedOnBehaviourId(behaviourId: string, id: string, parametersJson: string, name: string): AutomatizationBase | undefined
   {
     switch(behaviourId) {
-    case "24ff4530-887b-48d1-a4fa-38cc83925797": return new ValueInitRule(id, behaviourId,parametersJson, {Name: "Unknown", SourceSensorId: "", Event: "all"});
-    case "d274c7f0-211e-413a-8689-f2543dbfc818": return new ChangeDestinationRule(id, behaviourId, parametersJson, {DestinationId:"", Name:"Unknown"} );
-    case "24ff4530-887b-48d1-a4fa-38cc83925798": return new UserInputRule(id, behaviourId, parametersJson, {SourceActuatorId: "", Name: "Unknown"});
-    case "3dff4530-887b-48d1-a4fa-38cc8392469a": return new SetTimeRule(id, behaviourId, parametersJson, {TimeSet: "", Name: "Unknown", Days: "Mo,Tu,We,Th,Fr,Sa,Su"});
-    case "8c173ffc-7243-4675-9a0d-28c2ce19a18f": return new SetValueRule(id, behaviourId, parametersJson, {NumericValue:-1, StringValue:"", Unit:""});
-    case "62d50548-fff0-44c4-8bf3-b592042b1c2b": return new DecisionRule(id, behaviourId, parametersJson, {Rule:"="});
-    case "28ff4530-887b-48d1-a4fa-38dc839257a4": return new AndRule(id, behaviourId, parametersJson, {});
+    case "24ff4530-887b-48d1-a4fa-38cc83925797": return new ValueInitRule(id, behaviourId,parametersJson, {Name: "Unknown", SourceSensorId: "", Event: "all"}, name);
+    case "d274c7f0-211e-413a-8689-f2543dbfc818": return new ChangeDestinationRule(id, behaviourId, parametersJson, {DestinationId:"", Name:"Unknown"}, name );
+    case "24ff4530-887b-48d1-a4fa-38cc83925798": return new UserInputRule(id, behaviourId, parametersJson, {SourceActuatorId: "", Name: "Unknown"}, name);
+    case "3dff4530-887b-48d1-a4fa-38cc8392469a": return new SetTimeRule(id, behaviourId, parametersJson, {TimeSet: "", Name: "Unknown", Days: "Mo,Tu,We,Th,Fr,Sa,Su"}, name);
+    case "8c173ffc-7243-4675-9a0d-28c2ce19a18f": return new SetValueRule(id, behaviourId, parametersJson, {NumericValue:-1, StringValue:"", Unit:""}, name);
+    case "62d50548-fff0-44c4-8bf3-b592042b1c2b": return new DecisionRule(id, behaviourId, parametersJson, {Rule:"="}, name);
+    case "28ff4530-887b-48d1-a4fa-38dc839257a4": return new AndRule(id, behaviourId, parametersJson, {}, name);
     default: return;
     }
   }

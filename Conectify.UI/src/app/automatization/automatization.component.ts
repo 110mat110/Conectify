@@ -1,13 +1,15 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { ValueInitRule } from 'src/models/Automatization/ValueInitRule';
 import { MessagesService } from '../messages.service';
 import { AutomatizationBase } from 'src/models/automatizationComponent';
 import { CdkDragEnd } from '@angular/cdk/drag-drop';
-import { ChangeDestinationRule } from 'src/models/Automatization/ChangeDestinationRule';
 import { BefetchAutomatizationService } from '../befetch-automatization.service';
 import { RuleProviderService } from '../rule-provider.service';
 import { BehaviourMenuItem } from 'src/models/Automatization/BehaviourMenuItem';
 import { EditRule } from 'src/models/Automatization/EditRule';
+import { RuleConnection } from 'src/models/Automatization/RuleConnection';
+import { MatButton } from '@angular/material/button';
+
+
 
 interface Rule {
   value: string;
@@ -35,6 +37,8 @@ export class Polyline {
   }
 }
 
+export class ButtonReferences { elementRef: MatButton; id: string; constructor(elementRef: MatButton, id: string) { this.elementRef = elementRef, this.id = id } };
+
 @Component({
   selector: 'app-automatization',
   templateUrl: './automatization.component.html',
@@ -47,32 +51,48 @@ export class AutomatizationComponent implements OnInit {
   constructor(public messenger: MessagesService, public ruleService: RuleProviderService, public be: BefetchAutomatizationService) { }
   lineToFill: number = 0;
   lineHeight: number = 150;
-
-  source?: AutomatizationBase;
-  destination?: AutomatizationBase;
-  parameter?: AutomatizationBase;
-
+  connections: RuleConnection[] = [];
   polylines: Polyline[] = [];
-  @ViewChild('rules') element?: ElementRef;
-
+  source?: string;
+  destination?: string;
+  references: ButtonReferences[] = [];
   supportedRules: BehaviourMenuItem[] = [];
+  @ViewChild('rules') rulesCanvas?: ElementRef<SVGElement>;
+
+  inputMapping: { [key: number]: string } = {
+    0: 'P',
+    1: 'T',
+    2: 'V'
+  };
 
   ngOnInit(): void {
     this.be.GetAllBehaviours().subscribe(x => {
-      console.log("Loaded rules");
       this.supportedRules = x;
       this.DrawConnections();
     }, (err) => {
       console.error(JSON.stringify(err));
     }
     );
-    this.DrawConnections();
+
+    this.be.GetAllConnections().subscribe(x => {
+      this.connections = x;
+      this.DrawConnections();
+    })
+
+
   }
 
   createRule() {
     if (this.selectedRuleId != "") {
       this.ruleService.createRule(this.selectedRuleId);
     }
+  }
+
+  handleButtonGenerated(event: { elementRef: MatButton; id: string }): void {
+    console.log('Generated Button ID:', event.id);
+    this.references.push(new ButtonReferences(event.elementRef, event.id));
+
+    this.DrawConnections();
   }
 
   dragEnd(event: CdkDragEnd, rule: AutomatizationBase) {
@@ -83,52 +103,27 @@ export class AutomatizationComponent implements OnInit {
     this.be.saveRule(apiModel);
   }
 
-  SourceClick(source: AutomatizationBase) {
+  SourceClick(source: string) {
     this.source = source;
   }
 
-  DestinationClick(dest: AutomatizationBase) {
+  DestinationClick(dest: string) {
     this.destination = dest;
     this.SetConnection();
-  }
-
-  ParameterClick(param: AutomatizationBase){
-    this.parameter = param;
-    this.SetParameter();
   }
 
   SetConnection() {
     this.messenger.addMessage("Set connection");
 
     if (this.source && this.destination) {
-      const index = this.source.targets.indexOf(this.destination.id);
-      if(index !== -1){
-        this.source.targets.splice(index,1);
-        this.be.removeConnection(this.source.id, this.destination.id);
-      } else{
-        this.source.targets.push(this.destination.id);
-
-        this.be.addNewConnection(this.source.id, this.destination.id);
-      }
-      this.DrawConnections();
+      this.be.setConnection(this.source, this.destination).subscribe(x => {
+        this.be.GetAllConnections().subscribe(x => {
+          this.connections = x;
+          this.DrawConnections();
+        })
+      });
     }
   }
-
-  SetParameter(){
-    if (this.source && this.parameter) {
-
-    const index = this.parameter.parameters.indexOf(this.source.id);
-    if(index !== -1){
-      this.parameter.parameters.splice(index,1);
-      this.be.removeParameterConnection(this.source.id, this.parameter.id);
-    } else{
-      this.parameter.parameters.push(this.source.id);
-
-      this.be.addNewParameterConnection(this.source.id, this.parameter.id);
-    }
-    this.DrawConnections();
-  }
-}
 
   MoveComponent() {
     this.DrawConnections();
@@ -136,40 +131,27 @@ export class AutomatizationComponent implements OnInit {
 
   DrawConnections() {
     this.polylines = [];
-    this.ruleService.Rules.forEach(rule => {
+    this.connections.forEach(connecion => {
       console.log("Drawing line")
-      if (rule.targets) {
-        rule.targets.forEach(target => {
-          var targetRule = this.ruleService.getRuleByID(target);
-          if (targetRule)
-            this.DrawLine(targetRule.dragPosition, rule.dragPosition);
-        })
+
+      let sourceElement = this.references.find(x => x.id == connecion.sourceId);
+      let destinationElement = this.references.find(x => x.id == connecion.destinationId);
+
+      if (sourceElement?.elementRef._elementRef.nativeElement && destinationElement?.elementRef._elementRef.nativeElement) {
+        this.DrawLine(sourceElement?.elementRef._elementRef.nativeElement, destinationElement?.elementRef._elementRef.nativeElement);
       }
-      if(rule.parameters){
-        rule.parameters.forEach(param => {
-          var paramRule = this.ruleService.getRuleByID(param);
-          if (paramRule)
-            this.DrawParamLine(rule.dragPosition, paramRule.dragPosition);
-        })
-      }
+
+
     })
   }
 
-  DrawLine(destination: { x: number, y: number }, source: { x: number, y: number }) {
-    const cubeWidth = 170;
-    const { x, y } = this.element?.nativeElement.getBoundingClientRect();
-    let verticalOffset = - y - window.scrollY;
-    let horizontalOffset = -x - window.scrollX;
-    this.polylines.push(new Polyline(destination.x - (cubeWidth/2) + horizontalOffset -30, destination.y + verticalOffset, source.x + (cubeWidth/2) +horizontalOffset, source.y + verticalOffset))
-  }
+  DrawLine(destination: HTMLElement, source: HTMLElement) {
+    const { x: dx, y: dy, height: dh, width: dw } = destination.getBoundingClientRect();
+    const { x: sx, y: sy, height: sh, width: sw } = source.getBoundingClientRect();
 
-  DrawParamLine(destination: { x: number, y: number }, source: { x: number, y: number }) {
-    const cubeHeight = 170;
-    const cubeWidth = 170;
-    const { x, y } = this.element?.nativeElement.getBoundingClientRect();
-    let verticalOffset = - y - window.scrollY;
-    let horizontalOffset = -x - window.scrollX;
-    this.polylines.push(new Polyline(destination.x + horizontalOffset, destination.y - (cubeHeight/2) + verticalOffset, source.x + (cubeWidth/2) +horizontalOffset, source.y + verticalOffset, "blue"))
+    let verticalOffset = this.rulesCanvas?.nativeElement.getBoundingClientRect().top ?? 0;
+    let horizontalOffset = this.rulesCanvas?.nativeElement.getBoundingClientRect().left ?? 0;
+    this.polylines.push(new Polyline(dx + (dw / 2) - horizontalOffset, dy + (dh / 2) - verticalOffset, sx + (sw / 2) - horizontalOffset, sy + (sh / 2) - verticalOffset))
   }
 
   AddCustomInput(inputName: string) {

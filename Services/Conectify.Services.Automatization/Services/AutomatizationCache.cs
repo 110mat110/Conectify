@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using Conectify.Database;
-using Conectify.Database.Models.Automatization;
-using Conectify.Services.Automatization.Models;
+using Conectify.Services.Automatization.Database;
+using Conectify.Services.Automatization.Models.Database;
+using Conectify.Services.Automatization.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Conectify.Services.Automatization.Services;
@@ -9,11 +10,19 @@ namespace Conectify.Services.Automatization.Services;
 public interface IAutomatizationCache
 {
     Task<Guid> AddNewRule(Rule rule, CancellationToken cancellationToken);
-    IEnumerable<RuleDTO> GetNextRules(RuleDTO ruleDTO, CancellationToken ct = default);
-    Task<RuleDTO?> GetRuleByIdAsync(Guid id);
+    Task<RuleDTO?> GetRuleByIdAsync(Guid id, CancellationToken ct = default);
     IEnumerable<RuleDTO> GetRulesByTypeId(Guid ruleTypeId);
     IEnumerable<RuleDTO> GetRulesForSource(Guid sourceId, CancellationToken ct = default);
     Task Reload(Guid id, CancellationToken ct = default);
+
+    Task<IEnumerable<RuleDTO>> GetAllRulesAsync();
+    Task<OutputPointDTO?> GetOutputPointById(Guid sourceId);
+    Task<InputPointDTO?> GetInputPointById(Guid destinationId);
+
+    bool ConnectionExist(Guid sourceId, Guid destinationId);
+    Task ReloadConnections();
+
+    Task<IEnumerable<InputPointDTO>> GetNextInputs(Guid outputId);
 }
 
 public class AutomatizationCache : IAutomatizationCache
@@ -21,27 +30,30 @@ public class AutomatizationCache : IAutomatizationCache
     private readonly IServiceProvider services;
     private readonly IMapper mapper;
     private IDictionary<Guid, RuleDTO> cache = new Dictionary<Guid, RuleDTO>();
+    private List<Tuple<Guid, Guid>> connections = [];
     private DateTime lastReload;
     private TimeSpan cacheLongevity = new(0, 10, 0);
+
+    private static bool reloading;
     public AutomatizationCache(IServiceProvider services, IMapper mapper)
     {
         this.services = services;
         this.mapper = mapper;
-        Reload();
+        _ = Reload().Result;
     }
 
-    public async Task<RuleDTO?> GetRuleByIdAsync(Guid id)
+    public async Task<RuleDTO?> GetRuleByIdAsync(Guid id, CancellationToken ct = default)
     {
-        ReloadIfNeeded();
+        await ReloadIfNeeded();
 
-        if (cache.ContainsKey(id))
+        if (cache.TryGetValue(id, out RuleDTO? rule))
         {
-            return cache[id];
+            return rule;
         }
 
-        await Reload(id);
+        await Reload(id, ct);
 
-        return cache.ContainsKey(id) ? cache[id] : null;
+        return cache.TryGetValue(id, out RuleDTO? value) ? value : null;
     }
 
     public IEnumerable<RuleDTO> GetRulesForSource(Guid sourceId, CancellationToken ct = default)
@@ -56,31 +68,25 @@ public class AutomatizationCache : IAutomatizationCache
         return cache.Where(x => x.Value.RuleTypeId == ruleTypeId).Select(x => x.Value);
     }
 
-
-    public IEnumerable<RuleDTO> GetNextRules(RuleDTO ruleDTO, CancellationToken ct = default)
-    {
-        ReloadIfNeeded();
-        return cache.Where(x => ruleDTO.NextRules.Contains(x.Value.Id)).Select(x => x.Value);
-    }
-
     public async Task<Guid> AddNewRule(Rule rule, CancellationToken cancellationToken)
     {
         using var scope = services.CreateScope();
-        var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        await conectifyDb.Set<Rule>().AddAsync(rule, cancellationToken);
-        await conectifyDb.SaveChangesAsync(cancellationToken);
+        var automatizaionDb = scope.ServiceProvider.GetRequiredService<AutomatizationDb>();
+        await automatizaionDb.Set<Rule>().AddAsync(rule, cancellationToken);
+        await automatizaionDb.SaveChangesAsync(cancellationToken);
 
         var dto = mapper.Map<RuleDTO>(rule);
+        await dto.InitializeAsync(services);
 
         cache.TryAdd(dto.Id, dto);
         return rule.Id;
     }
 
-    private void ReloadIfNeeded()
+    private async Task ReloadIfNeeded()
     {
         if (DateTime.UtcNow.Subtract(lastReload).CompareTo(cacheLongevity) > 0)
         {
-            Reload();
+           await Reload();
         }
     }
 
@@ -89,11 +95,23 @@ public class AutomatizationCache : IAutomatizationCache
         cache.Remove(id);
 
         using var scope = services.CreateScope();
-        var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var rule = await conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).Include(x => x.SourceParameters).FirstAsync(x => x.Id == id, ct);
+        var automatizationDb = scope.ServiceProvider.GetRequiredService<AutomatizationDb>();
+        var rule = await automatizationDb.Set<Rule>().AsNoTracking().Include(x => x.OutputConnectors).Include(x => x.InputConnectors).FirstAsync(x => x.Id == id, ct);
 
         var dto = mapper.Map<RuleDTO>(rule);
-        dto.Initialize();
+        var outputs = new List<OutputPointDTO>();
+        foreach (var output in rule.OutputConnectors)
+        {
+            outputs.Add(new OutputPointDTO(output.Id, services));
+        }
+        foreach (var input in dto.Inputs)
+        {
+            input.Rule = dto;
+        }
+        dto.Outputs = outputs;
+        await dto.InitializeAsync(services);
+
+        //await dto.InitializeAsync(services);
         cache.Add(dto.Id, dto);
     }
 
@@ -101,27 +119,95 @@ public class AutomatizationCache : IAutomatizationCache
     //{
     //    cache.Clear();
     //    using var scope = services.CreateScope();
-    //    var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-    //    var dbrules = await conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).ToListAsync(ct);
+    //    var automatizationDb = scope.ServiceProvider.GetRequiredService<AutomatizationDb>();
+    //    var dbrules = await automatizationDb.Set<Rule>().Include(x => x.ContinuingRules).ToListAsync(ct);
 
     //    var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
     //    cache = dtos.ToDictionary(x => x.Id);
     //    lastReload = DateTime.UtcNow;
     //}
 
-    private void Reload()
+    private async Task<bool> Reload()
+    {
+        if(reloading) return false;
+        reloading = true;
+        await ReloadRules();
+        await ReloadConnections();
+        reloading = false;
+
+        return true;
+    }
+
+    public async Task<IEnumerable<RuleDTO>> GetAllRulesAsync()
+    {
+        await ReloadIfNeeded();
+        return [.. cache.Values];
+    }
+
+    public async Task<OutputPointDTO?> GetOutputPointById(Guid sourceId)
+    {
+        await ReloadIfNeeded();
+        var ids = cache.Values.SelectMany(x => x.Outputs.Select(o => o.Id)).ToList();
+        return cache.Values.SelectMany(x => x.Outputs).FirstOrDefault(x => x.Id == sourceId);
+    }
+
+    public async Task<InputPointDTO?> GetInputPointById(Guid destinationId)
+    {
+        await ReloadIfNeeded();
+        return cache.SelectMany(x => x.Value.Inputs).FirstOrDefault(x => x.Id == destinationId);
+    }
+
+    public async Task<IEnumerable<InputPointDTO>> GetNextInputs(Guid outputId)
+    {
+        await ReloadIfNeeded();
+
+        var inputIds = connections.Where(x => x.Item1 == outputId).Select(x => x.Item2).ToList();
+
+       return cache.SelectMany(x => x.Value.Inputs).Where(x => inputIds.Contains(x.Id)).ToList();
+    }
+
+    public bool ConnectionExist(Guid sourceId, Guid destinationId)
+    {
+        return connections.Any(x => x.Item1 == sourceId && x.Item2 == destinationId);
+    }
+
+    public async Task ReloadConnections()
+    {
+        connections.Clear();
+        using var scope = services.CreateScope();
+        var automatizationDb = scope.ServiceProvider.GetRequiredService<AutomatizationDb>();
+        connections = await automatizationDb.Set<RuleConnector>().AsNoTracking().Select(x => new Tuple<Guid, Guid>(x.SourceRuleId, x.TargetRuleId)).ToListAsync();
+    }
+
+    private async Task ReloadRules()
     {
         cache.Clear();
-        using var scope = services.CreateScope();
-        var conectifyDb = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var dbrules = conectifyDb.Set<Rule>().Include(x => x.ContinuingRules).Include(x => x.SourceParameters).ToList();
+        var scope = services.CreateScope();
+        var automatizationDb = scope.ServiceProvider.GetRequiredService<AutomatizationDb>();
+        var dbrules = automatizationDb.Set<Rule>().AsNoTracking().Include(x => x.OutputConnectors).Include(x => x.InputConnectors).ToList();
 
         var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
         foreach (var dto in dtos)
         {
-            dto.Initialize();
+            var outputs = new List<OutputPointDTO>();
+            var rule = dbrules.First(x => x.Id == dto.Id);
+            foreach (var output in rule.OutputConnectors)
+            {
+                outputs.Add(new OutputPointDTO(output.Id, services));
+            }
+            foreach (var input in dto.Inputs)
+            {
+                input.Rule = dto;
+            }
+            dto.Outputs = outputs;
         }
         cache = dtos.ToDictionary(x => x.Id);
+
+        foreach(var d in cache.Values)
+        {
+           await d.InitializeAsync(services);
+        }
+
         lastReload = DateTime.UtcNow;
     }
 }

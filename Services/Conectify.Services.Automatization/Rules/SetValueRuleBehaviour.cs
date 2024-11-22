@@ -1,44 +1,68 @@
 ﻿using Conectify.Services.Automatization.Models;
+using Conectify.Services.Automatization.Models.Database;
+using Conectify.Services.Automatization.Models.DTO;
 using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
 
-public class SetValueRuleBehaviour : IRuleBehaviour
+public class SetValueRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
 {
-    public AutomatisationValue? Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule, IEnumerable<Tuple<Guid, AutomatisationValue>> parameterValues)
-    {
-        return InitializationValue(masterRule);
-    }
+    public int DefaultOutputs => 1;
 
-    public AutomatisationValue? InitializationValue(RuleDTO rule)
-    {
-        if (string.IsNullOrEmpty(rule.ParametersJson))
-        {
-            return null;
-        }
-
-        var value = JsonConvert.DeserializeObject<SetValueOptions>(rule.ParametersJson);
-
-        if (value is null)
-        {
-            return null;
-        }
-
-        return new AutomatisationValue()
-        {
-            Name = "Static value",
-            NumericValue = value.NumericValue,
-            StringValue = value.StringValue,
-            Unit = value.Unit,
-            TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-            SourceId = rule.Id,
-        };
-    }
+    public IEnumerable<Tuple<InputTypeEnum, int>> DefaultInputs => [new(InputTypeEnum.Value, 0), new(InputTypeEnum.Trigger, 0)];
 
     public string DisplayName() => "SET VALUE";
     public Guid GetId()
     {
         return Guid.Parse("8c173ffc-7243-4675-9a0d-28c2ce19a18f");
+    }
+
+    public async Task Execute(RuleDTO rule, AutomatisationEvent triggerValue, CancellationToken ct = default)
+    {
+        var value = JsonConvert.DeserializeObject<SetValueOptions>(rule.ParametersJson);
+
+        if (value is not null)
+        {
+
+            var evnt = new AutomatisationEvent()
+            {
+                Name = "Static value",
+                NumericValue = value.NumericValue,
+                StringValue = value.StringValue,
+                Unit = value.Unit,
+                TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                SourceId = rule.Id,
+            };
+
+            await rule.SetAllOutputs(evnt, true);
+        }
+        return;
+    }
+
+    public async Task InitializationValue(RuleDTO rule)
+    {
+        var value = JsonConvert.DeserializeObject<SetValueOptions>(rule.ParametersJson);
+
+        if (value is not null)
+        {
+
+            var evnt = new AutomatisationEvent()
+            {
+                Name = "Static value",
+                NumericValue = value.NumericValue,
+                StringValue = value.StringValue,
+                Unit = value.Unit,
+                TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                SourceId = rule.Id,
+            };
+
+            await rule.SetAllOutputs(evnt, false);
+        }
+        return;
+    }
+
+    public void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
+    {
     }
 
     private record SetValueOptions

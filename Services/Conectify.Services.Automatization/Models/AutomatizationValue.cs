@@ -1,6 +1,6 @@
 ﻿namespace Conectify.Services.Automatization.Models;
 
-public class AutomatisationValue
+public class AutomatisationEvent
 {
     public Guid SourceId { get; set; }
     public string Type { get; set; } = string.Empty;

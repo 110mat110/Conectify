@@ -10,7 +10,7 @@ public class SetValueRuleBehaviourTests
     public void Execute_WhenParametersJsonIsNotNull_ReturnsAutomatisationValueWithStaticValues()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
         {
             new() { NumericValue = 5, StringValue = "Test", Unit = "Unit", TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), SourceId = Guid.NewGuid() }
         };
@@ -22,7 +22,7 @@ public class SetValueRuleBehaviourTests
             Parameters = new List<Guid>()
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var setValueRuleBehaviour = new SetValueRuleBehaviour();
 
@@ -42,7 +42,7 @@ public class SetValueRuleBehaviourTests
     public void Execute_WhenParametersJsonIsNull_ReturnsOriginalAutomatisationValue()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
         {
             new() { NumericValue = 5, StringValue = "Test", Unit = "Unit", TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), SourceId = Guid.NewGuid() }
         };
@@ -54,7 +54,7 @@ public class SetValueRuleBehaviourTests
             Parameters = new List<Guid>()
         };
 
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var setValueRuleBehaviour = new SetValueRuleBehaviour();
 

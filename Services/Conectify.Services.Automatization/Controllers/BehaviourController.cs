@@ -6,14 +6,14 @@ namespace Conectify.Services.Automatization.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class BehaviourController : ControllerBase
+public class BehaviourController(IServiceProvider serviceProvider) : ControllerBase
 {
     [HttpGet("all")]
     public IEnumerable<BehaviourMenuApiModel> GetAllBehaviours()
     {
         var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes())
-       .Where(t => t.GetInterfaces().Contains(typeof(IRuleBehaviour))).Select(x => Activator.CreateInstance(x) as IRuleBehaviour).ToList();
+       .Where(t => t.GetInterfaces().Contains(typeof(IRuleBehaviour))).Select(x => Activator.CreateInstance(x, serviceProvider) as IRuleBehaviour).ToList();
 
-        return types.Where(x => x is not null).Select(x => new BehaviourMenuApiModel(x!.GetId(), x.DisplayName()));
+        return types.Where(x => x is not null).Select(x => new BehaviourMenuApiModel(x!.GetId(), x.DisplayName(), x.DefaultOutputs, x.DefaultInputs));
     }
 }

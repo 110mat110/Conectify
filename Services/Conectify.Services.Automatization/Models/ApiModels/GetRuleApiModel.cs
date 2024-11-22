@@ -14,7 +14,7 @@ public class GetRuleApiModel
 
     public Guid BehaviourId { get; set; }
 
-    public IEnumerable<Guid> Targets { get; set; } = new List<Guid>();
+    public IEnumerable<OutputApiModel> Outputs { get; set; } = [];
 
-    public IEnumerable<Guid> Parameters { get; set; } = new List<Guid>();
+    public IEnumerable<InputApiModel> Inputs { get; set; } = [];
 }

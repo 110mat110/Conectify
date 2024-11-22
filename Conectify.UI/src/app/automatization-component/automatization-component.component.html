@@ -1,19 +1,37 @@
 <div class="componentCube">
-    <div>
-        <button *ngIf="isSource" class="SourceButton" (click)="SourceClick()"> > </button>
-        <button *ngIf="isDestination" class="Dest" (click)="DestinationClick()"> > </button>
-        <button *ngIf="hasParameters" class="Parameter" (click)="ParameterClick()"> P </button>
+    <!-- Left Side Buttons -->
+    <div class="left-buttons">
+      <button 
+        class="input-button"
+        *ngFor="let input of Rule?.inputs" 
+        (click)="DestinationClick(input.id)" 
+        mat-raised-button 
+        #buttonRef
+        color="primary">
+        {{ inputMapping[input.type]}}{{input.index}}
+      </button>
     </div>
-    <div style="height: 83%;">
-        <app-aut-value-input *ngIf="ValueInitRule" [Rule]="ValueInitRule"></app-aut-value-input>
-        <app-aut-change-destination *ngIf="ChangeDestinationRule"
-            [Rule]="ChangeDestinationRule"></app-aut-change-destination>
-        <app-aut-user-input *ngIf="UserInputRule" [Rule]="UserInputRule"></app-aut-user-input>
-        <app-aut-set-time *ngIf="SetTimeRule" [Rule]="SetTimeRule"></app-aut-set-time>
-        <app-aut-set-value *ngIf="SetValueRule" [Rule]="SetValueRule"></app-aut-set-value>
-        <app-aut-decision *ngIf="DecisionRule" [Rule]="DecisionRule"></app-aut-decision>
+  
+    <!-- Center Content -->
+    <div class="center-content">
+      <div class="component-text">{{Rule?.name}}</div>
     </div>
-    <div>
-        <button class="saveButton" (click)="saveClick()">SubmitChanges</button>
+  
+    <!-- Right Side Buttons -->
+    <div class="right-buttons">
+      <button 
+        class="output-button"
+        *ngFor="let output of Rule?.outputs" 
+        (click)="SourceClick(output.id)" 
+        mat-raised-button 
+        #outputRef
+        color="primary">
+        {{output.index}}
+      </button>
     </div>
-</div>
+  
+    <!-- Bottom Buttons -->
+    <div class="bottom-buttons">
+      <button class="saveButton" mat-raised-button (click)="editClick()">Edit</button>
+    </div>
+  </div>

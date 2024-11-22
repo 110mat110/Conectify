@@ -8,10 +8,10 @@ namespace Conectify.Services.Automatization.Controllers;
 [ApiController]
 public class RuleController(RuleService ruleService) : ControllerBase
 {
-    [HttpPost]
-    public async Task<IActionResult> AddNewRule(CreateRuleApiModel ruleApiModel)
+    [HttpGet("create/{behaviourId}")]
+    public async Task<IActionResult> AddNewRule(Guid behaviourId)
     {
-        var result = await ruleService.AddNewRule(ruleApiModel, default);
+        var result = await ruleService.AddNewRule(behaviourId, default);
 
         return Ok(result);
     }
@@ -28,12 +28,6 @@ public class RuleController(RuleService ruleService) : ControllerBase
         return await ruleService.GetAllConnections();
     }
 
-    [HttpGet("parameters")]
-    public async Task<IEnumerable<ConnectionApiModel>> GetAllParameters()
-    {
-        return await ruleService.GetAllParameters();
-    }
-
     [HttpPut("{id}")]
     public async Task<IActionResult> EditRule(Guid id, EditRuleApiModel rule)
     {
@@ -41,32 +35,26 @@ public class RuleController(RuleService ruleService) : ControllerBase
     }
 
     [HttpPost("connection/{idSource}/{idDestination}")]
-    public async Task<IActionResult> AddConnection(Guid idSource, Guid idDestination)
+    public async Task<IActionResult> SetConnection(Guid idSource, Guid idDestination)
     {
-        return await ruleService.AddConnection(idSource, idDestination) ? Ok() : BadRequest();
-    }
-
-    [HttpDelete("connection/{idSource}/{idDestination}")]
-    public async Task<IActionResult> RemoveConnection(Guid idSource, Guid idDestination)
-    {
-        return await ruleService.RemoveConnection(idSource, idDestination) ? Ok() : BadRequest();
-    }
-
-    [HttpPost("parameter/{idSource}/{idDestination}")]
-    public async Task<IActionResult> AddParameter(Guid idSource, Guid idDestination)
-    {
-        return await ruleService.AddParameter(idSource, idDestination) ? Ok() : BadRequest();
-    }
-
-    [HttpDelete("parameter/{idSource}/{idDestination}")]
-    public async Task<IActionResult> RemoveParameter(Guid idSource, Guid idDestination)
-    {
-        return await ruleService.RemoveParameter(idSource, idDestination) ? Ok() : BadRequest();
+        return await ruleService.SetConnection(idSource, idDestination) ? Ok() : BadRequest();
     }
 
     [HttpPost("input")]
     public async Task<IActionResult> AddCustomInput(AddActuatorApiModel actuator)
     {
         return await ruleService.AddCustomInput(actuator) ? Ok() : BadRequest();
+    }
+
+    [HttpPost("addinputnode")]
+    public async Task<IActionResult> AddCustomInputNode(AddInputApiModel inputApiModel)
+    {
+        return Ok(await ruleService.AddInput(inputApiModel));
+    }
+
+    [HttpPost("addoutputnode")]
+    public async Task<IActionResult> AddCustomOutputNode(AddOutputApiModel outputApiModel)
+    {
+        return Ok(await ruleService.AddOutput(outputApiModel));
     }
 }

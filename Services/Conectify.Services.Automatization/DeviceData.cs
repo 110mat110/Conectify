@@ -13,7 +13,7 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
         Id = configuration.DeviceId,
         IPAdress = WebFunctions.GetIPAdress(),
         MacAdress = WebFunctions.GetMacAdress(),
-        Name = "Automatization service"
+        Name = "Automatization 2 service"
     };
 
     public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
@@ -21,7 +21,7 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
             new()
             {
                 Id = configuration.SensorId,
-                Name = "Automatization Sensor",
+                Name = "Automatization 2 Sensor",
                 SourceDeviceId = configuration.DeviceId,
             }
         };
@@ -31,7 +31,7 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
             new()
             {
                 Id = configuration.ActuatorId,
-                Name = "Automatization Actuator",
+                Name = "Automatization 2 Actuator",
                 SourceDeviceId = configuration.DeviceId,
                 SensorId = configuration.SensorId
             }
@@ -51,7 +51,7 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
 		{
 			MaxVal = 1,
 			MinVal = 0,
-			MetadataName = "Visible",
+			MetadataName = Constants.Metadatas.Visible,
 			NumericValue = 0,
 			StringValue = string.Empty,
 			TypeValue = 0,

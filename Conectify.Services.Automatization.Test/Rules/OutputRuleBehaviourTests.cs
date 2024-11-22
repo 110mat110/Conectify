@@ -9,14 +9,14 @@ public class OutputRuleBehaviourTests
     public void Execute_WhenAutomatisationValuesNotEmpty_ReturnsLastAutomatisationValueWithDestinationIdSet()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
         {
             new() { NumericValue = 5, StringValue = "Test", Unit = "Unit", TimeCreated = 1 },
             new() { NumericValue = 10, StringValue = "Test2", Unit = "Unit2", TimeCreated = 2 }
         };
 
         var masterRule = new RuleDTO { Id = Guid.NewGuid(), DestinationActuatorId = Guid.NewGuid() };
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var outputRuleBehaviour = new OutputRuleBehaviour();
 
@@ -35,9 +35,9 @@ public class OutputRuleBehaviourTests
     public void Execute_WhenAutomatisationValuesEmpty_ReturnsNull()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>();
+        var automatisationValues = new List<AutomatisationEvent>();
         var masterRule = new RuleDTO { Id = Guid.NewGuid(), DestinationActuatorId = Guid.NewGuid() };
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var outputRuleBehaviour = new OutputRuleBehaviour();
 

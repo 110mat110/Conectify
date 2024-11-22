@@ -101,8 +101,8 @@ export class AdressesService {
     return this.serverURL + "metadata"
   }
 
-  createRule() : string{
-    return this.automatizationURL + "rule"
+  createRule(behaviourId: string) : string{
+    return this.automatizationURL + "rule/create/" + behaviourId
   }
   
   allRules() : string{
@@ -158,5 +158,13 @@ export class AdressesService {
 
   deleteMetadata(id: string){
     return this.serverURL + "metadata/" + id;
+  }
+
+  addInputNode() {
+    return this.automatizationURL + "rule/addinputnode";
+  }
+
+  addOutputNode() {
+    return this.automatizationURL + "rule/addoutputnode";
   }
 }
