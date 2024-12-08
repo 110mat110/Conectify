@@ -1,0 +1,6 @@
+@Conectify.Services.Pushover_HostAddress = http://localhost:5039
+
+GET {{Conectify.Services.Pushover_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
