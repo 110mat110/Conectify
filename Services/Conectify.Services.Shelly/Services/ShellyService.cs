@@ -16,7 +16,7 @@ public interface IShellyService
 
 public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IServicesWebsocketClient websocketClient, ILogger<ShellyService> logger) : IShellyService
 {
-    private static readonly string[] SupportedEvents = { "double_push", "triple_push", "long_push", "single_push" };
+    private static readonly string[] SupportedEvents = { "double_push", "triple_push", "long_push", "single_push", "btn_down" };
 
     public async Task ReceiveMessages(WebSocket webSocket, CancellationToken cancellationToken = default)
     {
