@@ -1,5 +1,6 @@
 using Conectify.Services.Library;
 using Conectify.Services.Pushover;
+using Conectify.Shared.Library;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,15 +29,18 @@ ws.OnIncomingEvent += async (ws_Event) =>
 
     if(config.SensorId == ws_Event.DestinationId)
     {
-        var parameters = new Dictionary<string, string>
+        await Tracing.Trace(async() =>
         {
-            ["token"] = config.Token,
-            ["user"] = config.ClientKey,
-            ["message"] = ws_Event.StringValue,
-        };
-        using var client = new HttpClient();
-        var response = await client.PostAsync("https://api.pushover.net/1/messages.json", new
-        FormUrlEncodedContent(parameters));
+            var parameters = new Dictionary<string, string>
+            {
+                ["token"] = config.Token,
+                ["user"] = config.ClientKey,
+                ["message"] = ws_Event.StringValue,
+            };
+            using var client = new HttpClient();
+            var response = await client.PostAsync("https://api.pushover.net/1/messages.json", new
+            FormUrlEncodedContent(parameters));
+        }, ws_Event.Id, "Sending to pushover");
     }
 };
 

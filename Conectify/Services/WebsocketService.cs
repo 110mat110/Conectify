@@ -22,10 +22,10 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
         websocketCache.AddNewWebsocket(deviceId, webSocket);
         await deviceService.TryAddUnknownDevice(deviceId, ct: ct); ;
         await cache.UpdateSubscriber(deviceId, ct);
-        logger.LogWarning($"Connection with device {deviceId} has started.");
+        logger.LogInformation("Connection with device {deviceId} has started.", deviceId);
         await HandleInput(webSocket, deviceId, ct);
 
-        logger.LogWarning($"Connection with device {deviceId} has ended.");
+        logger.LogWarning("Connection with device {deviceId} has ended.", deviceId);
         websocketCache.Remove(deviceId);
         if (websocketCache.GetNoOfActiveSockets(deviceId) < 1)
         {
@@ -76,12 +76,12 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
         if (socket is not null)
         {
             await socket.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, cancelationToken);
-            logger.LogInformation("Value sended to active websocket " + deviceId);
+            logger.LogInformation("Value sended to active websocket {deviceId}", deviceId);
             return true;
         }
         cache.RemoveSubscriber(deviceId);
         websocketCache.Remove(deviceId);
-        logger.LogError($"Cannot send message to {deviceId}");
+        logger.LogError("Cannot send message to {deviceId}", deviceId);
         return false;
     }
 

@@ -86,7 +86,7 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
 
             foreach (var subscriber in targetingSubscribers.Distinct())
             {
-                logger.LogWarning($"Sending from pipeline to {subscriber}");
+                logger.LogInformation("Sending from pipeline to {subscriber}", subscriber);
                 await webSocketService.SendToDeviceAsync(subscriber, apiModel);
             }
         }, evnt.Id, "Resending to subscribers");
