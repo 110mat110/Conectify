@@ -86,6 +86,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         {
             var value = new WebsocketEvent()
             {
+                Id = Guid.NewGuid(),
                 Name = "Light",
                 NumericValue = message.Params.Switch0.Output.Value ? 100 : 0,
                 StringValue = "",
@@ -101,6 +102,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             {
                 var pwr = new WebsocketEvent()
                 {
+                    Id = Guid.NewGuid(),
                     Name = "Power",
                     NumericValue = CalculatePower(message.Params.Switch0.aenergy.ByMinute[0]),
                     StringValue = "",
@@ -117,6 +119,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         {
             var value = new WebsocketEvent()
             {
+                Id = Guid.NewGuid(),
                 Name = "Light",
                 NumericValue = message.Params.Switch1.on ? 100 : 0,
                 StringValue = "",
@@ -132,6 +135,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             {
                 var pwr = new WebsocketEvent()
                 {
+                    Id = Guid.NewGuid(),
                     Name = "Power",
                     NumericValue = CalculatePower(message.Params.Switch1.aenergy.ByMinute[0]),
                     StringValue = "",
@@ -149,6 +153,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         {
             var value = new WebsocketEvent()
             {
+                Id = Guid.NewGuid(),
                 Name = "Light",
                 NumericValue = message.Params.Switch2.on ? 100 : 0,
                 StringValue = "",
@@ -164,6 +169,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             {
                 var pwr = new WebsocketEvent()
                 {
+                    Id = Guid.NewGuid(),
                     Name = "Power",
                     NumericValue = CalculatePower(message.Params.Switch2.aenergy.ByMinute[0]),
                     StringValue = "",
@@ -188,6 +194,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             
             var evnt = new WebsocketEvent()
             {
+                Id = Guid.NewGuid(),
                 Name = "Input",
                 TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 SourceId = shelly.Shelly.DetachedInputs[input.Value].SensorId,
@@ -200,6 +207,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         {
             var pwr = new WebsocketEvent()
             {
+                Id = Guid.NewGuid(),
                 Name = "Power",
                 NumericValue = message.Params?.Pm0?.apower,
                 StringValue = "",

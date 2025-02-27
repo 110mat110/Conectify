@@ -17,7 +17,7 @@ public static class Extensions
 
         service.Configure<OpenTelemetryLoggerOptions>(logging => logging.AddOtlpExporter());
         service.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOtlpExporter());
-        service.ConfigureOpenTelemetryTracerProvider(tracer => tracer.AddOtlpExporter());
+        service.ConfigureOpenTelemetryTracerProvider(tracer => tracer.AddAspNetCoreInstrumentation().AddSource("CustomTracing").AddOtlpExporter());
 
         return service;
     }

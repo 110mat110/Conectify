@@ -143,13 +143,30 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
 
     private async Task ResponseReceived(Stream inputStream, CancellationToken ct)
     {
+
         StreamReader stream = new(inputStream);
         string serializedMessage = stream.ReadToEnd();
         stream.Dispose();
 
-        logger.LogInformation("WS recieved message {serializedMessage}", serializedMessage);
         var evnt = SharedDataService.DeserializeJson(serializedMessage, this.mapper);
-        await NotifyAboutIncomingMessage(evnt, ct);
+
+        if (evnt is null)
+        {
+            logger.LogError("Received invalid event {serializedMessage}", serializedMessage);
+            return;
+        }
+       
+
+        if (evnt.Id == Guid.Empty)
+        {
+            evnt.Id = Guid.NewGuid();
+        }
+        await Tracing.Trace(async () =>
+        {
+
+            logger.LogInformation("WS recieved message {serializedMessage}", serializedMessage);
+            await NotifyAboutIncomingMessage(evnt, ct);
+        }, evnt.Id, "Received event from WS");
     }
 
 

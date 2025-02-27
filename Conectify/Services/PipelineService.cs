@@ -73,20 +73,23 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
 
     public async Task ResendEventToSubscribers(Event evnt)
     {
-        var apiModel = mapper.Map<WebsocketEvent>(evnt);
-
-        if (apiModel is null)
+        await Tracing.Trace(async () =>
         {
-            return;
-        }
+            var apiModel = mapper.Map<WebsocketEvent>(evnt);
 
-        IEnumerable<Guid> targetingSubscribers = GetTargetsForEvent(evnt);
+            if (apiModel is null)
+            {
+                return;
+            }
 
-        foreach (var subscriber in targetingSubscribers.Distinct())
-        {
-            logger.LogWarning("Sending from pipeline to " + subscriber.ToString());
-            await webSocketService.SendToDeviceAsync(subscriber, apiModel);
-        }
+            IEnumerable<Guid> targetingSubscribers = GetTargetsForEvent(evnt);
+
+            foreach (var subscriber in targetingSubscribers.Distinct())
+            {
+                logger.LogWarning($"Sending from pipeline to {subscriber}");
+                await webSocketService.SendToDeviceAsync(subscriber, apiModel);
+            }
+        }, evnt.Id, "Resending to subscribers");
     }
 
     private IEnumerable<Guid> GetTargetsForEvent(Event evnt)

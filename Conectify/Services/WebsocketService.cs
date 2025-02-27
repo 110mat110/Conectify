@@ -1,7 +1,9 @@
 ﻿namespace Conectify.Server.Services;
 
 using Conectify.Server.Caches;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Interfaces;
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 
@@ -61,7 +63,10 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
 
     public async Task<bool> SendToDeviceAsync(Guid deviceId, IWebsocketModel returnValue, CancellationToken cancelationToken = default)
     {
-        return await SendToDeviceAsync(deviceId, returnValue.ToJson(), cancelationToken);
+        return await Tracing.Trace(async () =>
+        {
+            return await SendToDeviceAsync(deviceId, returnValue.ToJson(), cancelationToken);
+        }, returnValue.Id, $"Sending to {deviceId}");
     }
 
     public async Task<bool> SendToDeviceAsync(Guid deviceId, string rawString, CancellationToken cancelationToken = default)

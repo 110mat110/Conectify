@@ -5,6 +5,7 @@ using Conectify.Service.History.Models;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Values;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace Conectify.Service.History.Services;
 
@@ -37,96 +38,109 @@ public class DataCachingService : IDataCachingService
 
     private void PreloadAllSensors()
     {
-        lock (locker)
+        Tracing.Trace(() =>
         {
-            var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
-            logger.LogInformation("Preloading all active sensors to the cache from time {time}", yesterdayUnixTime);
-            using var scope = this.serviceProvider.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-            var groups = db.Set<Event>().Where( x => x.TimeCreated > yesterdayUnixTime && x.Type == Constants.Events.Value).ToList().GroupBy(x => x.SourceId);
-
-
-            foreach (var valueGroup in groups)
+            lock (locker)
             {
-                deviceCachingService.ObserveSensorFromEvent(valueGroup.Last());
-                valueCache.Add(valueGroup.Key, new CacheItem<Event>());
-                valueCache[valueGroup.Key].AddRange(valueGroup);
-                valueCache[valueGroup.Key].Reorder(x => x.TimeCreated);
+                var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
+                logger.LogInformation("Preloading all active sensors to the cache from time {time}", yesterdayUnixTime);
+                using var scope = this.serviceProvider.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
+                var groups = db.Set<Event>().Where(x => x.TimeCreated > yesterdayUnixTime && x.Type == Constants.Events.Value).ToList().GroupBy(x => x.SourceId);
+
+
+                foreach (var valueGroup in groups)
+                {
+                    deviceCachingService.ObserveSensorFromEvent(valueGroup.Last());
+                    valueCache.Add(valueGroup.Key, new CacheItem<Event>());
+                    valueCache[valueGroup.Key].AddRange(valueGroup);
+                    valueCache[valueGroup.Key].Reorder(x => x.TimeCreated);
+                }
             }
-        }
+        }, Guid.NewGuid(), "Preloading");
     }
 
     public async Task InsertValue(Event value, CancellationToken ct = default)
     {
-        if(value.Type != Constants.Events.Value)
+        await Tracing.Trace(async () =>
         {
-            return;
-        }
 
-        await ReloadCache(value.SourceId, ct);
+            if (value.Type != Constants.Events.Value)
+            {
+                return;
+            }
 
-        if (valueCache.ContainsKey(value.SourceId))
-        {
-            if (!(valueCache[value.SourceId].Any(x => x.NumericValue == value.NumericValue && x.TimeCreated == value.TimeCreated)))
+            await ReloadCache(value.SourceId, value.Id, ct);
+
+            if (valueCache.ContainsKey(value.SourceId))
+            {
+                if (!(valueCache[value.SourceId].Any(x => x.NumericValue == value.NumericValue && x.TimeCreated == value.TimeCreated)))
+                {
+                    lock (locker)
+                    {
+                        valueCache[value.SourceId].Add(value);
+                    }
+                }
+            }
+            else
             {
                 lock (locker)
                 {
-                    valueCache[value.SourceId].Add(value);
+                    valueCache.Add(value.SourceId, new CacheItem<Event>(value));
                 }
             }
-        }
-        else
-        {
-            lock (locker)
-            {
-                valueCache.Add(value.SourceId, new CacheItem<Event>(value));
-            }
-        }
+        }, value.Id, "Insert value"); 
     }
 
-    private async Task ReloadCache(Guid sensorId, CancellationToken ct = default)
+    private async Task ReloadCache(Guid sensorId, Guid traceId, CancellationToken ct = default)
     {
-        if (valueCache.ContainsKey(sensorId) && DateTime.UtcNow.Subtract(valueCache[sensorId].CreationTimeUtc).TotalMilliseconds > cacheDurationMillis)
+        await Tracing.Trace(async () =>
         {
+            if (valueCache.ContainsKey(sensorId) && DateTime.UtcNow.Subtract(valueCache[sensorId].CreationTimeUtc).TotalMilliseconds > cacheDurationMillis)
+            {
+                lock (locker)
+                {
+                    valueCache.Remove(sensorId);
+                }
+            }
+
+            if (valueCache.ContainsKey(sensorId))
+            {
+                return;
+            }
+
+            var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
+            logger.LogInformation("Preloading cache from time {time}", yesterdayUnixTime);
+            using var scope = this.serviceProvider.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
+            var values = await db.Set<Event>().Where(x => x.Type == Constants.Events.Value && x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime).ToListAsync(ct);
+
+            if (!values.Any())
+            {
+                return;
+            }
+
             lock (locker)
             {
-                valueCache.Remove(sensorId);
+                valueCache.Add(sensorId, new CacheItem<Event>());
+                valueCache[sensorId].AddRange(values);
+                valueCache[sensorId].Reorder(x => x.TimeCreated);
             }
-        }
-
-        if (valueCache.ContainsKey(sensorId))
-        {
-            return;
-        }
-
-        var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
-        logger.LogInformation("Preloading cache from time {time}", yesterdayUnixTime);
-        using var scope = this.serviceProvider.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-        var values = await db.Set<Event>().Where(x => x.Type == Constants.Events.Value && x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime).ToListAsync(ct);
-
-        if (!values.Any())
-        {
-            return;
-        }
-
-        lock (locker)
-        {
-            valueCache.Add(sensorId, new CacheItem<Event>());
-            valueCache[sensorId].AddRange(values);
-            valueCache[sensorId].Reorder(x => x.TimeCreated);
-        }
+        }, traceId, "Cache reload");
     }
 
     public async Task<IEnumerable<ApiEvent>> GetDataForLast24h(Guid sourceId, CancellationToken ct = default)
     {
-        await ReloadCache(sourceId, ct);
-        return mapper.Map<IEnumerable<ApiEvent>>(valueCache[sourceId]);
+        return await Tracing.Trace(async () =>
+        {
+            await ReloadCache(sourceId, sourceId, ct);
+            return mapper.Map<IEnumerable<ApiEvent>>(valueCache[sourceId]);
+        }, sourceId, "Get data for last 24h");
     }
 
     public async Task<ApiEvent?> GetLatestValueAsync(Guid sourceId, CancellationToken ct = default)
     {
-        await ReloadCache(sourceId, ct);
+        await ReloadCache(sourceId, sourceId, ct);
 
         if (valueCache.ContainsKey(sourceId))
         {

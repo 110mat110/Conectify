@@ -20,6 +20,8 @@ builder.Services.AddSingleton<IDeviceCachingService, DeviceCachingService>();
 builder.Services.AddDbContext<ConectifyDb>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DatabaseString")));
+
+builder.Services.AddTelemetry();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

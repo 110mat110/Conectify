@@ -24,55 +24,70 @@ public class DeviceCachingService : IDeviceCachingService
 	public DeviceCachingService(IConnectorService connectorService)
 	{
 		this.connectorService = connectorService;
-		ReloadActuators();
+		ReloadActuators(Guid.NewGuid());
 	}
 
     public void ObserveSensorFromEvent(Event value)
     {
-        if(value.Type == Constants.Events.Value || value.Type == Constants.Events.Action)
+        Tracing.Trace(() =>
         {
-            if (sensorsCache.ContainsKey(value.SourceId))
+            if (value.Type == Constants.Events.Value || value.Type == Constants.Events.Action)
             {
-                sensorsCache[value.SourceId] = DateTime.UtcNow;
+                if (sensorsCache.ContainsKey(value.SourceId))
+                {
+                    sensorsCache[value.SourceId] = DateTime.UtcNow;
+                }
+                else
+                {
+                    sensorsCache.Add(value.SourceId, DateTime.UtcNow);
+                }
             }
-            else
-            {
-                sensorsCache.Add(value.SourceId, DateTime.UtcNow);
-            }
-        }
+        }, value.Id, "Observing sensor from event");
     }
 
     public IEnumerable<Guid> GetActiveSensors()
 	{
-		ReloadSensors();
+		ReloadSensors(Guid.NewGuid());
 		return sensorsCache.Keys;
 	}
 
 	public IEnumerable<Guid> GetActiveActuators()
     {
-        ReloadActuators();
+        ReloadActuators(Guid.NewGuid());
         return actuatorCache.Keys;
     }
 
 	public void Reset()
 	{
-		ReloadSensors();
-		ReloadActuators();
-	}
+        var tracingId = Guid.NewGuid();
+        Tracing.Trace(() =>
+        {
+            ReloadSensors(tracingId);
+            ReloadActuators(tracingId);
+        }, tracingId, "Reset device cache");
 
-    private void ReloadActuators()
+    }
+
+    private void ReloadActuators(Guid traceId)
     {
-        actuatorCache.Clear();
+        Tracing.Trace(() =>
+        {
+            actuatorCache.Clear();
 
         foreach (var result in connectorService.LoadAllActuators().Result)
         {
             actuatorCache.TryAdd(result.Id, DateTime.UtcNow);
         }
+        }, traceId, "Reload Sensors");
+
     }
 
-    private void ReloadSensors()
+    private void ReloadSensors(Guid traceId)
 	{
-		var yesterday = DateTime.UtcNow.AddDays(-1);
-		sensorsCache = sensorsCache.Where(sensor => sensor.Value.CompareTo(yesterday) >= 0).ToDictionary(x => x.Key, x => x.Value);
+        Tracing.Trace(() =>
+        {
+            var yesterday = DateTime.UtcNow.AddDays(-1);
+            sensorsCache = sensorsCache.Where(sensor => sensor.Value.CompareTo(yesterday) >= 0).ToDictionary(x => x.Key, x => x.Value);
+        }, traceId, "Reload Sensors");
 	}
 }
