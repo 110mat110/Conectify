@@ -7,75 +7,45 @@ using System.Threading.Tasks;
 namespace Conectify.Shared.Library;
 public class Tracing
 {
+    private static ActivityContext GetParentContext(Guid traceId)
+    {
+        string traceIdHex = traceId.ToString("N");
+        ActivitySpanId spanId = ActivitySpanId.CreateRandom();
+        string traceparent = $"00-{traceIdHex}-{spanId}-01";
+
+        var parentContext = Activity.Current?.Context ?? default;
+        if (Activity.Current?.Context.TraceId.ToHexString() != traceIdHex)
+        {
+            parentContext = ActivityContext.Parse(traceparent, "");
+        }
+        return parentContext;
+    }
+
+    private static void ExecuteWithTracing(Action action, Guid traceId, string activityName)
+    {
+        var source = new ActivitySource("CustomTracing");
+        using var activity = source.StartActivity(activityName, ActivityKind.Internal, GetParentContext(traceId))?.SetTag("custom.deviceId", traceId);
+        action.Invoke();
+        activity?.Stop();
+    }
+
+    private static T ExecuteWithTracing<T>(Func<T> func, Guid traceId, string activityName)
+    {
+        var source = new ActivitySource("CustomTracing");
+        using var activity = source.StartActivity(activityName, ActivityKind.Internal, GetParentContext(traceId))?.SetTag("custom.deviceId", traceId);
+        var result = func.Invoke();
+        activity?.Stop();
+        return result;
+    }
+
     public static void Trace(Action task, Guid traceId, string activityName)
-    {
-        if (traceId == Guid.Empty) traceId = Guid.NewGuid();
+        => ExecuteWithTracing(task, traceId == Guid.Empty ? Guid.NewGuid() : traceId, activityName);
 
-        string traceIdHex = traceId.ToString("N"); // Remove dashes, 32-char hex
-
-        ActivitySpanId spanId = ActivitySpanId.CreateRandom();
-        string traceparent = $"00-{traceIdHex}-{spanId}-01";
-
-        var source = new ActivitySource("CustomTracing");
-
-        var parentContext = Activity.Current?.Context ?? ActivityContext.Parse(traceparent, "");
-
-
-        if (source is null)
-        {
-            task.Invoke();
-            return;
-        }
-        using var activity = source.StartActivity(activityName, ActivityKind.Internal, parentContext)?.SetTag("custom.deviceId", traceId);
-        task.Invoke();
-        activity?.Stop();
-    }
-
-    public static T Trace<T>(Func<T> task,  Guid traceId, string activityName)
-    {
-        if (traceId == Guid.Empty) traceId = Guid.NewGuid();
-
-        string traceIdHex = traceId.ToString("N"); // Remove dashes, 32-char hex
-
-        ActivitySpanId spanId = ActivitySpanId.CreateRandom();
-        string traceparent = $"00-{traceIdHex}-{spanId}-01";
-
-        var source = new ActivitySource("CustomTracing");
-
-        var parentContext = Activity.Current?.Context ?? ActivityContext.Parse(traceparent, "");
-
-        if (source is null)
-        {
-            return task.Invoke();
-        }
-        using var activity = source.StartActivity(activityName, ActivityKind.Internal, parentContext)?.SetTag("custom.deviceId", traceId);
-        var res = task.Invoke();
-        activity?.Stop();
-
-        return res;
-    }
+    public static T Trace<T>(Func<T> task, Guid traceId, string activityName)
+        => ExecuteWithTracing(task, traceId == Guid.Empty ? Guid.NewGuid() : traceId, activityName);
 
     public static async Task<T> Trace<T>(Func<Task<T>> task, Guid traceId, string activityName)
     {
-        if (traceId == Guid.Empty) traceId = Guid.NewGuid();
-
-        string traceIdHex = traceId.ToString("N"); // Remove dashes, 32-char hex
-
-        ActivitySpanId spanId = ActivitySpanId.CreateRandom();
-        string traceparent = $"00-{traceIdHex}-{spanId}-01";
-
-        var source = new ActivitySource("CustomTracing");
-
-        var parentContext = Activity.Current?.Context ?? ActivityContext.Parse(traceparent, "");
-
-
-        if (source is null)
-        {
-            return await task.Invoke();
-        }
-        using var activity = source.StartActivity(activityName, ActivityKind.Internal, parentContext)?.SetTag("custom.deviceId", traceId);
-        var res =  await task.Invoke();
-        activity?.Stop();
-        return res;
+        return await ExecuteWithTracing(async () => await task.Invoke(), traceId == Guid.Empty ? Guid.NewGuid() : traceId, activityName);
     }
 }
