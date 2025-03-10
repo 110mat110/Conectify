@@ -71,18 +71,23 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
 
     public async Task<bool> SendToDeviceAsync(Guid deviceId, string rawString, CancellationToken cancelationToken = default)
     {
-        var msg = Encoding.UTF8.GetBytes(rawString);
-        var socket = websocketCache.GetActiveSocket(deviceId);
-        if (socket is not null)
+        try
         {
+            var msg = Encoding.UTF8.GetBytes(rawString);
+            var socket = websocketCache.GetActiveSocket(deviceId);
+
             await socket.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, cancelationToken);
             logger.LogInformation("Value sended to active websocket {deviceId}", deviceId);
             return true;
         }
-        cache.RemoveSubscriber(deviceId);
-        websocketCache.Remove(deviceId);
-        logger.LogError("Cannot send message to {deviceId}", deviceId);
-        return false;
+        catch (Exception ex)
+        {
+            cache.RemoveSubscriber(deviceId);
+            websocketCache.Remove(deviceId);
+            logger.LogError("Cannot send message to {deviceId}", deviceId);
+            logger.LogError(ex.Message);
+            return false;
+        }
     }
 
     public async Task<bool> TestConnectionAsync(string testMessage, WebSocket webSocket, CancellationToken ct = default)
