@@ -46,12 +46,12 @@ public class WebsocketCacheTest
     }
 
     [Fact]
-    public void ItShallRemoveExistingWebsocket()
+    public async Task ItShallRemoveExistingWebsocket()
     {
         var cache = new WebsocketCache(serviceProvider);
         var deviceId = Guid.NewGuid();
         cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
-        cache.Remove(deviceId);
+        await cache.Remove(deviceId, default);
 
         Assert.Equal(0, cache.GetNoOfActiveSockets(deviceId));
     }

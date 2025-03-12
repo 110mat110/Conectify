@@ -26,7 +26,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
         await HandleInput(webSocket, deviceId, ct);
 
         logger.LogWarning("Connection with device {deviceId} has ended.", deviceId);
-        websocketCache.Remove(deviceId);
+        await websocketCache.Remove(deviceId, ct);
         if (websocketCache.GetNoOfActiveSockets(deviceId) < 1)
         {
             cache.RemoveSubscriber(deviceId);
@@ -44,7 +44,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
         do
         {
             var buffer = new byte[1024 * 4];
-            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
 
             if (result.CloseStatus.HasValue)
             {
@@ -58,7 +58,8 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
                 await dataService.InsertJsonModel(incomingJson, deviceId, ct);
             }
 
-        } while (true);
+        } while (webSocket.State != WebSocketState.Open);
+        logger.LogCritical("Websocket have been closed!");
     }
 
     public async Task<bool> SendToDeviceAsync(Guid deviceId, IWebsocketModel returnValue, CancellationToken cancelationToken = default)
@@ -83,7 +84,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
         catch (Exception ex)
         {
             cache.RemoveSubscriber(deviceId);
-            websocketCache.Remove(deviceId);
+            await websocketCache.Remove(deviceId, cancelationToken);
             logger.LogError("Cannot send message to {deviceId}", deviceId);
             logger.LogError(ex.Message);
             return false;
