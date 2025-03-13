@@ -4,6 +4,7 @@ using Conectify.Services.Shelly.Services;
 using Conectify.Services.Shelly;
 using Conectify.Database;
 using Microsoft.EntityFrameworkCore;
+using Conectify.Shared.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +22,8 @@ builder.Services.AddTransient<IShellyService, ShellyService>();
 builder.Services.AddSingleton<WebsocketCache>();
 builder.Services.AddTransient<ShellyFactory>();
 builder.Services.UseConectifyWebsocket<Configuration, DeviceData>();
-
+builder.Logging.AddRemoteLogging();
+builder.Services.AddTelemetry();
 
 
 var app = builder.Build();

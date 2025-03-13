@@ -44,11 +44,8 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             catch (Exception ex)
             {
                 logger.LogError("Shelly ws message failed to deserialize! : {message}", message);
+                logger.LogError(ex, "Shelly message read failed");
             }
-
-            // Write the received message to the console
-            logger.LogDebug("Received: {message}", message);
-
         } while (!result.CloseStatus.HasValue);
 
         await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
@@ -167,11 +164,21 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
             if (message.Params.Switch2.aenergy is not null && shelly.Shelly.Switches[2].Power is not null)
             {
+                if (!cache.FrequentValueCahce.TryGetValue(shelly.Shelly.Powers[0].SensorId, out ShellyFequentValueCahceItem? cacheItem))
+                {
+                    cacheItem = new ShellyFequentValueCahceItem() { LastSent = DateTime.MinValue };
+                    cache.FrequentValueCahce.Add(shelly.Shelly.Powers[0].SensorId, cacheItem);
+                }
+
+                var res = cacheItem.ProcessValue(CalculatePower(message.Params.Switch2.aenergy.ByMinute[0]), TimeSpan.FromSeconds(10));
+
+                if (res is null) return;
+
                 var pwr = new WebsocketEvent()
                 {
                     Id = Guid.NewGuid(),
                     Name = "Power",
-                    NumericValue = CalculatePower(message.Params.Switch2.aenergy.ByMinute[0]),
+                    NumericValue = res.Value,
                     StringValue = "",
                     TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                     Unit = "W",
@@ -205,11 +212,24 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
         if (message.Params?.Pm0?.apower is not null && shelly.Shelly.Powers[0] is not null)
         {
+            if (!cache.FrequentValueCahce.TryGetValue(shelly.Shelly.Powers[0].SensorId, out ShellyFequentValueCahceItem? value))
+            {
+                value = new ShellyFequentValueCahceItem() { LastSent = DateTime.MinValue };
+                cache.FrequentValueCahce.Add(shelly.Shelly.Powers[0].SensorId, value);
+            }
+
+            var res = value.ProcessValue(message.Params?.Pm0?.apower, TimeSpan.FromSeconds(10));
+
+            if (res is null)
+            {
+                return;
+            }
+
             var pwr = new WebsocketEvent()
             {
                 Id = Guid.NewGuid(),
                 Name = "Power",
-                NumericValue = message.Params?.Pm0?.apower,
+                NumericValue = res.Value,
                 StringValue = "",
                 TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 Unit = "W",

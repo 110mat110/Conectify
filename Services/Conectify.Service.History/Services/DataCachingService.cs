@@ -52,7 +52,7 @@ public class DataCachingService : IDataCachingService
                 foreach (var valueGroup in groups)
                 {
                     deviceCachingService.ObserveSensorFromEvent(valueGroup.Last());
-                    valueCache.Add(valueGroup.Key, new CacheItem<Event>());
+                    valueCache.Add(valueGroup.Key, []);
                     valueCache[valueGroup.Key].AddRange(valueGroup);
                     valueCache[valueGroup.Key].Reorder(x => x.TimeCreated);
                 }
@@ -96,7 +96,7 @@ public class DataCachingService : IDataCachingService
     {
         await Tracing.Trace(async () =>
         {
-            if (valueCache.ContainsKey(sensorId) && DateTime.UtcNow.Subtract(valueCache[sensorId].CreationTimeUtc).TotalMilliseconds > cacheDurationMillis)
+            if (valueCache.TryGetValue(sensorId, out CacheItem<Event>? value) && DateTime.UtcNow.Subtract(value.CreationTimeUtc).TotalMilliseconds > cacheDurationMillis)
             {
                 lock (locker)
                 {
@@ -115,16 +115,18 @@ public class DataCachingService : IDataCachingService
             var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
             var values = await db.Set<Event>().Where(x => x.Type == Constants.Events.Value && x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime).ToListAsync(ct);
 
-            if (!values.Any())
+            if (values.Count == 0)
             {
                 return;
             }
 
             lock (locker)
             {
-                valueCache.Add(sensorId, new CacheItem<Event>());
-                valueCache[sensorId].AddRange(values);
-                valueCache[sensorId].Reorder(x => x.TimeCreated);
+                if (valueCache.TryAdd(sensorId, []))
+                {
+                    valueCache[sensorId].AddRange(values);
+                    valueCache[sensorId].Reorder(x => x.TimeCreated);
+                }
             }
         }, traceId, "Cache reload");
     }
@@ -142,9 +144,9 @@ public class DataCachingService : IDataCachingService
     {
         await ReloadCache(sourceId, sourceId, ct);
 
-        if (valueCache.ContainsKey(sourceId))
+        if (valueCache.TryGetValue(sourceId, out CacheItem<Event>? cacheitem))
         {
-            var value = valueCache[sourceId].OrderByDescending(x => x.TimeCreated).FirstOrDefault();
+            var value = cacheitem.OrderByDescending(x => x.TimeCreated).FirstOrDefault();
             return mapper.Map<ApiEvent>(value);
         }
         return null;

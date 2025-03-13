@@ -79,7 +79,7 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
             {
                 await deviceService.TryAddUnknownDevice(evnt.SourceId, evnt.SourceId, ct);
             }
-        }, evnt.Id, "Adding uknown devices");
+        }, evnt.Id, "Processing and validating Event");
         return true;
     }
 

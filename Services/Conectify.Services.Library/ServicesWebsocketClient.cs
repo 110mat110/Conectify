@@ -97,7 +97,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         var buffer = new byte[ReceiveBufferSize];
         try
         {
-            while (WS is not null && loopToken is not null && !loopToken.Value.IsCancellationRequested)
+            while (WS is not null && WS.State == WebSocketState.Open && loopToken is not null && !loopToken.Value.IsCancellationRequested)
             {
                 using var outputStream = new MemoryStream(ReceiveBufferSize);
                 WebSocketReceiveResult? receiveResult = null;
@@ -161,12 +161,21 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         {
             evnt.Id = Guid.NewGuid();
         }
-        await Tracing.Trace(async () =>
-        {
 
-            logger.LogInformation("WS recieved message {serializedMessage}", serializedMessage);
-            await NotifyAboutIncomingMessage(evnt, ct);
-        }, evnt.Id, "Received event from WS");
+        try
+        {
+            await Tracing.Trace(async () =>
+            {
+
+                logger.LogInformation("WS recieved message {serializedMessage}", serializedMessage);
+                await NotifyAboutIncomingMessage(evnt, ct);
+            }, evnt.Id, "Received event from WS");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Event processing failed");
+            logger.LogError(ex, ex.Message);
+        }
     }
 
 
