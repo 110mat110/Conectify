@@ -20,6 +20,8 @@ public interface IServicesWebsocketClient
     Task ConnectAsync(string url);
     Task DisconnectAsync();
     Task<bool> SendMessageAsync<TRequest>(TRequest message, CancellationToken cancellationToken = default) where TRequest : IWebsocketModel;
+
+    WebSocketState WebSocketState { get; }
 }
 
 public class ServicesWebsocketClient : IServicesWebsocketClient
@@ -33,7 +35,6 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         var timer = new System.Timers.Timer(2000);
         timer.Elapsed += Timer_Elapsed;
         timer.AutoReset = true;
-        //timer.Enabled = true;
     }
 
     private async void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
@@ -42,6 +43,8 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
     }
 
     public int ReceiveBufferSize { get; set; } = 8192;
+
+    public WebSocketState WebSocketState => WS?.State ?? WebSocketState.None;
 
     public event IncomingEventDelegate? OnIncomingEvent;
 

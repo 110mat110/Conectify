@@ -1,6 +1,7 @@
 ﻿namespace Conectify.Server;
 
 using Conectify.Server.Caches;
+using Conectify.Server.Health;
 using Conectify.Server.Services;
 using Conectify.Shared.Library.Services;
 
@@ -22,5 +23,6 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<IDeviceStatusService, DeviceStatusService>();
         services.AddTransient<IUpdateService, UpdateService>();
         services.AddTransient<UserService>();
+        services.AddHealthChecks().AddCheck<WebsocketCheck>("Websocket", Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy);
     }
 }

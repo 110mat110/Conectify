@@ -18,6 +18,7 @@ public static class DependencyInjectionExtensions
         services.AddTransient<IHttpFactory, HttpFactory>();
         services.AddTransient<IInternalCommandService, InternalCommandService>();
         services.AddTelemetry();
+        services.AddHealthChecks().AddCheck<WebsocketHealthcheck>("websocket", Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy);
         return services;
     }
 

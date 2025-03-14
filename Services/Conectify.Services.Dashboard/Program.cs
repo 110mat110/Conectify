@@ -3,6 +3,7 @@ using Conectify.Services.Dashboard;
 using Conectify.Services.Dashboard.Mapper;
 using Conectify.Services.Dashboard.Services;
 using Conectify.Services.Library;
+using Conectify.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 //builder.Services.UseConectifyWebsocket<Configuration, DeviceData>();
 builder.Services.AddTransient<DashboardService>();
+builder.Services.AddTelemetry();
 builder.Services.AddDbContext<ConectifyDb>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DatabaseString")));
@@ -33,7 +35,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
+app.UseHealthChecks("/health");
 app.MapControllers();
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.Run();

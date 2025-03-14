@@ -14,12 +14,16 @@ public interface IWebsocketCache
     int GetNoOfActiveSockets(Guid deviceId);
 
     public bool IsActiveSocket(Guid deviceId);
+
+    public int ActiveSocketCount { get; }
 }
 
 public class WebsocketCache(IServiceProvider serviceProvider, ILogger<WebsocketCache> logger) : IWebsocketCache
 {
     private static readonly Dictionary<Guid, WSCahceItem> sockets = new();
     private readonly object locker = new();
+
+    public int ActiveSocketCount => sockets.Count;
 
     public bool AddNewWebsocket(Guid deviceId, WebSocket webSocket)
     {

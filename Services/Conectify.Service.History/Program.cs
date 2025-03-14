@@ -21,7 +21,6 @@ builder.Services.AddDbContext<ConectifyDb>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DatabaseString")));
 
-builder.Services.AddTelemetry();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -30,7 +29,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseHealthChecks("/health");
 app.UseAuthorization();
 await app.Services.ConnectToConectifyServer();
 var ws = app.Services.GetRequiredService<IServicesWebsocketClient>();
