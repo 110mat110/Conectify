@@ -35,6 +35,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         var timer = new System.Timers.Timer(2000);
         timer.Elapsed += Timer_Elapsed;
         timer.AutoReset = true;
+        timer.Start();
     }
 
     private async void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
