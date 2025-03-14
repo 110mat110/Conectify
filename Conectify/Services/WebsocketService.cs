@@ -58,8 +58,8 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
                 await dataService.InsertJsonModel(incomingJson, deviceId, ct);
             }
 
-        } while (webSocket.State != WebSocketState.Open);
-        logger.LogCritical("Websocket have been closed!");
+        } while (webSocket.State == WebSocketState.Open);
+        logger.LogCritical($"Websocket have been closed! Websocket state: {webSocket.State}, client: {deviceId}");
     }
 
     public async Task<bool> SendToDeviceAsync(Guid deviceId, IWebsocketModel returnValue, CancellationToken cancelationToken = default)
