@@ -9,17 +9,21 @@ public interface IWebsocketCache
 {
     bool AddNewWebsocket(Guid deviceId, WebSocket webSocket);
     WebSocket? GetActiveSocket(Guid deviceId);
-    void Remove(Guid deviceId);
+    Task Remove(Guid deviceId, CancellationToken cancellationToken);
 
     int GetNoOfActiveSockets(Guid deviceId);
 
     public bool IsActiveSocket(Guid deviceId);
+
+    public int ActiveSocketCount { get; }
 }
 
-public class WebsocketCache(IServiceProvider serviceProvider) : IWebsocketCache
+public class WebsocketCache(IServiceProvider serviceProvider, ILogger<WebsocketCache> logger) : IWebsocketCache
 {
     private static readonly Dictionary<Guid, WSCahceItem> sockets = new();
     private readonly object locker = new();
+
+    public int ActiveSocketCount => sockets.Count;
 
     public bool AddNewWebsocket(Guid deviceId, WebSocket webSocket)
     {
@@ -51,11 +55,21 @@ public class WebsocketCache(IServiceProvider serviceProvider) : IWebsocketCache
         }
     }
 
-    public void Remove(Guid deviceId)
+    public async Task Remove(Guid deviceId, CancellationToken cancellationToken)
     {
-        if (sockets.ContainsKey(deviceId))
+        if (sockets.TryGetValue(deviceId, out WSCahceItem? value))
         {
-            if (sockets[deviceId].Count <= 1)
+            var websocket = value.WebSocket;
+            try
+            {
+                await websocket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "", cancellationToken);
+                websocket.Dispose();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Exception when removing websocket");
+            }
+            if (value.Count <= 1)
             {
                 using var scope = serviceProvider.CreateScope();
                 var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
@@ -83,7 +97,7 @@ public class WebsocketCache(IServiceProvider serviceProvider) : IWebsocketCache
 
     public WebSocket? GetActiveSocket(Guid deviceId)
     {
-        return (sockets.ContainsKey(deviceId) && sockets[deviceId].WebSocket.State == WebSocketState.Open) ? sockets[deviceId].WebSocket : null;
+        return (sockets.TryGetValue(deviceId, out WSCahceItem? value) && value.WebSocket.State == WebSocketState.Open) ? value.WebSocket : null;
     }
 
 

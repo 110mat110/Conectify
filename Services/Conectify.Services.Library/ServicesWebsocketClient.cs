@@ -20,6 +20,8 @@ public interface IServicesWebsocketClient
     Task ConnectAsync(string url);
     Task DisconnectAsync();
     Task<bool> SendMessageAsync<TRequest>(TRequest message, CancellationToken cancellationToken = default) where TRequest : IWebsocketModel;
+
+    WebSocketState WebSocketState { get; }
 }
 
 public class ServicesWebsocketClient : IServicesWebsocketClient
@@ -33,7 +35,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         var timer = new System.Timers.Timer(2000);
         timer.Elapsed += Timer_Elapsed;
         timer.AutoReset = true;
-        //timer.Enabled = true;
+        timer.Start();
     }
 
     private async void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
@@ -42,6 +44,8 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
     }
 
     public int ReceiveBufferSize { get; set; } = 8192;
+
+    public WebSocketState WebSocketState => WS?.State ?? WebSocketState.None;
 
     public event IncomingEventDelegate? OnIncomingEvent;
 
@@ -97,7 +101,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         var buffer = new byte[ReceiveBufferSize];
         try
         {
-            while (WS is not null && loopToken is not null && !loopToken.Value.IsCancellationRequested)
+            while (WS is not null && WS.State == WebSocketState.Open && loopToken is not null && !loopToken.Value.IsCancellationRequested)
             {
                 using var outputStream = new MemoryStream(ReceiveBufferSize);
                 WebSocketReceiveResult? receiveResult = null;
@@ -143,13 +147,39 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
 
     private async Task ResponseReceived(Stream inputStream, CancellationToken ct)
     {
+
         StreamReader stream = new(inputStream);
         string serializedMessage = stream.ReadToEnd();
         stream.Dispose();
 
-        logger.LogInformation("WS recieved message {serializedMessage}", serializedMessage);
         var evnt = SharedDataService.DeserializeJson(serializedMessage, this.mapper);
-        await NotifyAboutIncomingMessage(evnt, ct);
+
+        if (evnt is null)
+        {
+            logger.LogError("Received invalid event {serializedMessage}", serializedMessage);
+            return;
+        }
+       
+
+        if (evnt.Id == Guid.Empty)
+        {
+            evnt.Id = Guid.NewGuid();
+        }
+
+        try
+        {
+            await Tracing.Trace(async () =>
+            {
+
+                logger.LogInformation("WS recieved message {serializedMessage}", serializedMessage);
+                await NotifyAboutIncomingMessage(evnt, ct);
+            }, evnt.Id, "Received event from WS");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError("Event processing failed");
+            logger.LogError(ex, ex.Message);
+        }
     }
 
 

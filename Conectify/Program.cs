@@ -33,6 +33,7 @@ var service = app.Services.GetRequiredService<IDeviceStatusService>();
 await service.CheckIfAlive();
 app.UseHttpsRedirection();
 app.UseWebSockets();
+app.UseHealthChecks("/health");
 app.UseAuthorization();
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.MapControllers();

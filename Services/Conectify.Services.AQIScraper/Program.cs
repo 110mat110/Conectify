@@ -15,7 +15,7 @@ await app.Services.ConnectToConectifyServer();
 // Configure the HTTP request pipeline.
 
 app.UseHttpsRedirection();
-
+app.UseHealthChecks("/health");
 var timer = new System.Timers.Timer(60 * 60 * 1000);
 timer.Elapsed += Timer_ElapsedAsync;
 timer.AutoReset = true;

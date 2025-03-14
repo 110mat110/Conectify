@@ -6,7 +6,6 @@ using System;
 
 public interface IWebsocketEvent : ISerializable, IWebsocketModel
 {
-    Guid Id { get; set; }
     string Type { get; set; }
     Guid SourceId { get; set; }
     string Name { get; set; }

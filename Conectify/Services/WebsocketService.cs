@@ -1,7 +1,9 @@
 ﻿namespace Conectify.Server.Services;
 
 using Conectify.Server.Caches;
+using Conectify.Shared.Library;
 using Conectify.Shared.Library.Interfaces;
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 
@@ -20,11 +22,11 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
         websocketCache.AddNewWebsocket(deviceId, webSocket);
         await deviceService.TryAddUnknownDevice(deviceId, ct: ct); ;
         await cache.UpdateSubscriber(deviceId, ct);
-        logger.LogWarning($"Connection with device {deviceId} has started.");
+        logger.LogInformation("Connection with device {deviceId} has started.", deviceId);
         await HandleInput(webSocket, deviceId, ct);
 
-        logger.LogWarning($"Connection with device {deviceId} has ended.");
-        websocketCache.Remove(deviceId);
+        logger.LogWarning("Connection with device {deviceId} has ended.", deviceId);
+        await websocketCache.Remove(deviceId, ct);
         if (websocketCache.GetNoOfActiveSockets(deviceId) < 1)
         {
             cache.RemoveSubscriber(deviceId);
@@ -42,7 +44,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
         do
         {
             var buffer = new byte[1024 * 4];
-            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
 
             if (result.CloseStatus.HasValue)
             {
@@ -56,28 +58,37 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
                 await dataService.InsertJsonModel(incomingJson, deviceId, ct);
             }
 
-        } while (true);
+        } while (webSocket.State == WebSocketState.Open);
+        logger.LogCritical($"Websocket have been closed! Websocket state: {webSocket.State}, client: {deviceId}");
     }
 
     public async Task<bool> SendToDeviceAsync(Guid deviceId, IWebsocketModel returnValue, CancellationToken cancelationToken = default)
     {
-        return await SendToDeviceAsync(deviceId, returnValue.ToJson(), cancelationToken);
+        return await Tracing.Trace(async () =>
+        {
+            return await SendToDeviceAsync(deviceId, returnValue.ToJson(), cancelationToken);
+        }, returnValue.Id, $"Sending to {deviceId}");
     }
 
     public async Task<bool> SendToDeviceAsync(Guid deviceId, string rawString, CancellationToken cancelationToken = default)
     {
-        var msg = Encoding.UTF8.GetBytes(rawString);
-        var socket = websocketCache.GetActiveSocket(deviceId);
-        if (socket is not null)
+        try
         {
+            var msg = Encoding.UTF8.GetBytes(rawString);
+            var socket = websocketCache.GetActiveSocket(deviceId);
+
             await socket.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, cancelationToken);
-            logger.LogInformation("Value sended to active websocket " + deviceId);
+            logger.LogInformation("Value sended to active websocket {deviceId}", deviceId);
             return true;
         }
-        cache.RemoveSubscriber(deviceId);
-        websocketCache.Remove(deviceId);
-        logger.LogError($"Cannot send message to {deviceId}");
-        return false;
+        catch (Exception ex)
+        {
+            cache.RemoveSubscriber(deviceId);
+            await websocketCache.Remove(deviceId, cancelationToken);
+            logger.LogError("Cannot send message to {deviceId}", deviceId);
+            logger.LogError(ex.Message);
+            return false;
+        }
     }
 
     public async Task<bool> TestConnectionAsync(string testMessage, WebSocket webSocket, CancellationToken ct = default)

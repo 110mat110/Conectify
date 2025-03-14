@@ -43,8 +43,11 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
         {
             if (await ValidateAndRepairEvent(e, deviceId, ct))
             {
-                await pipelineService.ResendEventToSubscribers(e);
-                await SaveToDatabase(e);
+                await Tracing.Trace(async () =>
+                {
+                    await SaveToDatabase(e);
+                    await pipelineService.ResendEventToSubscribers(e);
+                }, e.SourceId, "Processing Event");
             }
         }
         catch (Exception ex)
@@ -55,30 +58,38 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
 
     private async Task<bool> ValidateAndRepairEvent(Event? evnt, Guid deviceId, CancellationToken ct = default)
     {
-        //TODO validations will have place here
-
         if (evnt == null)
         {
             return false;
         }
 
-        // repairs of unknown references
-        if (evnt.Type is Constants.Events.Value or Constants.Events.Value)
+        if(evnt.Id == Guid.Empty)
         {
-            await sensorService.TryAddUnknownDevice(evnt.SourceId, deviceId, ct);
+            evnt.Id = Guid.NewGuid();
         }
-
-        if (evnt.Type is Constants.Events.Command)
+        await Tracing.Trace(async () =>
         {
-            await deviceService.TryAddUnknownDevice(evnt.SourceId, evnt.SourceId, ct);
-        }
+            // repairs of unknown references
+            if (evnt.Type is Constants.Events.Value)
+            {
+                await sensorService.TryAddUnknownDevice(evnt.SourceId, deviceId, ct);
+            }
 
+            if (evnt.Type is Constants.Events.Command)
+            {
+                await deviceService.TryAddUnknownDevice(evnt.SourceId, evnt.SourceId, ct);
+            }
+        }, evnt.Id, "Processing and validating Event");
         return true;
     }
 
     private async Task SaveToDatabase(Event mapedEntity)
     {
+        await Tracing.Trace(async () =>
+        {
             await database.Events.AddAsync(mapedEntity);
             await database.SaveChangesAsync();
+            logger.LogInformation("Saved to database");
+        }, mapedEntity.Id, "Saving event to DB");
     }
 }
