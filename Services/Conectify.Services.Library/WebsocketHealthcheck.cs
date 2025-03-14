@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Conectify.Services.Library;
-internal class WebsocketHealthcheck(ServicesWebsocketClient websocketClient) : IHealthCheck
+internal class WebsocketHealthcheck(IServicesWebsocketClient websocketClient) : IHealthCheck
 {
 
     public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
