@@ -21,7 +21,6 @@ import {MatIconModule} from '@angular/material/icon';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { MetadataIconsComponent } from './metadata-icons/metadata-icons.component';
 import { AutomatizationComponent } from './automatization/automatization.component';
-import { AutValueInputComponent } from './aut-value-input/aut-value-input.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AutomatizationComponentComponent } from './automatization-component/automatization-component.component';
 import { SelectInputSensorOverlayComponent } from './select-input-sensor-overlay/select-input-sensor-overlay.component';
@@ -34,7 +33,6 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatSelectModule} from '@angular/material/select';
 import { LastValueComponent } from './last-value/last-value.component';
 import {MatToolbarModule} from '@angular/material/toolbar';
-import { AutUserInputComponent } from './aut-user-input/aut-user-input.component';
 import { AutSetTimeComponent } from './aut-inner-components/aut-set-time/aut-set-time.component';
 import { AutEachTimeComponent } from './aut-inner-components/aut-each-time/aut-each-time.component';
 import { AutSetValueComponent } from './aut-inner-components/aut-set-value/aut-set-value.component';
@@ -53,8 +51,9 @@ import { LoadingComponent } from './dashboard/loading/loading.component';
 import { DeviceComponent } from './device/device.component'; 
 import { FlexLayoutModule } from "@angular/flex-layout";
 import {MatSidenavModule} from '@angular/material/sidenav';
-
-
+import { AutomatizationEditComponent } from './automatization-edit/automatization-edit.component';
+import { AutValueInputComponent } from './aut-inner-components/aut-value-input/aut-value-input.component';
+import { AutUserInputComponent } from './aut-inner-components/aut-user-input/aut-user-input.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -83,7 +82,8 @@ import {MatSidenavModule} from '@angular/material/sidenav';
         DashboardcontentComponent,
         DasboardAddDeviceDialogComponent,
         LoadingComponent,
-        DeviceComponent
+        DeviceComponent,
+        AutomatizationEditComponent
     ],
     bootstrap: [AppComponent], 
     imports: [FormsModule,

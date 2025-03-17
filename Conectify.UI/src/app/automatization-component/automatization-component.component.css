@@ -1,4 +1,6 @@
 .componentCube{
+    display: flex;
+    flex-direction: column;
     flex: 1 1 auto;
     width: 150px;
     height: 150px;
@@ -33,3 +35,57 @@
     border-color: gray;
     color: aliceblue;
 }
+
+.output-button, .input-button{
+    min-width: 10px !important;
+    width: 10px;
+    height: 20px;
+    border-radius: 5px;
+    background-color: black;
+}
+
+.left-buttons, .right-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* Reduced gap for smaller space */
+  }
+  
+  .left-buttons {
+    position: absolute;
+    left: 4px; /* Align buttons close to the edge */
+    top: 8px; /* Add slight spacing from the top */
+  }
+  
+  .right-buttons {
+    position: absolute;
+    right: 4px;
+    top: 8px;
+  }
+  
+  .center-content {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin-left: 40px; 
+}
+  
+  .component-text {
+    font-size: 12px; /* Adjust text size for smaller container */
+    font-weight: bold;
+  }
+  
+  .bottom-buttons {
+    display: block;
+    justify-content: center;
+    gap: 4px; /* Smaller gap for the reduced width */
+    position: relative;
+    bottom: 4px;
+  }
+  
+  .saveButton {
+    padding: 4px 8px; /* Reduced padding for smaller buttons */
+    font-size: 10px; /* Adjust font size */
+    height: 30px;
+  }

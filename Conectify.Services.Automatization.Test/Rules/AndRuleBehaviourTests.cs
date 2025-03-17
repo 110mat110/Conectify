@@ -14,7 +14,7 @@ public class AndRuleBehaviourTests
     public void Execute_WhenAllNumericValuesNonZero_ReturnsAutomatisationValueWithNumericValue1()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
     {
         new() { NumericValue = 2 },
         new() { NumericValue = 3 }
@@ -22,7 +22,7 @@ public class AndRuleBehaviourTests
     };
 
         var masterRule = new RuleDTO { Id = Guid.NewGuid() };
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var andRuleBehaviour = new AndRuleBehaviour();
 
@@ -42,7 +42,7 @@ public class AndRuleBehaviourTests
     public void Execute_WhenAnyNumericValueIsZero_ReturnsAutomatisationValueWithNumericValue0()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>
+        var automatisationValues = new List<AutomatisationEvent>
     {
         new() { NumericValue = 2 },
         new() { NumericValue = 0 }
@@ -50,7 +50,7 @@ public class AndRuleBehaviourTests
     };
 
         var masterRule = new RuleDTO { Id = Guid.NewGuid() };
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var andRuleBehaviour = new AndRuleBehaviour();
 

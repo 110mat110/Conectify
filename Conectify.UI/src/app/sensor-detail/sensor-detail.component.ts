@@ -5,6 +5,7 @@ import { Device } from 'src/models/thing';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Metadata } from 'src/models/metadata';
 
 @Component({
   selector: 'app-sensor-detail',
@@ -17,8 +18,9 @@ export class SensorDetailComponent implements OnInit {
   mapedValues: (string | number)[][] = [];
   public latestVal?: BaseInputType;
   public latestValTime?: string;
+  defaultColor: string = "#4fc3f7";
 
-  constructor(public messenger: MessagesService, private be: BEFetcherService,@Inject(MAT_DIALOG_DATA) public data: {sensor: Sensor}) { }
+  constructor(public messenger: MessagesService, private be: BEFetcherService, @Inject(MAT_DIALOG_DATA) public data: { sensor: Sensor, metadata: Metadata[] }) { }
 
   ngOnInit(): void {
     if (this.data.sensor) {
@@ -44,6 +46,7 @@ export class SensorDetailComponent implements OnInit {
         x => {
           this.latestVal = x;
           this.latestValTime = new Date(x.timeCreated).toLocaleTimeString()
+          this.setOptions();
         }
       )
     }
@@ -51,6 +54,18 @@ export class SensorDetailComponent implements OnInit {
 
   setOptions() {
     const distanceFromEdge = 50;
+
+    let thresholdPieces = this.data.metadata
+      .filter(m => m.name === "Threshold") // Filter metadata where type is "Threshold"
+      .map(m => ({
+        gt: m.minVal,
+        lte: m.maxVal,
+        color: m.stringValue
+      }));
+    if (thresholdPieces.length == 0) {
+      thresholdPieces.push({ gt: -10000, lte: -9000, color: this.defaultColor })
+    }
+
     this.chartOption = {
       outerWidth: window.innerWidth - 2 * distanceFromEdge,
       xAxis: {
@@ -74,7 +89,15 @@ export class SensorDetailComponent implements OnInit {
         data: this.mapedValues,
         type: 'line',
         symbolKeepAspect: false,
-      }]
+      }],
+      visualMap: {
+        show: false,
+        ...(thresholdPieces.length > 0 ? { pieces: thresholdPieces } : {}),
+        outOfRange: {
+          color: this.defaultColor
+        }
+
+      }
     }
   }
 }

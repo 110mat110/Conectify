@@ -1,4 +1,7 @@
 ﻿using Conectify.Services.Automatization.Models;
+using Conectify.Services.Automatization.Models.ApiModels;
+using Conectify.Services.Automatization.Models.Database;
+using Conectify.Services.Automatization.Models.DTO;
 
 namespace Conectify.Services.Automatization.Rules;
 
@@ -8,7 +11,15 @@ public interface IRuleBehaviour
 
     string DisplayName();
 
-    AutomatisationValue? Execute(IEnumerable<AutomatisationValue> automatisationValues, RuleDTO masterRule, IEnumerable<Tuple<Guid,AutomatisationValue>> parameterValues);
+    MinMaxDef Outputs { get; }
 
-    AutomatisationValue? InitializationValue(RuleDTO rule);
+    IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs { get;}
+
+    Task Execute(RuleDTO masterRule, AutomatisationEvent triggerValue, CancellationToken ct = default);
+
+    Task InitializationValue(RuleDTO rule, RuleDTO? oldDTO);
+
+    void Clock(RuleDTO masterRule, TimeSpan interval,  CancellationToken ct = default);
+
+    Task SetParameters(Rule rule, CancellationToken cancellationToken);
 }

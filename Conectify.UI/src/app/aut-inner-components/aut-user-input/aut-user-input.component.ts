@@ -1,13 +1,10 @@
-import { Overlay, OverlayConfig } from '@angular/cdk/overlay';
-import { ComponentPortal } from '@angular/cdk/portal';
 import { Component, Input, OnInit, ViewContainerRef } from '@angular/core';
 import { UserInputRule } from 'src/models/Automatization/UserInputRule';
-import { ValueInitRule } from 'src/models/Automatization/ValueInitRule';
-import { BefetchAutomatizationService } from '../befetch-automatization.service';
-import { MessagesService } from '../messages.service';
-import { SelectDestinationActuatorOverlayComponent } from '../select-destination-actuator-overlay/select-destination-actuator-overlay.component';
 import { MatDialog } from '@angular/material/dialog';
 import { Actuator } from 'src/models/actuator';
+import { BefetchAutomatizationService } from 'src/app/befetch-automatization.service';
+import { MessagesService } from 'src/app/messages.service';
+import { SelectDestinationActuatorOverlayComponent } from 'src/app/select-destination-actuator-overlay/select-destination-actuator-overlay.component';
 
 @Component({
   selector: 'app-aut-user-input',

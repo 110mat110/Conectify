@@ -363,11 +363,6 @@ void RegisterActuator(Actuator &actuator, BaseDevice &baseDevice)
 #pragma endregion
 
 #pragma region Update
-void SendSoftwareVersion(BaseDevice &baseDevice, String swVersion){
-  String url = httpPrefix + GetServer(baseDevice) + registerUpdate + baseDevice.id + "/" + ESP.getChipModel() + "/" + swVersion;
-  HTTPResponse response = HTTPGet(url);
-}
-
 String GetSoftwareUrl(BaseDevice &baseDevice){
     String url = httpPrefix + GetServer(baseDevice) + getUpdateUrl + baseDevice.id;
     HTTPResponse response = HTTPGet(url);

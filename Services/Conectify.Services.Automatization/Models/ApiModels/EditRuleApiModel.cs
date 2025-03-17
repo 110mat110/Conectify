@@ -11,4 +11,6 @@ public record EditRuleApiModel
     public string Parameters { get; set; } = string.Empty;
 
     public Guid BehaviourId { get; set; }
+
+    public bool TriggerOnEvent { get; set; }
 }

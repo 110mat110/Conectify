@@ -146,12 +146,19 @@ export class DashboardcontentComponent implements OnInit {
     this.sensorCursor = this.params.editable ? 'move' : 'pointer';
   }
 
-  dragEnd(event: CdkDragEnd, rule: DashboardDeviceApi) {
-    const { x, y } = event.source.getFreeDragPosition();
-    // const { x, y } = event.source.element.nativeElement.getBoundingClientRect();
-    //var {posx,posy} = { posx: x + event.source.element.nativeElement.offsetWidth / 2 + window.scrollX, posy: y + event.source.element.nativeElement.offsetHeight / 2 + window.scrollY };
-    //this.MoveComponent();
-    let apiModel: EditDashboardDeviceApi = { id: rule.id, posX: x, posY: y };
-    this.befetcher.editDasboardDevice(this.dashboard.id, apiModel);
-  }
+  // dragEnd(event: CdkDragEnd, rule: DashboardDeviceApi) {
+  //   const { x, y } = event.source.getFreeDragPosition();
+  //   // const { x, y } = event.source.element.nativeElement.getBoundingClientRect();
+  //   //var {posx,posy} = { posx: x + event.source.element.nativeElement.offsetWidth / 2 + window.scrollX, posy: y + event.source.element.nativeElement.offsetHeight / 2 + window.scrollY };
+  //   //this.MoveComponent();
+  //   let apiModel: EditDashboardDeviceApi = { id: rule.id, posX: x, posY: y };
+  //   this.befetcher.editDasboardDevice(this.dashboard.id, apiModel);
+  // }
+
+    dragEnd(event: CdkDragEnd, rule: DashboardDeviceApi) {
+      const { x, y } = event.source.element.nativeElement.getBoundingClientRect();
+      let dragPosition = { x: x + event.source.element.nativeElement.offsetWidth / 2 + window.scrollX, y: y + event.source.element.nativeElement.offsetHeight / 2 + window.scrollY };
+      let apiModel: EditDashboardDeviceApi = { id: rule.id, posX: dragPosition.x, posY: dragPosition.y };
+      this.befetcher.editDasboardDevice(this.dashboard.id, apiModel);
+    }
 }

@@ -1,7 +1,40 @@
 ﻿@page "/"
+@using Conectify.Services.Shelly.Services
+@attribute [StreamRendering]
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Shelly</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Shelly overlook</h1>
 
-Welcome to your new app.
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Id</th>
+            <th>ShellyId</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var shelly in shellys)
+        {
+            <tr>
+                <td>@shelly.Shelly.Name</td>
+                <td>@shelly.Shelly.Id</td>
+                <td>@shelly.ShellyId</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private ShellyDeviceCacheItem[] shellys = [];
+    [Inject]
+    private WebsocketCache websocketCache { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+        // Populate the shellys array
+        shellys = websocketCache.Cache.Values.ToArray();
+    }
+}

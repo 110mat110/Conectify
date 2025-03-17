@@ -5,7 +5,7 @@ import { CreateRule } from 'src/models/Automatization/CreateRule';
 import { AdressesService } from './adresses.service';
 import { BehaviourMenuItem } from 'src/models/Automatization/BehaviourMenuItem';
 import { AutomatizationBase } from 'src/models/automatizationComponent';
-import { RuleModel } from 'src/models/Automatization/RuleModel';
+import { AddInputApiModel, AddOutputApiModel, RuleModel } from 'src/models/Automatization/RuleModel';
 import { EditRule } from 'src/models/Automatization/EditRule';
 import { RuleConnection } from 'src/models/Automatization/RuleConnection';
 import { CreateActuatorApi } from 'src/models/actuator';
@@ -31,16 +31,12 @@ export class BefetchAutomatizationService {
     return this.http.get<RuleConnection[]>(this.adresses.allConnections());
   }
 
-  createRule(value: CreateRule): Observable<string> {
-    return this.http.post<string>(this.adresses.createRule(), value, this.httpOptions);
+  createRule(behaviorId: string): Observable<RuleModel> {
+    return this.http.get<RuleModel>(this.adresses.createRule(behaviorId));
   }
 
-  addNewConnection(source: string, destination: string) {
-    this.http.post(this.adresses.connectionChange(source, destination), {}).subscribe();
-  }
-
-  removeConnection(source: string, destination: string) {
-    this.http.delete(this.adresses.connectionChange(source, destination)).subscribe();
+  setConnection(source: string, destination: string): Observable<any> {
+    return this.http.post(this.adresses.connectionChange(source, destination), {});
   }
 
   addNewParameterConnection(source: string, destination: string) {
@@ -57,5 +53,16 @@ export class BefetchAutomatizationService {
 
   createActuator(actuator: CreateActuatorApi){
     this.http.post(this.adresses.customInput(), actuator).subscribe();
+  }
+
+  addInputNode(input: AddInputApiModel): Observable<string> {
+    return this.http.post<string>(this.adresses.addInputNode(), input, this.httpOptions);
+  }
+
+  addOutputNode(output: AddOutputApiModel): Observable<string> {
+    return this.http.post<string>(this.adresses.addOutputNode(), output, this.httpOptions);
+  }
+  getBehaviour(behaviourId: string): Observable<BehaviourMenuItem>{
+    return this.http.get<BehaviourMenuItem>(this.adresses.behaviour(behaviourId));
   }
 }

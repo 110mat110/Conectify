@@ -24,10 +24,10 @@ export class MetadataComponent implements OnInit {
 
   ngOnInit(): void {
     this.beFetcher.getAllActuators().subscribe(x => x.forEach(device => {
-      this.supportedDevices.push({name: device.name, id: device.id, type: 1});
+      this.supportedDevices.push({name: "Act: " + device.name, id: device.id, type: 1});
     }));
     this.beFetcher.getAllSensors().subscribe(x => x.forEach(device => {
-      this.supportedDevices.push({name: device.name, id: device.id, type: 2});
+      this.supportedDevices.push({name: "Sensor: " + device.name, id: device.id, type: 2});
     }));
     this.reloadMetadata();
   }

@@ -35,6 +35,6 @@
   <br />
   <div *ngFor="let rule of ruleService.Rules" [style.left.px]="rule.drawingPos?.x" [style.top.px]="rule.drawingPos?.y"
     class="example-box" cdkDragBoundary=".example-boundary" cdkDrag (cdkDragEnded)="dragEnd($event, rule)">
-    <app-automatization-component [Component]='rule' [ComponentCage]='this'></app-automatization-component>
+    <app-automatization-component (buttonGenerated)="handleButtonGenerated($event)" [Rule]='rule' [Cage]='this'></app-automatization-component>
   </div>
 </div>

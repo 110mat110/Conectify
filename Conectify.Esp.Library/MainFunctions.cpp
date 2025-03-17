@@ -148,16 +148,6 @@ bool ReloadNetwork()
   return false;
 }
 
-void RegisterSoftwareVersion()
-{
-  if (softwareName != "")
-  {
-    DebugMessage("Registering softwareVersion");
-    String version = ESP.getChipModel();
-    SendSoftwareVersion(GetGlobalVariables()->baseDevice, softwareName);
-  }
-}
-
 bool ConnectToWifi()
 {
   GlobalVariables().SetLedOFF();

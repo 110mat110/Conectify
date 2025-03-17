@@ -24,23 +24,20 @@ export class ActuatorCubeComponent implements OnInit {
   public actuator?: Actuator;
   public device?: Device;
   public latestVal?: BaseInputType;
+  public showName?: string = undefined;
   iotype: IOType = IOType.Undefined;
   stringvalue: string = "";
   numericvalue: number | undefined = undefined;
   metadatas: Metadata[] = [];
   maxValue: number = 0;
   minValue: number = 0;
-  /* The `constructor` in the `ActuatorCubeComponent` class is defining the dependencies that will be
-  injected into the component when it is created. Here's what each parameter represents: */
   metadataValue: number = 0;
 
   constructor(public messenger: MessagesService, private websocketService: WebsocketService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef, private output: OutputCreatorService, private router: Router){}
 
   ngOnInit(): void {
     this.refreshActualStatus();
-    this.determineType();
     this.websocketService.receivedMessages.subscribe(msg => {
-      this.messenger.addMessage("actuator cube has value");
       this.HandleIncomingValue(msg);
     });
   }
@@ -60,17 +57,7 @@ export class ActuatorCubeComponent implements OnInit {
         this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.latestVal = x);
         this.be.getActuatorMetadatas(this.actuator.id).subscribe(x => {
           this.metadatas = x;
-          var typeMetadata = this.metadatas.find(x => x.name === "IOType");
-          if (typeMetadata) {
-            this.iotype = IOType[typeMetadata.stringValue as keyof typeof IOType];
-            this.minValue = typeMetadata.minVal;
-            this.maxValue = typeMetadata.maxVal;
-            this.metadataValue = typeMetadata.numericValue;
-          }
-          var visibilityMetadata = this.metadatas.find(x => x.name === "Visible");
-          if(visibilityMetadata && this.actuatorId){
-            this.actuatorId.visible = visibilityMetadata.numericValue > 0;
-          }
+          this.processMetadata();
         });
         if (this.actuator.sourceDeviceId) {
           this.be.getDevice(this.actuator.sourceDeviceId).subscribe(x => this.device = x);
@@ -79,12 +66,6 @@ export class ActuatorCubeComponent implements OnInit {
       if (this.latestVal)
         this.stringvalue = this.latestVal?.stringValue;
       this.numericvalue = this.latestVal?.numericValue;
-    }
-  }
-
-  determineType(): void {
-    if (this.metadatas) {
-
     }
   }
 
@@ -132,6 +113,32 @@ export class ActuatorCubeComponent implements OnInit {
 
   SourceClick(){
     this.router.navigate(['/device/'+ this.actuator?.sourceDeviceId])
+  }
+
+  processMetadata() {
+    var typeMetadata = this.metadatas.find(x => x.name === "IOType");
+    if (typeMetadata) {
+      this.iotype = IOType[typeMetadata.stringValue as keyof typeof IOType];
+      this.minValue = typeMetadata.minVal;
+      this.maxValue = typeMetadata.maxVal;
+      this.metadataValue = typeMetadata.numericValue;
+    }
+    var visibilityMetadata = this.metadatas.find(x => x.name === "Visible");
+    if(visibilityMetadata && this.actuatorId){
+      this.actuatorId.visible = visibilityMetadata.numericValue > 0;
+    }
+    var typeMetadata = this.metadatas.find(x => x.name === "IOType");
+    if (typeMetadata) {
+      this.iotype = IOType[typeMetadata.stringValue as keyof typeof IOType];
+      this.minValue = typeMetadata.minVal;
+      this.maxValue = typeMetadata.maxVal;
+      this.metadataValue = typeMetadata.numericValue;
+    }
+
+    var nameMetadata = this.metadatas.find(x => x.name === "Name");
+    if (nameMetadata) {
+      this.showName = nameMetadata.stringValue;
+    }
   }
 }
 

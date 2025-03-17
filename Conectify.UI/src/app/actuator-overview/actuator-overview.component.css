@@ -1,31 +1,22 @@
-/* mat-grid-tile {
-    background: var(--cubes);
-    border: solid;
-    border-radius: 10px;
-    border-color: var(--cubeborders);
-    border-width: 2px;
-  } */
+mat-grid-list {
+  margin: 0 auto;
+  width: 100%;
+}
 
-  mat-grid-tile {
-    background: darkblue;
-    border: black, 10px, solid;
-    border-radius: 3px;
-  }
+mat-grid-tile {
+  background: transparent !important;
+  border-radius: 0 !important;
+  border: none !important;
+  overflow: visible !important;
+}
 
-  app-actuator-cube{
-    width:100%; 
-    flex: 1 1 auto;
-  }
-  .grid-layout-custom{
-    width: 50vw;
-    height: 50vh;
-  }
-  .example-list {
-    width: 100px;
-    border: solid 1px #ccc;
-    border-radius: 5px;
-    background: #fff;
-    text-align: center;
-    padding: 10px;
-    margin: 0;
-  }
+.grid-layout-custom {
+  width: 100%;
+  height: auto;
+}
+
+app-actuator-cube {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

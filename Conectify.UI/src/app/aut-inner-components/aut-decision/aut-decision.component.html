@@ -1,4 +1,5 @@
 <p>Decision:</p>
+{{ decisionString }}
 <div>
     <button class="dayButton" *ngFor="let rule of rules" (click)="toggleColor(rule)" [style.color]="getColor(rule)">{{ rule }}</button>
 </div>

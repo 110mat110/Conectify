@@ -12,9 +12,11 @@ public class GetRuleApiModel
 
     public string Name { get; set; } = string.Empty;
 
+    public string Description { get; set; } = string.Empty;
+
     public Guid BehaviourId { get; set; }
 
-    public IEnumerable<Guid> Targets { get; set; } = new List<Guid>();
+    public IEnumerable<OutputApiModel> Outputs { get; set; } = [];
 
-    public IEnumerable<Guid> Parameters { get; set; } = new List<Guid>();
+    public IEnumerable<InputApiModel> Inputs { get; set; } = [];
 }

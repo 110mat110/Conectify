@@ -9,9 +9,9 @@ public class RunAtRuleBehaviourTests
     public void Execute_Always_ReturnsAutomatisationValueWithCorrectValues()
     {
         // Arrange
-        var automatisationValues = new List<AutomatisationValue>();
+        var automatisationValues = new List<AutomatisationEvent>();
         var masterRule = new RuleDTO { Id = Guid.NewGuid() };
-        var parameterValues = new List<Tuple<Guid, AutomatisationValue>>();
+        var parameterValues = new List<Tuple<Guid, AutomatisationEvent>>();
 
         var runAtRuleBehaviour = new RunAtRuleBehaviour();
 
