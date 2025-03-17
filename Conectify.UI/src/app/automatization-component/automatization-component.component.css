@@ -37,7 +37,8 @@
 }
 
 .output-button, .input-button{
-    width: 20px;
+    min-width: 10px !important;
+    width: 10px;
     height: 20px;
     border-radius: 5px;
     background-color: black;
@@ -67,7 +68,8 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-  }
+    margin-left: 40px; 
+}
   
   .component-text {
     font-size: 12px; /* Adjust text size for smaller container */

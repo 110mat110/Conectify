@@ -12,6 +12,8 @@ public class GetRuleApiModel
 
     public string Name { get; set; } = string.Empty;
 
+    public string Description { get; set; } = string.Empty;
+
     public Guid BehaviourId { get; set; }
 
     public IEnumerable<OutputApiModel> Outputs { get; set; } = [];

@@ -86,7 +86,7 @@ export class AdressesService {
   }
 
   getLatestSensorValue(id: string): string{
-    return this.historyURL + "data/" + id + "/latest";
+    return this.serverURL + "sensors/lastValue/" + id;
   }
 
   getAllMetadata(){
@@ -115,6 +115,10 @@ export class AdressesService {
 
   behaviourList() : string{
     return this.automatizationURL + "behaviour/all"
+  }
+
+  behaviour(behaviourId: string) : string{
+    return this.automatizationURL + "behaviour/" + behaviourId
   }
 
   connectionChange(source: string, destination: string){

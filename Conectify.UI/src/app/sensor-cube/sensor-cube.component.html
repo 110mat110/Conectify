@@ -1,11 +1,16 @@
-<div *ngIf="sensor" class="cube" (click)="onClick()" height >
+<div *ngIf="sensor" class="cube" (click)="onClick()" height style="border: 1px solid {{ accentColor }};" >
 
-<button *ngIf="device" class="SourceButton" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
+<button *ngIf="device" class="source-button" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
 
 <table class="hiddenTable" >   
 <tr>
 <td style="background-color: transparent !important; vertical-align: centre;">
-    <h4><b>{{sensor.name}} &#64; {{device?.name}}</b></h4>
+    <div *ngIf="showName">
+        <b>{{showName}}</b>
+      </div>
+      <div *ngIf="!showName">
+        <b>{{sensor.name}} &#64; {{device?.name}}</b>
+      </div>
     <div *ngIf="metadatas">
         <app-metadata-icons [metadatas] = "metadatas"></app-metadata-icons>
       </div>

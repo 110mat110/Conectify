@@ -62,4 +62,7 @@ export class BefetchAutomatizationService {
   addOutputNode(output: AddOutputApiModel): Observable<string> {
     return this.http.post<string>(this.adresses.addOutputNode(), output, this.httpOptions);
   }
+  getBehaviour(behaviourId: string): Observable<BehaviourMenuItem>{
+    return this.http.get<BehaviourMenuItem>(this.adresses.behaviour(behaviourId));
+  }
 }

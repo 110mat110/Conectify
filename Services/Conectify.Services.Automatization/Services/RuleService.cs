@@ -20,9 +20,9 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 
         var inputs = new List<InputPoint>();
         int inputIndex = 0;
-        foreach (var input in behaviour.DefaultInputs)
+        foreach (var input in behaviour.Inputs)
         {
-            for(int i =0; i< input.Item2; i++)
+            for(int i =0; i< input.Item2.Def; i++)
             inputs.Add(new InputPoint()
             {
                 Index = inputIndex++,
@@ -31,7 +31,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
         }
         var outputs = new List<OutputPoint>();
 
-        for (int i = 0; i < behaviour.DefaultOutputs; i++)
+        for (int i = 0; i < behaviour.Outputs.Def; i++)
             outputs.Add(new OutputPoint()
             {
                 Index = i,
@@ -59,7 +59,9 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
         var input = mapper.Map<InputPoint>(apiInput);
         var rule = await automatizationCache.GetRuleByIdAsync(input.RuleId) ?? throw new ArgumentException("Rule does not exist!");
 
-        if (!rule.CanAddInput())
+        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(rule.RuleTypeId, services);
+
+        if (!rule.CanAddInput(behaviour, input.Type))
         {
             throw new Exception("Cannot add new input");
         }
@@ -81,7 +83,10 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
         var output = mapper.Map<OutputPoint>(apiOutput);
         var rule = await automatizationCache.GetRuleByIdAsync(output.RuleId) ?? throw new ArgumentException("Rule does not exist!");
 
-        if (!rule.CanAddOutput())
+        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(rule.RuleTypeId, services);
+
+
+        if (!rule.CanAddOutput(behaviour))
         {
             throw new Exception("Cannot add new output");
         }
@@ -217,55 +222,20 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
     {
         if (rule is null) return;
 
-        if (rule.RuleType == new OutputRuleBehaviour(services).GetId())
-        {
-            var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { DestinationId = Guid.Empty })?.DestinationId;
-            if (id is null || id == Guid.Empty)
-                return;
+        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(rule.RuleType, services);
 
-            var actuator = await connectorService.LoadActuator(id!.Value, cancellationToken);
-            if(actuator is null)
-            {
-                return;
-            }
-            rule.ParametersJson = JsonConvert.SerializeObject(new { DestinationId = actuator.Id, actuator.Name });
+        if(behaviour is null) return;
 
-            rule.Name = actuator.Name;
-            rule.Description = actuator.Name;
-        }
+        await behaviour.SetParameters(rule, cancellationToken);
+    }
 
-        if (rule.RuleType == new UserInputRuleBehaviour(services).GetId())
-        {
-            var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceActuatorId = Guid.Empty })?.SourceActuatorId;
-            if (id is null || id == Guid.Empty)
-                return;
+    public async Task<bool> Remove(Guid ruleId, CancellationToken ct)
+    {
+        var rule = await database.Rules.FirstOrDefaultAsync(x => x.Id == ruleId,ct);
+        database.Rules.Remove(rule);
+        await database.SaveChangesAsync(ct);
+        await automatizationCache.Reload(ruleId);
 
-            var actuator = await connectorService.LoadActuator(id!.Value, cancellationToken);
-            if (actuator is null)
-            {
-                return;
-            }
-            rule.ParametersJson = JsonConvert.SerializeObject(new { SourceActuatorId = actuator.Id, actuator.Name });
-
-            rule.Name = actuator.Name;
-            rule.Description = actuator.Name;
-        }
-
-        if (rule.RuleType == new InputRuleBehaviour(services).GetId())
-        {
-            var behaviour = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceSensorId = Guid.Empty, Name = string.Empty, Event = string.Empty });
-            if (behaviour is null || behaviour.SourceSensorId == Guid.Empty)
-                return;
-
-            var sensor = await connectorService.LoadSensor(behaviour.SourceSensorId, cancellationToken);
-            if (sensor is null)
-            {
-                return;
-            }
-            rule.ParametersJson = JsonConvert.SerializeObject(new { SourceSensorId = sensor.Id, sensor.Name, behaviour.Event });
-
-            rule.Name = sensor.Name;
-            rule.Description = sensor.Name;
-        }
+        return true;
     }
 }

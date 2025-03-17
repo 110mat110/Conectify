@@ -23,6 +23,7 @@ public interface IAutomatizationCache
     Task ReloadConnections();
 
     Task<IEnumerable<InputPointDTO>> GetNextInputs(Guid outputId);
+    Task<IEnumerable<OutputPointDTO>> GetPreviousOutputs(Guid inputId);
 }
 
 public class AutomatizationCache : IAutomatizationCache
@@ -76,7 +77,7 @@ public class AutomatizationCache : IAutomatizationCache
         await automatizaionDb.SaveChangesAsync(cancellationToken);
 
         var dto = mapper.Map<RuleDTO>(rule);
-        await dto.InitializeAsync(services);
+        await dto.InitializeAsync(services, null);
 
         cache.TryAdd(dto.Id, dto);
         return rule.Id;
@@ -92,11 +93,15 @@ public class AutomatizationCache : IAutomatizationCache
 
     public async Task Reload(Guid id, CancellationToken ct = default)
     {
-        cache.Remove(id);
-
         using var scope = services.CreateScope();
         var automatizationDb = scope.ServiceProvider.GetRequiredService<AutomatizationDb>();
-        var rule = await automatizationDb.Set<Rule>().AsNoTracking().Include(x => x.OutputConnectors).Include(x => x.InputConnectors).FirstAsync(x => x.Id == id, ct);
+        var rule = await automatizationDb.Set<Rule>().AsNoTracking().Include(x => x.OutputConnectors).Include(x => x.InputConnectors).FirstOrDefaultAsync(x => x.Id == id, ct);
+
+        if(rule is null)
+        {
+            cache.Remove(id);
+            return;
+        }
 
         var dto = mapper.Map<RuleDTO>(rule);
         var outputs = new List<OutputPointDTO>();
@@ -109,9 +114,10 @@ public class AutomatizationCache : IAutomatizationCache
             input.Rule = dto;
         }
         dto.Outputs = outputs;
-        await dto.InitializeAsync(services);
+        cache.TryGetValue(id, out var oldDto);
+        await dto.InitializeAsync(services, oldDto);
 
-        //await dto.InitializeAsync(services);
+        cache.Remove(id);
         cache.Add(dto.Id, dto);
     }
 
@@ -127,12 +133,13 @@ public class AutomatizationCache : IAutomatizationCache
     //    lastReload = DateTime.UtcNow;
     //}
 
-    private async Task<bool> Reload()
+    private async Task<bool> Reload(bool initializing = false)
     {
         if(reloading) return false;
         reloading = true;
         await ReloadRules();
         await ReloadConnections();
+
         reloading = false;
 
         return true;
@@ -166,6 +173,16 @@ public class AutomatizationCache : IAutomatizationCache
        return cache.SelectMany(x => x.Value.Inputs).Where(x => inputIds.Contains(x.Id)).ToList();
     }
 
+    public async Task<IEnumerable<OutputPointDTO>> GetPreviousOutputs(Guid inputId)
+    {
+        await ReloadIfNeeded();
+
+        var outputIds = connections.Where(x => x.Item2 == inputId).Select(x => x.Item1).ToList();
+
+        return cache.SelectMany(x => x.Value.Outputs).Where(x => outputIds.Contains(x.Id)).ToList();
+
+    }
+
     public bool ConnectionExist(Guid sourceId, Guid destinationId)
     {
         return connections.Any(x => x.Item1 == sourceId && x.Item2 == destinationId);
@@ -181,10 +198,9 @@ public class AutomatizationCache : IAutomatizationCache
 
     private async Task ReloadRules()
     {
-        cache.Clear();
         var scope = services.CreateScope();
         var automatizationDb = scope.ServiceProvider.GetRequiredService<AutomatizationDb>();
-        var dbrules = automatizationDb.Set<Rule>().AsNoTracking().Include(x => x.OutputConnectors).Include(x => x.InputConnectors).ToList();
+        var dbrules = await automatizationDb.Set<Rule>().AsNoTracking().Include(x => x.OutputConnectors).Include(x => x.InputConnectors).ToListAsync();
 
         var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
         foreach (var dto in dtos)
@@ -201,13 +217,16 @@ public class AutomatizationCache : IAutomatizationCache
             }
             dto.Outputs = outputs;
         }
-        cache = dtos.ToDictionary(x => x.Id);
 
-        foreach(var d in cache.Values)
+        var tempcache = dtos.ToDictionary(x => x.Id);
+
+        foreach (var d in tempcache.Values)
         {
-           await d.InitializeAsync(services);
+            var exist = cache.TryGetValue(d.Id, out var oldDto);
+            await d.InitializeAsync(services, oldDto);
         }
-
+        cache.Clear();
+        cache = tempcache;
         lastReload = DateTime.UtcNow;
     }
 }

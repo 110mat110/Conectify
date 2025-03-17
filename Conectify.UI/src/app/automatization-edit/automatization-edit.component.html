@@ -1,3 +1,5 @@
+<h4>{{Behaviour?.name}}</h4>
+
 <div style="height: 83%;">
     <app-aut-and *ngIf="AndRuleX" ></app-aut-and>
     <app-aut-value-input *ngIf="ValueInitRule" [Rule]="ValueInitRule"></app-aut-value-input>
@@ -8,9 +10,9 @@
     <app-aut-decision *ngIf="DecisionRule" [Rule]="DecisionRule"></app-aut-decision>
 </div>
 
-<button (click)="AddTrigger()">Add Trigger</button>
-<button (click)="AddParameter()">Add Parameter</button>
-<button (click)="AddInput()">Add Input</button>
-<button (click)="AddOutput()">Add Output</button>
+<button *ngIf="CanAddTrigger" (click)="AddTrigger()">Add Trigger</button>
+<button *ngIf="CanAddParameter" (click)="AddParameter()">Add Parameter</button>
+<button *ngIf="CanAddValue" (click)="AddInput()">Add Input</button>
+<button *ngIf="CanAddOutput" (click)="AddOutput()">Add Output</button>
 <button (click)="Save()" >Save and Close</button>
 <button (click)="Close()">Close</button>

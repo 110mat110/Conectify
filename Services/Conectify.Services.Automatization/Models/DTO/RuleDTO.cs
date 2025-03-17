@@ -2,6 +2,9 @@
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Rules;
 using Conectify.Services.Automatization.Services;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Extensions.DependencyInjection;
+using System.Data;
 
 namespace Conectify.Services.Automatization.Models.DTO;
 
@@ -64,7 +67,7 @@ public class RuleDTO
 
         await RuleBehaviour.Execute(this, trigger, ct);
     }
-    public async Task InitializeAsync(IServiceProvider serviceProvider)
+    public async Task InitializeAsync(IServiceProvider serviceProvider, RuleDTO? oldDto)
     {
         RuleBehaviour = BehaviourFactory.GetRuleBehaviorByTypeId(RuleTypeId, serviceProvider);
 
@@ -73,17 +76,17 @@ public class RuleDTO
             throw new ArgumentNullException($"Cannot load rule {RuleTypeId}");
         }
 
-        await RuleBehaviour.InitializationValue(this);
+        await RuleBehaviour.InitializationValue(this, oldDto);
     }
 
-    public bool CanAddInput()
+    public bool CanAddInput(IRuleBehaviour ruleBehaviour, InputTypeEnum inputType)
     {
-        return true;
+        return Inputs.Count(x => x.Type == inputType) < ruleBehaviour.Inputs.FirstOrDefault(x => x.Item1 == inputType)?.Item2.Max;
     }
 
-    public bool CanAddOutput()
+    public bool CanAddOutput(IRuleBehaviour ruleBehaviour)
     {
-        return true;
+        return Outputs.Count() < ruleBehaviour.Outputs.Max;
     }
 
     public async Task SetAllOutputs(AutomatisationEvent evnt, bool trigger = true)
@@ -92,5 +95,20 @@ public class RuleDTO
             {
                 await output.SetOutputEvent(evnt, trigger);
             }
+    }
+
+    public async Task<bool> SetAllOutputs(RuleDTO? oldDTO, bool trigger = false)
+    {
+        if (oldDTO is not null)
+        {
+            foreach (var output in Outputs)
+            {
+                var oldOutput = oldDTO.Outputs.FirstOrDefault(x => x.Id == output.Id);
+                await output.SetOutputEvent(oldOutput?.Event, trigger);
+            }
+            return true;
+        }
+
+        return false;
     }
 }

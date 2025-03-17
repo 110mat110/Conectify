@@ -8,6 +8,7 @@ export interface RuleModel{
     propertyJson: string;
     behaviourId: string;
     name: string;
+    description:string;
     outputs: OutputApiModel[];
     inputs: InputApiModel[];
 }

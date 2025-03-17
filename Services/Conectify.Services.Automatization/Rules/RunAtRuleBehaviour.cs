@@ -1,4 +1,5 @@
 ﻿using Conectify.Services.Automatization.Models;
+using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
 using Newtonsoft.Json;
@@ -7,10 +8,13 @@ namespace Conectify.Services.Automatization.Rules;
 
 public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
 {
-    public int DefaultOutputs => 1;
+    public MinMaxDef Outputs => new(1, 1, 1);
 
-    public IEnumerable<Tuple<InputTypeEnum, int>> DefaultInputs => [new(InputTypeEnum.Value, 0), new(InputTypeEnum.Trigger, 0)];
-
+    public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => [
+            new(InputTypeEnum.Value, new(0,0,0)),
+            new(InputTypeEnum.Trigger, new(0,0,0)),
+            new(InputTypeEnum.Parameter, new(0,0,0))
+        ];
 
     public string DisplayName() => "RUN AT";
     public Guid GetId()
@@ -47,8 +51,13 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
 
     }
 
-    Task IRuleBehaviour.InitializationValue(RuleDTO rule)
+    Task IRuleBehaviour.InitializationValue(RuleDTO rule, RuleDTO? oldDTO)
     {
         return Task.CompletedTask;
+    }
+
+    public Task SetParameters(Rule rule, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }

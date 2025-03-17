@@ -12,6 +12,7 @@ export class AutDecisionComponent implements OnInit {
 
   rules: string[] = [">", "<", "=", ">=", "<=", "!="];
   selectedRule: string = "=";
+  decisionString: string = "if P1 " + this.selectedRule + " P2 then V -> O"
 
   constructor() { }
 

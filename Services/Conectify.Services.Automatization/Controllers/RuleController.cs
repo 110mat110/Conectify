@@ -57,4 +57,10 @@ public class RuleController(RuleService ruleService) : ControllerBase
     {
         return Ok(await ruleService.AddOutput(outputApiModel));
     }
+
+    [HttpDelete("{ruleId}")]
+    public async Task<IActionResult> RemoveCustomInputNode(Guid ruleId)
+    {
+        return Ok(await ruleService.Remove(ruleId, default));
+    }
 }

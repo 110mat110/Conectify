@@ -1,4 +1,5 @@
 ﻿using Conectify.Services.Automatization.Models;
+using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
 using Newtonsoft.Json;
@@ -7,10 +8,13 @@ namespace Conectify.Services.Automatization.Rules;
 
 public class SetValueRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
 {
-    public int DefaultOutputs => 1;
+    public MinMaxDef Outputs => new(1, 1, 1);
 
-    public IEnumerable<Tuple<InputTypeEnum, int>> DefaultInputs => [new(InputTypeEnum.Value, 0), new(InputTypeEnum.Trigger, 0)];
-
+    public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => [
+            new(InputTypeEnum.Value, new(0,0,0)),
+            new(InputTypeEnum.Trigger, new(0,0,1)),
+            new(InputTypeEnum.Parameter, new(0,0,0))
+        ];
     public string DisplayName() => "SET VALUE";
     public Guid GetId()
     {
@@ -39,7 +43,7 @@ public class SetValueRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
         return;
     }
 
-    public async Task InitializationValue(RuleDTO rule)
+    public async Task InitializationValue(RuleDTO rule, RuleDTO? oldDTO)
     {
         var value = JsonConvert.DeserializeObject<SetValueOptions>(rule.ParametersJson);
 
@@ -63,6 +67,14 @@ public class SetValueRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
 
     public void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
     {
+    }
+
+    public async Task SetParameters(Rule rule, CancellationToken cancellationToken)
+    {
+        var value = JsonConvert.DeserializeObject<SetValueOptions>(rule.ParametersJson);
+        if (value is null) return; 
+        var stringValue = !string.IsNullOrEmpty(value.StringValue) ? $" || {value.StringValue} {value.Unit}" : string.Empty;
+        rule.Description = $"{value.NumericValue}{value.Unit}{stringValue} ";
     }
 
     private record SetValueOptions

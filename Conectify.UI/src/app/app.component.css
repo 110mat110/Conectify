@@ -340,20 +340,24 @@ input[type=number]::-webkit-inner-spin-button {
   }
 
   .navbar-button {
-    background-color: var(--color1) !important;
+    background-color: transparent;
     border: none;
+    border-radius: 15px;
     color: var(--textOnTopBars) !important;
     text-align: center;
-    border-right: solid;
-    border-right-color: var(--lightLinesAndDetails);
-    border-right-width: 1px;
     width: 130px;
     height: 60px !important;
+}
+
+.active {
+  border-bottom: 2px solid #1976d2 !important;
 }
 
     .navbar-button:hover {
         background-color: var(--hoverButtonBackground) !important;
         color: var(--whiteText) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 6px rgba(56, 176, 0, 0.2);
     }
 
     .buttonBar{

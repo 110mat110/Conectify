@@ -4,8 +4,8 @@
 </button>
 <div style="height: 1000px; width: 1000px;">
 
-    <!-- [style.left.px]="sensor.apiSensor.posX" [style.top.px]="sensor.apiSensor.posY" -->
-    <div *ngFor="let sensor of sensors" [cdkDragFreeDragPosition]="sensor.cube.position" class="example-box"
+    <!--  -->
+    <div *ngFor="let sensor of sensors" [style.left.px]="sensor.apiSensor.posX" [style.top.px]="sensor.apiSensor.posY" class="example-box"
         cdkDragBoundary=".example-boundary" cdkDrag (cdkDragEnded)="dragEnd($event, sensor.apiSensor)"
         style="cursor: {{sensorCursor}};" [cdkDragDisabled]="!params.editable">
         <button class="remove-button" *ngIf="params.editable" mat-icon-button aria-label="Remove"
@@ -14,7 +14,8 @@
         </button>
         <app-sensor-cube [sensorInput]="sensor.cube" [params]="params"></app-sensor-cube>
     </div>
-    <div *ngFor="let actuator of actuators" [cdkDragFreeDragPosition]="actuator.cube.position" class="example-box"
+
+    <div *ngFor="let actuator of actuators" [style.left.px]="actuator.cube.position?.x" [style.top.px]="actuator.cube.position?.y" class="example-box"
         cdkDragBoundary=".example-boundary" cdkDrag (cdkDragEnded)="dragEnd($event, actuator.apiActuator)"
         style="cursor: {{sensorCursor}};" [cdkDragDisabled]="!params.editable">
         <button class="remove-button" *ngIf="params.editable" mat-icon-button aria-label="Remove"

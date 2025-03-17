@@ -2,4 +2,6 @@
 
 namespace Conectify.Services.Automatization.Models.ApiModels;
 
-public record BehaviourMenuApiModel(Guid Id, string Name, int defaultOutput, IEnumerable<Tuple<InputTypeEnum, int>> defaultInputs);
+public record BehaviourMenuApiModel(Guid Id, string Name, MinMaxDef Outputs, IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs);
+
+public record MinMaxDef(int Min, int Def, int Max);

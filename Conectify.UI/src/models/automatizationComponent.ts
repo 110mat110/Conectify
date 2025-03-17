@@ -11,15 +11,17 @@ export class AutomatizationBase{
 
     public triggerOnValue: boolean = false;
     public name: string = "";
+    public description: string = "";
 
     public getParametersJSon(): string {
         return "{}";
     };
 
-    constructor(id: string, behaviourId: string, name: string){
+    constructor(id: string, behaviourId: string, name: string, description: string){
         this.id = id;
         this.behaviorId = behaviourId;
         this.name = name;
+        this.description = description;
     }
 }
 
@@ -41,8 +43,8 @@ export class AutomatizationBaseGeneric<T> extends AutomatizationBase{
         return JSON.stringify(this.behaviour);
     };
 
-    constructor(id: string, behaviourId: string, json: string, defaultT: T, name:string){
-    super(id, behaviourId, name)
+    constructor(id: string, behaviourId: string, json: string, defaultT: T, name:string, description: string){
+    super(id, behaviourId, name, description)
         this.behaviour = defaultT;
         try {
             let behaviour: T = JSON.parse(json) as T;

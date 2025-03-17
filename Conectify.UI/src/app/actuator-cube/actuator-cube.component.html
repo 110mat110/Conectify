@@ -2,10 +2,13 @@
   <button *ngIf="device" class="SourceButton" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
 
   <div *ngIf="actuator">
-    <div *ngIf="device">
+    <div *ngIf="showName">
+      <b>{{showName}}</b>
+    </div>
+    <div *ngIf="!showName && device">
       <b>{{actuator.name}} &#64; {{device.name}}</b>
     </div>
-    <div *ngIf="!device">
+    <div *ngIf="!showName && !device">
       <b>{{actuator.name}}</b>
     </div>
   </div>
@@ -41,7 +44,7 @@
         </mat-form-field>
       </td>
       <td>
-        <button (click)="send(stringInput.value, numericInput.value)"> SEND</button>
+        <button class="basic-send" (click)="send(stringInput.value, numericInput.value)"> SEND</button>
       </td>
     </table>
   </div>

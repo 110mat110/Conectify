@@ -59,12 +59,6 @@ export class AutomatizationComponent implements OnInit {
   supportedRules: BehaviourMenuItem[] = [];
   @ViewChild('rules') rulesCanvas?: ElementRef<SVGElement>;
 
-  inputMapping: { [key: number]: string } = {
-    0: 'P',
-    1: 'T',
-    2: 'V'
-  };
-
   ngOnInit(): void {
     this.be.GetAllBehaviours().subscribe(x => {
       this.supportedRules = x;

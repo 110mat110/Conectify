@@ -32,7 +32,7 @@ export class RuleProviderService {
   }
 
   private LoadRule(rule: RuleModel) {
-    var createdRule = (this.RuleFactoryCreateRuleBasedOnBehaviourId(rule.behaviourId, rule.id, rule.propertyJson, rule.name));
+    var createdRule = (this.RuleFactoryCreateRuleBasedOnBehaviourId(rule.behaviourId, rule.id, rule.propertyJson, rule.name, rule.description));
     if (createdRule) {
       createdRule.dragPosition = { x: rule.x, y: rule.y };
       createdRule.outputs = [...rule.outputs].sort((a, b) => a.index - b.index);
@@ -73,16 +73,16 @@ export class RuleProviderService {
     return this.Rules.find((x) => x.id == id);
   }
 
-  RuleFactoryCreateRuleBasedOnBehaviourId(behaviourId: string, id: string, parametersJson: string, name: string): AutomatizationBase | undefined
+  RuleFactoryCreateRuleBasedOnBehaviourId(behaviourId: string, id: string, parametersJson: string, name: string, description: string): AutomatizationBase | undefined
   {
     switch(behaviourId) {
-    case "24ff4530-887b-48d1-a4fa-38cc83925797": return new ValueInitRule(id, behaviourId,parametersJson, {Name: "Unknown", SourceSensorId: "", Event: "all"}, name);
-    case "d274c7f0-211e-413a-8689-f2543dbfc818": return new ChangeDestinationRule(id, behaviourId, parametersJson, {DestinationId:"", Name:"Unknown"}, name );
-    case "24ff4530-887b-48d1-a4fa-38cc83925798": return new UserInputRule(id, behaviourId, parametersJson, {SourceActuatorId: "", Name: "Unknown"}, name);
-    case "3dff4530-887b-48d1-a4fa-38cc8392469a": return new SetTimeRule(id, behaviourId, parametersJson, {TimeSet: "", Name: "Unknown", Days: "Mo,Tu,We,Th,Fr,Sa,Su"}, name);
-    case "8c173ffc-7243-4675-9a0d-28c2ce19a18f": return new SetValueRule(id, behaviourId, parametersJson, {NumericValue:-1, StringValue:"", Unit:""}, name);
-    case "62d50548-fff0-44c4-8bf3-b592042b1c2b": return new DecisionRule(id, behaviourId, parametersJson, {Rule:"="}, name);
-    case "28ff4530-887b-48d1-a4fa-38dc839257a4": return new AndRule(id, behaviourId, parametersJson, {}, name);
+    case "24ff4530-887b-48d1-a4fa-38cc83925797": return new ValueInitRule(id, behaviourId,parametersJson, {Name: "Unknown", SourceSensorId: "", Event: "all"}, name, description);
+    case "d274c7f0-211e-413a-8689-f2543dbfc818": return new ChangeDestinationRule(id, behaviourId, parametersJson, {DestinationId:"", Name:"Unknown"}, name , description);
+    case "24ff4530-887b-48d1-a4fa-38cc83925798": return new UserInputRule(id, behaviourId, parametersJson, {SourceActuatorId: "", Name: "Unknown"}, name, description);
+    case "3dff4530-887b-48d1-a4fa-38cc8392469a": return new SetTimeRule(id, behaviourId, parametersJson, {TimeSet: "", Name: "Unknown", Days: "Mo,Tu,We,Th,Fr,Sa,Su"}, name, description);
+    case "8c173ffc-7243-4675-9a0d-28c2ce19a18f": return new SetValueRule(id, behaviourId, parametersJson, {NumericValue:-1, StringValue:"", Unit:""}, name, description);
+    case "62d50548-fff0-44c4-8bf3-b592042b1c2b": return new DecisionRule(id, behaviourId, parametersJson, {Rule:"="}, name, description);
+    case "28ff4530-887b-48d1-a4fa-38dc839257a4": return new AndRule(id, behaviourId, parametersJson, {}, name, description);
     default: return;
     }
   }

@@ -12,6 +12,7 @@ public class RuleProfile : Profile
     public RuleProfile()
     {
         this.CreateMap<AddInputApiModel, InputPoint>()
+            .ForMember(x => x.Type, opt => opt.MapFrom(src => src.InputType))
             .ForMember(x => x.Id, opt => opt.MapFrom(x => Guid.NewGuid()))
             .ForMember(x => x.PreviousRules, opt => opt.Ignore())
             .ForMember(x => x.Rule, opt => opt.Ignore());
@@ -22,8 +23,7 @@ public class RuleProfile : Profile
     .ForMember(x => x.Rule, opt => opt.Ignore());
 
         this.CreateMap<InputPoint, InputPointDTO>()
-            .ForMember(x => x.Rule, opt => opt.Ignore())
-            .ForMember(x => x.AutomatisationValue, opt => opt.Ignore());
+            .ForMember(x => x.Rule, opt => opt.Ignore());
 
         this.CreateMap<InputPoint, InputApiModel>();
         this.CreateMap<OutputPoint, OutputApiModel>();

@@ -1,16 +1,21 @@
 ﻿using Conectify.Services.Automatization.Models;
+using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
+using Conectify.Services.Automatization.Services;
 using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
 
 public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
 {
-    public int DefaultOutputs => 1;
+    public MinMaxDef Outputs => new MinMaxDef(1, 1, 10);
 
-    public IEnumerable<Tuple<InputTypeEnum, int>> DefaultInputs => new List<Tuple<InputTypeEnum, int>>() { new Tuple<InputTypeEnum, int>(InputTypeEnum.Value, 2), new Tuple<InputTypeEnum, int>(InputTypeEnum.Trigger, 1), new Tuple<InputTypeEnum, int>(InputTypeEnum.Parameter, 1) };
-
+    public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => new List<Tuple<InputTypeEnum, MinMaxDef>>() {
+            new(InputTypeEnum.Value, new(1,1,10)),
+            new(InputTypeEnum.Trigger, new(0,1,1)),
+            new(InputTypeEnum.Parameter, new(2,2,2))
+        };
     public string DisplayName() => "DECISION";
 
     public Guid GetId()
@@ -39,19 +44,20 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
 
         if (parameters is not null)
         {
-            var pinputs = masterRule.Inputs.Where(x => x.Type == InputTypeEnum.Parameter).ToList();
-            var inputs = masterRule.Inputs.Where(x => x.Type == InputTypeEnum.Value).ToList();
-            var outputs = masterRule.Outputs.ToList();
-            if(pinputs.Count != 2 || pinputs.Any(x => x.AutomatisationValue is null) || inputs.Count != outputs.Count)
+            var pinputs = masterRule.Inputs.Where(x => x.Type == InputTypeEnum.Parameter).OrderBy(x => x.Index).ToList();
+            var inputs = masterRule.Inputs.Where(x => x.Type == InputTypeEnum.Value).OrderBy(x => x.Index).ToList();
+            var outputs = masterRule.Outputs.OrderBy(x => x.Index).ToList();
+            if(pinputs.Count != 2 || pinputs.Any(x => x.GetEvent(serviceProvider).Result is null))
             {
                 return;
             }
 
-            if (ComputeValue(parameters.Rule, pinputs[0].AutomatisationValue!.NumericValue, pinputs[1].AutomatisationValue!.NumericValue))
+            if (ComputeValue(parameters.Rule, pinputs[0].GetEvent(serviceProvider).Result!.NumericValue, pinputs[1].GetEvent(serviceProvider).Result!.NumericValue))
             {
                 for (int i = 0; i < inputs.Count; i++)
                 {
-                    if(inputs[i].AutomatisationValue is null)
+                    var inputEvent = await inputs[i].GetEvent(serviceProvider);
+                    if (inputEvent is null)
                     {
                         continue;
                     }
@@ -59,26 +65,55 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
                     var output = new AutomatisationEvent()
                     {
                         Name = "Comparsion output",
-                        NumericValue = inputs[i].AutomatisationValue!.NumericValue,
-                        StringValue = inputs[i].AutomatisationValue!.StringValue,
-                        Unit = inputs[i].AutomatisationValue!.Unit,
+                        NumericValue = inputEvent!.NumericValue,
+                        StringValue = inputEvent!.StringValue,
+                        Unit = inputEvent!.Unit,
                         TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         SourceId = masterRule.Id
                     };
 
-                    await outputs[i].SetOutputEvent(output);
+                    if (outputs.Count > i)
+                    {
+                        await outputs[i].SetOutputEvent(output, ct: ct);
+                    }
                 }
             }
         }
     }
 
-    Task IRuleBehaviour.InitializationValue(RuleDTO rule)
+    Task IRuleBehaviour.InitializationValue(RuleDTO rule, RuleDTO? ruleDTO)
     {
         return Task.CompletedTask;
     }
 
     public void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
     {
+    }
+
+    public async Task SetParameters(Rule rule, CancellationToken cancellationToken)
+    {
+        var parameters = JsonConvert.DeserializeObject<DecisionOptions>(rule.ParametersJson);
+        if (parameters is null)
+            return;
+
+        var cache = serviceProvider.GetRequiredService<IAutomatizationCache>();
+        var ruleDTO = await cache.GetRuleByIdAsync(rule.Id);
+
+        if (ruleDTO is null)
+        {
+            return;
+        }
+
+        var ps = ruleDTO.Inputs.Where(x => x.Type == InputTypeEnum.Parameter).OrderBy(x => x.Index).ToList();
+
+
+        if (ps.Count != 2)
+        {
+            rule.Description = "You need EXACTLY 2 Parameters";
+            return;
+        }
+
+        rule.Description = $"If P{ps[0].Index.ToString()} {parameters.Rule} P{ps[1].Index.ToString()} THEN I -> O";
     }
 
     private record DecisionOptions

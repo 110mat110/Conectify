@@ -65,23 +65,24 @@ public abstract class UniversalDeviceService<TDbs, TApi>(ConectifyDb database, I
             return false;
         }
 
-        var mapedModel = mapper.Map<MetadataConnector<TDbs>>(apiModel);
-        var model = await database.Set<MetadataConnector<TDbs>>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == apiModel.Id || (x.MetadataId == apiModel.MetadataId && x.DeviceId == apiModel.DeviceId), ct);
+        var metada = await database.Set<Metadata>().FirstOrDefaultAsync(x => x.Id == apiModel.MetadataId, ct);
+        var incomingMetadata = mapper.Map<MetadataConnector<TDbs>>(apiModel);
+        var existingMetadata = await database.Set<MetadataConnector<TDbs>>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == apiModel.Id || (x.MetadataId == apiModel.MetadataId && x.DeviceId == apiModel.DeviceId), ct);
 
-        if (model is null)
+        if (existingMetadata is null || metada?.Exclusive is false )
         {
-            await database.AddAsync(mapedModel, ct);
+            await database.AddAsync(incomingMetadata, ct);
         }
         else
         {
-            model.NumericValue = mapedModel.NumericValue;
-            model.Unit = mapedModel.Unit;
-            model.StringValue = mapedModel.StringValue;
-            model.MinVal = mapedModel.MinVal;
-            model.MaxVal = mapedModel.MaxVal;
-            model.TypeValue = mapedModel.TypeValue;
+            existingMetadata.NumericValue = incomingMetadata.NumericValue;
+            existingMetadata.Unit = incomingMetadata.Unit;
+            existingMetadata.StringValue = incomingMetadata.StringValue;
+            existingMetadata.MinVal = incomingMetadata.MinVal;
+            existingMetadata.MaxVal = incomingMetadata.MaxVal;
+            existingMetadata.TypeValue = incomingMetadata.TypeValue;
             
-            database.Update(model);
+            database.Update(existingMetadata);
         }
 
         await database.SaveChangesAsync(ct);
