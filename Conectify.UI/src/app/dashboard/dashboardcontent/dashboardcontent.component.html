@@ -2,8 +2,7 @@
     (click)="addDevice()">
     <mat-icon>menu</mat-icon>
 </button>
-<div style="height: 1000px; width: 1000px;">
-
+<div style="height: 1000px; width: 1000px; position: relative;">
     <!--  -->
     <div *ngFor="let sensor of sensors" [style.left.px]="sensor.apiSensor.posX" [style.top.px]="sensor.apiSensor.posY" class="example-box"
         cdkDragBoundary=".example-boundary" cdkDrag (cdkDragEnded)="dragEnd($event, sensor.apiSensor)"
@@ -15,9 +14,15 @@
         <app-sensor-cube [sensorInput]="sensor.cube" [params]="params"></app-sensor-cube>
     </div>
 
-    <div *ngFor="let actuator of actuators" [style.left.px]="actuator.cube.position?.x" [style.top.px]="actuator.cube.position?.y" class="example-box"
-        cdkDragBoundary=".example-boundary" cdkDrag (cdkDragEnded)="dragEnd($event, actuator.apiActuator)"
-        style="cursor: {{sensorCursor}};" [cdkDragDisabled]="!params.editable">
+    <div *ngFor="let actuator of actuators" 
+    [style.left.px]="actuator.apiActuator.posX" 
+    [style.top.px]="actuator.apiActuator.posY" 
+    class="example-box"
+    cdkDragBoundary=".example-boundary" 
+    cdkDrag 
+    (cdkDragEnded)="dragEnd($event, actuator.apiActuator)"
+    style="cursor: {{sensorCursor}};" 
+    [cdkDragDisabled]="!params.editable">
         <button class="remove-button" *ngIf="params.editable" mat-icon-button aria-label="Remove"
             (click)="remove(actuator.apiActuator.id)">
             <mat-icon>delete_forever</mat-icon>

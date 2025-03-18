@@ -30,6 +30,7 @@ export class DeviceComponent implements OnInit {
   public deviceSrc: string | undefined;
   selectedMetadata?: Metadata;
   avaliableMetadata: ApiMetadata[] = [];
+  selectedSensors: string[] = [];
   columnNum: number = 4;
   tileSize: number = 400;
   @ViewChild('theContainer') theContainer: any;
@@ -131,16 +132,34 @@ calculateCols(): void {
   ngOnChanges(changes: SimpleChanges): void {
   }
   updateMetadata(numericValue: string, stringValue: string, minVal: string, maxVal: string) {
-    this.actuatorMetadatas.selectedOptions.selected.forEach((element: { actuator: { id: string } }) => {
-      console.warn(element.actuator.id);
-    });
-    this.sensorMetadatas.selectedOptions.selected.map((o: MatListOption) => o.value).forEach((element: { sensor: { id: string } }) => {
-      console.warn(element.sensor.id);
+    this.selectedSensors.forEach(sensorId => {
+      let metadataId = this.formControlObj?.value;
+      console.log(metadataId);
+      let selectedMetadata = this.avaliableMetadata.find(x => x.id == metadataId);
+      if(selectedMetadata)
+        this.be.postSensorMetadata({name: selectedMetadata.name, metadataId: selectedMetadata.id, numericValue: Number(numericValue), stringValue: stringValue, minVal: Number(minVal), maxVal: Number(maxVal), unit: "", deviceId: sensorId, typeValue: 0})
     });
   }
 
-  listSelectionChange(e: MatSelectionListChange) {
-    console.log(e.source.selectedOptions.selected.map((o: MatListOption) => o.value));
+  listSelectionChange(event: MatSelectionListChange) {
+    // Get the selected options
+    const selectedOptions = event.source.selectedOptions.selected;
+    
+    // Extract the sensor IDs from the selected options
+    const selectedSensorIds = selectedOptions.map(option => {
+      // Get the sensor data from the option
+      if (option.value) {
+        return option.value.sensor.id;
+      } else {
+        const index = option._elementRef?.nativeElement?.getAttribute('data-index');
+        if (index !== null && index !== undefined) {
+          return this.sensorWithMetadata[parseInt(index)].sensor.id;
+        }
+        return null; // Or handle this case appropriately
+      }
+    }).filter(id => id !== null); // Remove any null values
+
+    this.selectedSensors = selectedSensorIds;
   }
 
   deleteMetadata(id: string) {

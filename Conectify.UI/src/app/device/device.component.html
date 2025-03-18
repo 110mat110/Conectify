@@ -112,12 +112,15 @@
             <br />
             <br />
             <mat-selection-list style="height:auto"  #actuatorMetadatas>
-                <mat-list-option *ngFor="let actuator of actuatorWithMetadata" style="height:auto">
+                <mat-list-option *ngFor="let actuator of actuatorWithMetadata; let i = index" 
+                    [value]="actuator" 
+                    [attr.data-index]="i"
+                    style="height:auto">
                     <div>
                         <mat-list>
                             <br />
                             <div mat-subheader>
-                                <span matListItemTitle>{{actuator.actuator.name}}</span>
+                                <span matListItemTitle>{{actuator.actuator.name}} - {{actuator.actuator.id}}</span>
                             </div>
                             <mat-list-item *ngFor="let metadata of actuator.metadatas" style="height:auto">
                                 <div mat-line>
@@ -150,12 +153,15 @@
             </mat-selection-list>
 
             <mat-selection-list style="height:auto" #sensorMetadatas (selectionChange)="listSelectionChange($event)">
-                <mat-list-option *ngFor="let sensor of sensorWithMetadata" style="height:auto">
+                <mat-list-option *ngFor="let sensor of sensorWithMetadata; let i = index" 
+                [value]="sensor" 
+                [attr.data-index]="i"
+                style="height:auto">
                     <div>
                         <mat-list>
                             <br />
                             <div mat-subheader>
-                                <span matListItemTitle>{{sensor.sensor.name}}</span>
+                                <span matListItemTitle>{{sensor.sensor.name}} - {{sensor.sensor.id}}</span>
                             </div>
                             <mat-list-item *ngFor="let metadata of sensor.metadatas" style="height:auto">
                                 <div mat-line>

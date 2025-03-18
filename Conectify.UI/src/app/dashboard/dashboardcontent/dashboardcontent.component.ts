@@ -146,19 +146,29 @@ export class DashboardcontentComponent implements OnInit {
     this.sensorCursor = this.params.editable ? 'move' : 'pointer';
   }
 
-  // dragEnd(event: CdkDragEnd, rule: DashboardDeviceApi) {
-  //   const { x, y } = event.source.getFreeDragPosition();
-  //   // const { x, y } = event.source.element.nativeElement.getBoundingClientRect();
-  //   //var {posx,posy} = { posx: x + event.source.element.nativeElement.offsetWidth / 2 + window.scrollX, posy: y + event.source.element.nativeElement.offsetHeight / 2 + window.scrollY };
-  //   //this.MoveComponent();
-  //   let apiModel: EditDashboardDeviceApi = { id: rule.id, posX: x, posY: y };
-  //   this.befetcher.editDasboardDevice(this.dashboard.id, apiModel);
-  // }
-
-    dragEnd(event: CdkDragEnd, rule: DashboardDeviceApi) {
-      const { x, y } = event.source.element.nativeElement.getBoundingClientRect();
-      let dragPosition = { x: x + event.source.element.nativeElement.offsetWidth / 2 + window.scrollX, y: y + event.source.element.nativeElement.offsetHeight / 2 + window.scrollY };
-      let apiModel: EditDashboardDeviceApi = { id: rule.id, posX: dragPosition.x, posY: dragPosition.y };
+  dragEnd(event: CdkDragEnd, rule: DashboardDeviceApi) {
+    // Get the transform values directly from the MatrixTransform
+    const transform = event.source.element.nativeElement.style.transform;
+    const regex = /translate3d\((-?\d+)px, (-?\d+)px, 0px\)/;
+    const matches = transform.match(regex);
+    
+    if (matches) {
+      const deltaX = parseInt(matches[1], 10);
+      const deltaY = parseInt(matches[2], 10);
+      
+      // Add these deltas to the original position
+      const newX = rule.posX + deltaX;
+      const newY = rule.posY + deltaY;
+      
+      // Update the model
+      let apiModel: EditDashboardDeviceApi = { id: rule.id, posX: newX, posY: newY };
+      rule.posX = newX;
+      rule.posY = newY;
+      
+      // Reset the drag element's position to avoid double-counting
+      event.source.reset();
+      
       this.befetcher.editDasboardDevice(this.dashboard.id, apiModel);
     }
+  }
 }
