@@ -12,6 +12,7 @@ import { WebsocketService } from '../websocket.service';
 import { DashboardParams } from 'src/models/Dashboard/DashboardParams';
 import { Router } from '@angular/router';
 
+
 @Component({
   selector: 'app-actuator-cube',
   templateUrl: './actuator-cube.component.html',
@@ -33,7 +34,7 @@ export class ActuatorCubeComponent implements OnInit {
   minValue: number = 0;
   metadataValue: number = 0;
 
-  constructor(public messenger: MessagesService, private websocketService: WebsocketService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef, private output: OutputCreatorService, private router: Router){}
+  constructor(public messenger: MessagesService, private websocketService: WebsocketService, private be: BEFetcherService, public overlay: Overlay, public viewContainerRef: ViewContainerRef, private output: OutputCreatorService, private router: Router  ){}
 
   ngOnInit(): void {
     this.refreshActualStatus();
@@ -43,8 +44,13 @@ export class ActuatorCubeComponent implements OnInit {
     var id = msg.sourceId;
     if(id && this.actuator?.sensorId && id == this.actuator?.sensorId){
       this.messenger.addMessage("Got value from ws:");
-      this.latestVal = msg;
+      this.setLatestVal(msg, "websocket");
     }
+  }
+
+  setLatestVal(val: BaseInputType, soruce: string){
+    this.latestVal = val;
+    console.warn(val.numericValue + " from " + soruce);
   }
 
   refreshActualStatus() {
@@ -54,7 +60,7 @@ export class ActuatorCubeComponent implements OnInit {
         this.websocketService.receivedMessages.subscribe(msg => {
           this.HandleIncomingValue(msg);
         });
-        this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.latestVal = x);
+        if(!this.latestVal) this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.setLatestVal(x, "latestSensorValue"));
         this.be.getActuatorMetadatas(this.actuator.id).subscribe(x => {
           this.metadatas = x;
           this.processMetadata();
