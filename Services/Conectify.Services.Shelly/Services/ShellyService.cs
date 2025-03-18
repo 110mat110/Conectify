@@ -94,8 +94,8 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             };
 
             await websocketClient.SendMessageAsync(value);
-
-            if (message.Params.Switch0.aenergy is not null && shelly.Shelly.Switches[0].Power is not null)
+        }
+            if (message.Params?.Switch0.aenergy is not null && shelly.Shelly.Switches[0].Power is not null)
             {
                 var pwr = new WebsocketEvent()
                 {
@@ -111,14 +111,13 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
                 await websocketClient.SendMessageAsync(pwr);
             }
-        }
-        if (message.Params?.Switch1 is not null)
+        if (message.Params?.Switch1?.Output is not null)
         {
             var value = new WebsocketEvent()
             {
                 Id = Guid.NewGuid(),
                 Name = "Light",
-                NumericValue = message.Params.Switch1.on ? 100 : 0,
+                NumericValue = message.Params.Switch1.Output.Value ? 100 : 0,
                 StringValue = "",
                 TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 Unit = "%",
@@ -127,8 +126,8 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             };
 
             await websocketClient.SendMessageAsync(value);
-
-            if (message.Params.Switch1.aenergy is not null && shelly.Shelly.Switches[1]?.Power is not null)
+        }
+            if (message.Params?.Switch1?.aenergy is not null && shelly.Shelly.Switches[1]?.Power is not null)
             {
                 var pwr = new WebsocketEvent()
                 {
@@ -144,7 +143,6 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
                 await websocketClient.SendMessageAsync(pwr);
             }
-        }
 
         if (message.Params?.Switch2 is not null)
         {
@@ -164,21 +162,11 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
             if (message.Params.Switch2.aenergy is not null && shelly.Shelly.Switches[2].Power is not null)
             {
-                if (!cache.FrequentValueCahce.TryGetValue(shelly.Shelly.Powers[0].SensorId, out ShellyFequentValueCahceItem? cacheItem))
-                {
-                    cacheItem = new ShellyFequentValueCahceItem() { LastSent = DateTime.MinValue };
-                    cache.FrequentValueCahce.Add(shelly.Shelly.Powers[0].SensorId, cacheItem);
-                }
-
-                var res = cacheItem.ProcessValue(CalculatePower(message.Params.Switch2.aenergy.ByMinute[0]), TimeSpan.FromSeconds(10));
-
-                if (res is null) return;
-
                 var pwr = new WebsocketEvent()
                 {
                     Id = Guid.NewGuid(),
                     Name = "Power",
-                    NumericValue = res.Value,
+                    NumericValue = message.Params.Switch2.aenergy.ByMinute[0],
                     StringValue = "",
                     TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                     Unit = "W",
