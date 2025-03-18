@@ -37,9 +37,6 @@ export class ActuatorCubeComponent implements OnInit {
 
   ngOnInit(): void {
     this.refreshActualStatus();
-    this.websocketService.receivedMessages.subscribe(msg => {
-      this.HandleIncomingValue(msg);
-    });
   }
 
   HandleIncomingValue(msg: any) : void{
@@ -54,6 +51,9 @@ export class ActuatorCubeComponent implements OnInit {
     if (this.actuatorId) {
       this.be.getActuatorDetail(this.actuatorId.id).subscribe(x => {
         this.actuator = x;
+        this.websocketService.receivedMessages.subscribe(msg => {
+          this.HandleIncomingValue(msg);
+        });
         this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.latestVal = x);
         this.be.getActuatorMetadatas(this.actuator.id).subscribe(x => {
           this.metadatas = x;
