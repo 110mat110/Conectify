@@ -95,22 +95,24 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
             await websocketClient.SendMessageAsync(value);
         }
-            if (message.Params?.Switch0.aenergy is not null && shelly.Shelly.Switches[0].Power is not null)
-            {
-                var pwr = new WebsocketEvent()
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Power",
-                    NumericValue = CalculatePower(message.Params.Switch0.aenergy.ByMinute[0]),
-                    StringValue = "",
-                    TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-                    Unit = "W",
-                    SourceId = shelly.Shelly.Switches[0].Power.SensorId,
-                    Type = Constants.Events.Value,
-                };
 
-                await websocketClient.SendMessageAsync(pwr);
-            }
+        if (message.Params?.Switch0?.aenergy is not null && shelly.Shelly.Switches[0].Power is not null)
+        {
+            var pwr = new WebsocketEvent()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Power",
+                NumericValue = CalculatePower(message.Params.Switch0.aenergy.ByMinute[0]),
+                StringValue = "",
+                TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                Unit = "W",
+                SourceId = shelly.Shelly.Switches[0].Power.SensorId,
+                Type = Constants.Events.Value,
+            };
+
+            await websocketClient.SendMessageAsync(pwr);
+        }
+
         if (message.Params?.Switch1?.Output is not null)
         {
             var value = new WebsocketEvent()
@@ -127,22 +129,23 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
             await websocketClient.SendMessageAsync(value);
         }
-            if (message.Params?.Switch1?.aenergy is not null && shelly.Shelly.Switches[1]?.Power is not null)
-            {
-                var pwr = new WebsocketEvent()
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Power",
-                    NumericValue = CalculatePower(message.Params.Switch1.aenergy.ByMinute[0]),
-                    StringValue = "",
-                    TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-                    Unit = "W",
-                    SourceId = shelly.Shelly.Switches[1].Power.SensorId,
-                    Type = Constants.Events.Value,
-                };
 
-                await websocketClient.SendMessageAsync(pwr);
-            }
+        if (message.Params?.Switch1?.aenergy is not null && shelly.Shelly.Switches[1]?.Power is not null)
+        {
+            var pwr = new WebsocketEvent()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Power",
+                NumericValue = CalculatePower(message.Params.Switch1.aenergy.ByMinute[0]),
+                StringValue = "",
+                TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                Unit = "W",
+                SourceId = shelly.Shelly.Switches[1].Power.SensorId,
+                Type = Constants.Events.Value,
+            };
+
+            await websocketClient.SendMessageAsync(pwr);
+        }
 
         if (message.Params?.Switch2 is not null)
         {
@@ -160,7 +163,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
             await websocketClient.SendMessageAsync(value);
 
-            if (message.Params.Switch2.aenergy is not null && shelly.Shelly.Switches[2].Power is not null)
+            if (message.Params?.Switch2?.aenergy is not null && shelly.Shelly.Switches[2].Power is not null)
             {
                 var pwr = new WebsocketEvent()
                 {
@@ -182,11 +185,11 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         {
             var input = message.Params?.events[0]?.id;
 
-            if(input is null)
+            if (input is null)
             {
                 return;
             }
-            
+
             var evnt = new WebsocketEvent()
             {
                 Id = Guid.NewGuid(),
@@ -234,7 +237,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         if (message.Result is not null && !string.IsNullOrEmpty(message.Result.Model))
         {
             var shellyModel = await shellyFactory.GetShelly(message.Result.Model, src, message.Result.Name);
-            if(!cache.Cache.TryAdd(src, new ShellyDeviceCacheItem()
+            if (!cache.Cache.TryAdd(src, new ShellyDeviceCacheItem()
             {
                 ShellyId = src,
                 WebSocket = source,
@@ -269,16 +272,16 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
     private async Task SendMessage(WebSocket ws, string method, object? parameters)
     {
-            var outboundWs = new OutboundWS()
-            {
-                method = method,
-                Params = parameters,
-            };
-            var rawString = JsonConvert.SerializeObject(outboundWs);
-            var msg = Encoding.UTF8.GetBytes(rawString);
+        var outboundWs = new OutboundWS()
+        {
+            method = method,
+            Params = parameters,
+        };
+        var rawString = JsonConvert.SerializeObject(outboundWs);
+        var msg = Encoding.UTF8.GetBytes(rawString);
 
-            await ws.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, default);
-            logger.LogInformation("SENT TO SHELLY: {msg}", rawString);
+        await ws.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, default);
+        logger.LogInformation("SENT TO SHELLY: {msg}", rawString);
     }
 
     public async Task SendValueToShelly(Database.Models.Values.Event evnt)
