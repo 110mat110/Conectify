@@ -63,7 +63,7 @@ public class RuleDTO
             return;
         }
 
-        await Tracing.Trace(async () => await RuleBehaviour.Execute(this, trigger, ct), trigger.Id, $"executing rule {RuleBehaviour.DisplayName}");
+        await Tracing.Trace(async () => await RuleBehaviour.Execute(this, trigger, ct), trigger.Id, $"Executing rule {RuleBehaviour.DisplayName()}");
     }
     public async Task InitializeAsync(IServiceProvider serviceProvider, RuleDTO? oldDto)
     {
@@ -73,7 +73,7 @@ public class RuleDTO
         {
             throw new ArgumentNullException($"Cannot load rule {RuleTypeId}");
         }
-        await Tracing.Trace(async () => await RuleBehaviour.InitializationValue(this, oldDto), Guid.NewGuid(), "initializing rule {RuleBehaviour.DisplayName}");
+        await Tracing.Trace(async () => await RuleBehaviour.InitializationValue(this, oldDto), Guid.NewGuid(), $"Initializing rule {RuleBehaviour.DisplayName()}");
     }
 
     public bool CanAddInput(IRuleBehaviour ruleBehaviour, InputTypeEnum inputType)

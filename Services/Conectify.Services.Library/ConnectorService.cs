@@ -205,7 +205,7 @@ public class ConnectorService(ILogger<ConnectorService> logger, ConfigurationBas
 
             if (metadataId is null)
             {
-                logger.LogWarning("Cannot find metadata {name}",metadata.Item2.MetadataName);
+                logger.LogWarning($"Cannot find metadata {metadata.Item2.MetadataName}");
                 continue;
             }
 

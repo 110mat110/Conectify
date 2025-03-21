@@ -49,7 +49,7 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
             var outputs = masterRule.Outputs.OrderBy(x => x.Index).ToList();
             if(pinputs.Count != 2 || pinputs.Any(x => x.GetEvent(serviceProvider).Result is null))
             {
-                logger.LogWarning("Not sufficient inputs. Count {count} P1: {p1}, P2: {p2}", pinputs.Count, pinputs.FirstOrDefault()?.GetEvent(serviceProvider)?.Result, pinputs.Skip(1).FirstOrDefault()?.GetEvent(serviceProvider)?.Result);
+                logger.LogWarning($"Not sufficient inputs. Count {pinputs.Count} P1: {pinputs.FirstOrDefault()?.GetEvent(serviceProvider)?.Result}, P2: {pinputs.Skip(1).FirstOrDefault()?.GetEvent(serviceProvider)?.Result}");
                 return;
             }
 
