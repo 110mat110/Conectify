@@ -2,9 +2,7 @@
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Rules;
 using Conectify.Services.Automatization.Services;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.Extensions.DependencyInjection;
-using System.Data;
+using Conectify.Shared.Library;
 
 namespace Conectify.Services.Automatization.Models.DTO;
 
@@ -65,7 +63,7 @@ public class RuleDTO
             return;
         }
 
-        await RuleBehaviour.Execute(this, trigger, ct);
+        await Tracing.Trace(async () => await RuleBehaviour.Execute(this, trigger, ct), trigger.Id, $"executing rule {RuleBehaviour.DisplayName}");
     }
     public async Task InitializeAsync(IServiceProvider serviceProvider, RuleDTO? oldDto)
     {
@@ -75,8 +73,7 @@ public class RuleDTO
         {
             throw new ArgumentNullException($"Cannot load rule {RuleTypeId}");
         }
-
-        await RuleBehaviour.InitializationValue(this, oldDto);
+        await Tracing.Trace(async () => await RuleBehaviour.InitializationValue(this, oldDto), Guid.NewGuid(), "initializing rule {RuleBehaviour.DisplayName}");
     }
 
     public bool CanAddInput(IRuleBehaviour ruleBehaviour, InputTypeEnum inputType)

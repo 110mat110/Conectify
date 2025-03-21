@@ -5,11 +5,11 @@ using AutoMapper.QueryableExtensions;
 using Conectify.Database;
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
-using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Services;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Metadata;
+using System;
+using System.Collections.Generic;
 
 public interface IUniversalDeviceService<TApi>
 {
@@ -67,21 +67,33 @@ public abstract class UniversalDeviceService<TDbs, TApi>(ConectifyDb database, I
 
         var metada = await database.Set<Metadata>().FirstOrDefaultAsync(x => x.Id == apiModel.MetadataId, ct);
         var incomingMetadata = mapper.Map<MetadataConnector<TDbs>>(apiModel);
-        var existingMetadata = await database.Set<MetadataConnector<TDbs>>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == apiModel.Id || (x.MetadataId == apiModel.MetadataId && x.DeviceId == apiModel.DeviceId), ct);
+        var existingMetadataList = await database.Set<MetadataConnector<TDbs>>().AsNoTracking().Where(x => x.Id == apiModel.Id || (x.MetadataId == apiModel.MetadataId && x.DeviceId == apiModel.DeviceId)).ToListAsync(cancellationToken: ct);
 
-        if (existingMetadata is null || metada?.Exclusive is false )
+        if(existingMetadataList.Count > 0 && metada?.Exclusive is false)
+        {
+            if(existingMetadataList.Any(range =>
+            (incomingMetadata.MinVal ?? int.MinValue) <= (range.MaxVal ?? int.MaxValue) &&
+            (incomingMetadata.MaxVal ?? int.MaxValue) >= (range.MinVal ?? int.MinValue)))
+            {
+                return false;
+            }
+
+            await database.AddAsync(incomingMetadata, ct);
+        }
+        else if (existingMetadataList is null || existingMetadataList.Count == 0 || metada?.Exclusive is false)
         {
             await database.AddAsync(incomingMetadata, ct);
         }
         else
         {
+            var existingMetadata = existingMetadataList.First();
             existingMetadata.NumericValue = incomingMetadata.NumericValue;
             existingMetadata.Unit = incomingMetadata.Unit;
             existingMetadata.StringValue = incomingMetadata.StringValue;
             existingMetadata.MinVal = incomingMetadata.MinVal;
             existingMetadata.MaxVal = incomingMetadata.MaxVal;
             existingMetadata.TypeValue = incomingMetadata.TypeValue;
-            
+
             database.Update(existingMetadata);
         }
 

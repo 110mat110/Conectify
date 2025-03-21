@@ -41,7 +41,7 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
     public async Task Execute(RuleDTO masterRule, AutomatisationEvent triggerValue, CancellationToken ct = default)
     {
         var parameters = JsonConvert.DeserializeObject<DecisionOptions>(masterRule.ParametersJson);
-
+        var logger = serviceProvider.GetRequiredService<ILogger<DecisionRuleBehaviour>>();
         if (parameters is not null)
         {
             var pinputs = masterRule.Inputs.Where(x => x.Type == InputTypeEnum.Parameter).OrderBy(x => x.Index).ToList();
@@ -49,6 +49,7 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
             var outputs = masterRule.Outputs.OrderBy(x => x.Index).ToList();
             if(pinputs.Count != 2 || pinputs.Any(x => x.GetEvent(serviceProvider).Result is null))
             {
+                logger.LogWarning("Not sufficient inputs. Count {count} P1: {p1}, P2: {p2}", pinputs.Count, pinputs.FirstOrDefault()?.GetEvent(serviceProvider)?.Result, pinputs.Skip(1).FirstOrDefault()?.GetEvent(serviceProvider)?.Result);
                 return;
             }
 

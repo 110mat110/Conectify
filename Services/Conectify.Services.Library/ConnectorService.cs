@@ -34,7 +34,7 @@ public interface IConnectorService
     Task<IEnumerable<Sensor>> LoadSensorsPerDevice(Guid deviceId, CancellationToken ct = default);
 
     Task<ApiEvent?> LoadLastValue(Guid sensorId, CancellationToken ct = default);
-
+    Task SendMetadataForSensor(List<Tuple<Guid, MetadataServiceConnector>> metadatas, CancellationToken ct = default);
 }
 
 public class ConnectorService(ILogger<ConnectorService> logger, ConfigurationBase configuration, IMapper mapper, IHttpFactory httpProvider) : IConnectorService
@@ -114,7 +114,7 @@ public class ConnectorService(ILogger<ConnectorService> logger, ConfigurationBas
 
     public async Task<ApiActuator?> LoadActuator(Guid id, CancellationToken ct = default)
     {
-        return await GetAsync<ApiActuator>("{0}/api/actuators/"+ id.ToString(), ct);
+        return await GetAsync<ApiActuator>("{0}/api/actuators/" + id.ToString(), ct);
     }
 
     public async Task<ApiSensor?> LoadSensor(Guid id, CancellationToken ct = default)
@@ -188,5 +188,33 @@ public class ConnectorService(ILogger<ConnectorService> logger, ConfigurationBas
         var jsonResult = await result.Content.ReadAsStringAsync(ct);
 
         return JsonConvert.DeserializeObject<T>(jsonResult);
+    }
+
+    public async Task SendMetadataForSensor(List<Tuple<Guid, MetadataServiceConnector>> metadatas, CancellationToken cancellationToken = default)
+    {
+        var allMetadata = await LoadAllMetadata(cancellationToken);
+        if (allMetadata is null || !allMetadata.Any())
+        {
+            logger.LogError("Cannot load metadatas!");
+            return;
+        }
+
+        foreach (var metadata in metadatas)
+        {
+            var metadataId = allMetadata.FirstOrDefault(x => x.Name.ToLowerInvariant() == metadata.Item2.MetadataName.ToLowerInvariant())?.Id;
+
+            if (metadataId is null)
+            {
+                logger.LogWarning("Cannot find metadata {name}",metadata.Item2.MetadataName);
+                continue;
+            }
+
+            var apiModel = mapper.Map<ApiMetadataConnector>(metadata.Item2);
+
+            apiModel.DeviceId = metadata.Item1;
+            apiModel.MetadataId = metadataId.Value;
+
+            await PostAsync(apiModel, "{0}/api/sensors/metadata", cancellationToken);
+        }
     }
 }

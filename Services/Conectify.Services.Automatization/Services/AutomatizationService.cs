@@ -39,21 +39,24 @@ public class AutomatizationService(IAutomatizationCache automatizationCache,
 
     private async void WebsocketClient_OnIncomingEvent(Event evnt)
     {
-        if(evnt.Type == Constants.Events.Action && evnt.DestinationId is not null)
+        await Tracing.Trace(async () =>
         {
-            var sourceRules = automatizationCache.GetRulesForSource(evnt.DestinationId.Value);
-            foreach (var sourceRule in sourceRules)
-            {
-                await sourceRule.InsertEvent(evnt, default);
-            }
-        } 
-        else
-        {
-            var sourceRules = automatizationCache.GetRulesForSource(evnt.SourceId);
-            foreach (var sourceRule in sourceRules)
-            {
-                await sourceRule.InsertEvent(evnt, default);
-            }
-        }
+             if (evnt.Type == Constants.Events.Action && evnt.DestinationId is not null)
+             {
+                 var sourceRules = automatizationCache.GetRulesForSource(evnt.DestinationId.Value);
+                 foreach (var sourceRule in sourceRules)
+                 {
+                     await sourceRule.InsertEvent(evnt, default);
+                 }
+             }
+             else
+             {
+                 var sourceRules = automatizationCache.GetRulesForSource(evnt.SourceId);
+                 foreach (var sourceRule in sourceRules)
+                 {
+                     await sourceRule.InsertEvent(evnt, default);
+                 }
+             }
+         }, evnt.Id, "Rule processing");
     }
 }

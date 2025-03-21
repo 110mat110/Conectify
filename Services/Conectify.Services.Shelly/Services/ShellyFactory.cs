@@ -2,6 +2,7 @@
 using Conectify.Services.Library;
 using Conectify.Services.Shelly.Models.Shelly;
 using Conectify.Shared.Library.Models;
+using Conectify.Shared.Library.Models.Services;
 using Newtonsoft.Json;
 
 namespace Conectify.Services.Shelly.Services;
@@ -68,7 +69,9 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
     {
         List<ApiSensor> sensors = [];
         List<ApiActuator> actuators = [];
-        foreach(var power in shelly.Powers)
+        List<Tuple<Guid,MetadataServiceConnector>> metadatas = [];
+
+        foreach (var power in shelly.Powers)
         {
             sensors.Add(new ApiSensor()
             {
@@ -84,7 +87,7 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
             {
                 Id = sw.SensorId,
                 Name = $"{shelly.Name} SW-{sw.ShellyId}",
-                SourceDeviceId = configuration.DeviceId
+                SourceDeviceId = configuration.DeviceId,
             });
             actuators.Add(new ApiActuator()
             {
@@ -93,8 +96,14 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
                 Name = $"{shelly.Name} SW-{sw.ShellyId}",
                 SourceDeviceId = configuration.DeviceId
             });
-
-            if(sw.Power is not null)
+            metadatas.Add(new (sw.SensorId, new MetadataServiceConnector()
+            {
+                MaxVal = 101,
+                MinVal = 60,
+                StringValue = "#ccccc",
+                MetadataName = "Threshold"
+            }));
+            if (sw.Power is not null)
             {
                 sensors.Add(new ApiSensor()
                 {
@@ -117,6 +126,7 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
 
         await connectorService.RegisterSensors(sensors);
         await connectorService.RegisterActuators(actuators);
+        await connectorService.SendMetadataForSensor(metadatas);
     }
 }
 
