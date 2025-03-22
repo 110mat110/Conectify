@@ -49,8 +49,6 @@ app-automatization-component{
   }
 
   .example-boundary {
-    width: 1000px;
-    height: 1000px;
     max-width: 100%;
     border: dotted #ccc 2px;
   }

@@ -2,6 +2,7 @@
 using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
+using Conectify.Services.Library;
 using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
@@ -32,13 +33,13 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
         return Task.CompletedTask;
     }
 
-    public void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
+    public async void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
     {
         var options = JsonConvert.DeserializeObject<TimeRuleOptions>(masterRule.ParametersJson);
 
         if (options is not null && DateTime.UtcNow > options.TimeSet && DateTime.UtcNow < options.TimeSet.Add(interval))
         {
-            masterRule.SetAllOutputs(new AutomatisationEvent()
+            await masterRule.SetAllOutputs(new AutomatisationEvent()
             {
                 Name = "TimeRuleResult",
                 NumericValue = 0,
@@ -58,6 +59,11 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
 
     public Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var options = JsonConvert.DeserializeObject<TimeRuleOptions>(rule.ParametersJson); 
+
+        rule.Name = $"Run at {options?.TimeSet.ToLocalTime()}";
+        rule.Description = $"Run at {options?.TimeSet.ToLocalTime()}";
+
+        return Task.CompletedTask;
     }
 }
