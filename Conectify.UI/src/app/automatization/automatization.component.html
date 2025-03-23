@@ -26,15 +26,19 @@
 </button>
 
 <br />
-<div  class="example-boundary">
-  <svg #rules style="position: relative; width:2000; height:10000px;">
-    <line *ngFor="let item of polylines" [attr.x1]="item.x1" [attr.x2]="item.x2" [attr.y1]="item.y1" [attr.y2]="item.y2"
-      [attr.stroke]="item.stroke" stroke-width="5" />
-  </svg>
-  <p>Here are automats</p>
-  <br />
-  <div *ngFor="let rule of ruleService.Rules" [style.left.px]="rule.drawingPos?.x" [style.top.px]="rule.drawingPos?.y"
-    class="example-box" cdkDragBoundary=".example-boundary" cdkDrag (cdkDragEnded)="dragEnd($event, rule)">
-    <app-automatization-component (buttonGenerated)="handleButtonGenerated($event)" [Rule]='rule' [Cage]='this'></app-automatization-component>
+
+<div class="example-boundary">
+  <div *ngFor="let rule of ruleService.Rules; let i = index" 
+       [id]="'rule-' + i"
+       [style.left.px]="rule.drawingPos?.x" 
+       [style.top.px]="rule.drawingPos?.y"
+       class="example-box" 
+       cdkDragBoundary=".example-boundary" 
+       cdkDrag 
+       (cdkDragEnded)="dragEnd($event, rule)"
+       (cdkDragMoved)="ReDrawConnections()">
+       <app-automatization-component (buttonGenerated)="handleButtonGenerated($event)" [Rule]='rule' [Cage]='this'></app-automatization-component>
   </div>
 </div>
+
+<script src="leader-line.min.js"></script>

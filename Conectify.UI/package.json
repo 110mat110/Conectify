@@ -26,6 +26,7 @@
     "arrow-line": "^0.7.5",
     "chart.js": "^4.4.3",
     "echarts": "^5.5.1",
+    "leader-line-new": "^1.1.9",
     "ngx-cookie-service": "18.0.0",
     "ngx-echarts": "^18.0.0",
     "rxjs": "~6.6.0",
