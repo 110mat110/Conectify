@@ -2,8 +2,8 @@
 using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
-using Conectify.Services.Library;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace Conectify.Services.Automatization.Rules;
 
@@ -26,6 +26,8 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
     private class TimeRuleOptions
     {
         public DateTime TimeSet { get; set; }
+
+        public string Days { get; set; } = string.Empty;
     }
 
     public Task Execute(RuleDTO masterRule, AutomatisationEvent triggerValue, CancellationToken ct = default)
@@ -37,7 +39,7 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
     {
         var options = JsonConvert.DeserializeObject<TimeRuleOptions>(masterRule.ParametersJson);
 
-        if (options is not null && DateTime.UtcNow > options.TimeSet && DateTime.UtcNow < options.TimeSet.Add(interval))
+        if (options is not null && IsCorrectDay(options) && DateTime.UtcNow.TimeOfDay > options.TimeSet.TimeOfDay && DateTime.UtcNow.TimeOfDay < options.TimeSet.Add(interval).TimeOfDay)
         {
             await masterRule.SetAllOutputs(new AutomatisationEvent()
             {
@@ -52,6 +54,13 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
 
     }
 
+    private static bool IsCorrectDay(TimeRuleOptions options)
+    {
+        string todayShort = DateTime.Now.ToString("dd", new CultureInfo("en-US")).Substring(0, 2);
+
+        return options.Days.Contains(todayShort);
+    }
+
     Task IRuleBehaviour.InitializationValue(RuleDTO rule, RuleDTO? oldDTO)
     {
         return Task.CompletedTask;
@@ -61,8 +70,8 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
     {
         var options = JsonConvert.DeserializeObject<TimeRuleOptions>(rule.ParametersJson); 
 
-        rule.Name = $"Run at {options?.TimeSet.ToLocalTime()}";
-        rule.Description = $"Run at {options?.TimeSet.ToLocalTime()}";
+        rule.Name = $"Run at {options?.Days} {options?.TimeSet.ToLocalTime().ToShortTimeString()}";
+        rule.Description = $"Run at {options?.Days} {options?.TimeSet.ToLocalTime().ToShortTimeString()}";
 
         return Task.CompletedTask;
     }
