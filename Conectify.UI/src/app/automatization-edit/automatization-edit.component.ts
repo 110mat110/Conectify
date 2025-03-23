@@ -12,6 +12,7 @@ import { AndRule } from 'src/models/Automatization/AndRule';
 import { EditRule } from 'src/models/Automatization/EditRule';
 import { BefetchAutomatizationService } from '../befetch-automatization.service';
 import { BehaviourMenuItem, MinMaxDef } from 'src/models/Automatization/BehaviourMenuItem';
+import { DelayRule } from 'src/models/Automatization/DelayRule';
 
 
 @Component({
@@ -25,6 +26,7 @@ export class AutomatizationEditComponent {
   ChangeDestinationRule?: ChangeDestinationRule;
   UserInputRule?: UserInputRule;
   SetTimeRule?: SetTimeRule;
+  DelayRule?: DelayRule;
   SetValueRule?: SetValueRule;
   DecisionRule?: DecisionRule;
   AndRuleX?: AndRule;
@@ -56,6 +58,10 @@ export class AutomatizationEditComponent {
 
     if (this.rule instanceof SetTimeRule) {
       this.SetTimeRule = this.rule;
+    }
+
+    if (this.rule instanceof DelayRule) {
+      this.DelayRule = this.rule;
     }
 
     if (this.rule instanceof SetValueRule) {

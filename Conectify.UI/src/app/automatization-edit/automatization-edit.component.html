@@ -8,6 +8,7 @@
     <app-aut-set-time *ngIf="SetTimeRule" [Rule]="SetTimeRule"></app-aut-set-time>
     <app-aut-set-value *ngIf="SetValueRule" [Rule]="SetValueRule"></app-aut-set-value>
     <app-aut-decision *ngIf="DecisionRule" [Rule]="DecisionRule"></app-aut-decision>
+    <app-aut-delay *ngIf="DelayRule" [Rule]="DelayRule"></app-aut-delay>
 </div>
 
 <button *ngIf="CanAddTrigger" (click)="AddTrigger()">Add Trigger</button>
