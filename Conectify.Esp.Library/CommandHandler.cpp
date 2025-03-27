@@ -15,8 +15,7 @@
 #include "DebugMessageLib.h"
 #include "DecodingFunctions.h"
 #include "MainFunctions.h"
-
-
+#include <Update.h>
 
 void SendCommandResponseToServer(String commandId, String response);
 void UpdateOTA(String commandId);
@@ -74,4 +73,70 @@ void SendCommandResponseToServer(String commandId, String response){
     doc.clear();
 
     SendViaWebSocket(json);
+}
+
+
+void UpdateOTA(String commandId){
+  String softwareUrl = GetSoftwareUrl(GetGlobalVariables()->baseDevice);
+
+  if(softwareUrl != ""){
+    DebugMessage("Update url: " + softwareUrl);
+    PerformOTAUpdate(softwareUrl);
+  } else{
+    DebugMessage("Got empty update URL");
+  }
+}
+
+void PerformOTAUpdate(String githubUrl) {
+HTTPClient http;
+http.begin(githubUrl);  // Initialize HTTP client with the GitHub URL
+
+int httpCode = http.GET();  // Send HTTP GET request to download the file
+
+if (httpCode == HTTP_CODE_OK) {
+  // If the response is successful, proceed with OTA update
+  int contentLength = http.getSize();
+  
+  if (contentLength > 0) {
+    bool canBegin = Update.begin(contentLength);
+    
+    if (canBegin) {
+      DebugMessage("Begin OTA update...");
+      
+      // Fetch the stream from the HTTP response
+      WiFiClient *client = http.getStreamPtr();
+      
+      // Update firmware in chunks
+      size_t written = Update.writeStream(*client);
+      
+      if (written == contentLength) {
+        DebugMessage("Written : " + String(written) + " successfully");
+      } else {
+        DebugMessage("Written only : " + String(written) + "/" + String(contentLength) + ". Retry?");
+      }
+      
+      // End the update process and check the result
+      if (Update.end()) {
+        if (Update.isFinished()) {
+          DebugMessage("Update successfully completed. Sending confirmation");
+          ConfirmUpdate(GetGlobalVariables()->baseDevice);
+          DebugMessage("Update confirmed. Rebooting");
+          ESP.restart();
+        } else {
+          DebugMessage("Update not finished? Something went wrong.");
+        }
+      } else {
+        DebugMessage("Error Occurred. Error #: " + String(Update.getError()));
+      }
+    } else {
+      DebugMessage("Not enough space to begin OTA");
+    }
+  } else {
+    DebugMessage("Content length is not valid");
+  }
+} else {
+  DebugMessage("Failed to download firmware. HTTP error code: " + String(httpCode));
+}
+
+http.end();  // Close the HTTP connection
 }

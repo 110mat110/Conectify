@@ -123,6 +123,7 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
         catch (Exception ex)
         {
             Console.WriteLine($"Error: {ex.Message}");
+            return "git error";
         }
 
         foreach( var device in await conectifyDb.DeviceVersions.Include(x => x.Device).ToListAsync())
