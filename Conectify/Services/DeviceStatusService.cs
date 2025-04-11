@@ -68,5 +68,6 @@ public class DeviceStatusService : IDeviceStatusService, IDisposable
     {
         aTimer.Stop();
         aTimer.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

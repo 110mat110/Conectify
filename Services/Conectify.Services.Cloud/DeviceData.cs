@@ -19,18 +19,18 @@ public class DeviceData(CloudConfiguration configuration) : IDeviceData
         Name = "Cloud service"
     };
 
-    public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
-        {
+    public IEnumerable<ApiSensor> Sensors =>
+        [
             new()
             {
                 Id = configuration.SensorId,
                 Name = "Cloud sensor",
                 SourceDeviceId = configuration.DeviceId,
             }
-        };
+        ];
 
-    public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>()
-        {
+    public IEnumerable<ApiActuator> Actuators =>
+        [
             new()
             {
                 Id = configuration.ActuatorId,
@@ -38,7 +38,7 @@ public class DeviceData(CloudConfiguration configuration) : IDeviceData
                 SourceDeviceId = configuration.DeviceId,
                 SensorId = configuration.SensorId
             }
-        };
+        ];
 
     public IEnumerable<ApiPreference> Preferences =>
     [
@@ -60,9 +60,9 @@ public class DeviceData(CloudConfiguration configuration) : IDeviceData
         }
     ];
 
-    public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
-	{
-		new()
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors =>
+    [
+        new()
 		{
 			MaxVal = 1,
 			MinVal = 0,
@@ -72,5 +72,5 @@ public class DeviceData(CloudConfiguration configuration) : IDeviceData
 			TypeValue = 0,
 			Unit = string.Empty,
 		}
-	};
+	];
 }

@@ -1,13 +1,12 @@
 ﻿using AutoMapper;
 using Conectify.Database.Models.Values;
-using Conectify.Services.Cloud.Services;
 using Conectify.Services.Library;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
 using Newtonsoft.Json;
 using System.Text;
 
-namespace Conectify.Services.Cloud.CloudService;
+namespace Conectify.Services.Cloud.Services;
 
 public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapper, DeviceService deviceService, IConnectorService connectorService, CloudConfiguration cloudConfiguration)
 {
@@ -89,7 +88,7 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
 
             var lastValue = await connectorService.LoadLastValue(actuatorForCloud.SensorId);
 
-            var apiCloudActuator = new ApiCloudActuator(actuatorForCloud.Id.ToString(), actuatorForCloud.Name, lastValue?.StringValue ?? string.Empty, lastValue?.NumericValue ?? 0f ,lastValue?.Unit ?? String.Empty, ioType);
+            var apiCloudActuator = new ApiCloudActuator(actuatorForCloud.Id.ToString(), actuatorForCloud.Name, lastValue?.StringValue ?? string.Empty, lastValue?.NumericValue ?? 0f ,lastValue?.Unit ?? string.Empty, ioType);
 
             using var client = new HttpClient();
             var message = new HttpRequestMessage(HttpMethod.Post, finalURL)

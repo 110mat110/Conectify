@@ -32,7 +32,7 @@ public class SensorService(ConectifyDb database, IMapper mapper, IDeviceService 
             return false;
         }
 
-        logger.LogError($"There is not sensor in dbs with id {sensorId}");
+        logger.LogError("There is not sensor in dbs with id {sensorId}", sensorId);
         await deviceService.TryAddUnknownDevice(deviceId, deviceId, ct);
 
         var sensor = new Sensor()
@@ -43,7 +43,7 @@ public class SensorService(ConectifyDb database, IMapper mapper, IDeviceService 
             SourceDeviceId = deviceId,
         };
 
-        await database.AddAsync(sensor);
+        await database.AddAsync(sensor, ct);
         await database.SaveChangesAsync(ct);
         return true;
     }
@@ -69,7 +69,7 @@ public class SensorService(ConectifyDb database, IMapper mapper, IDeviceService 
         var sensor = await database.Set<Sensor>().FirstOrDefaultAsync(x => x.Id == sensorId, ct);
         if (sensor is null)
         {
-            return new List<ApiMetadata>();
+            return [];
         }
         var sensorMetadatas = await database.Set<MetadataConnector<Sensor>>().Where(x => x.DeviceId == sensorId).AsNoTracking().ProjectTo<ApiMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
 

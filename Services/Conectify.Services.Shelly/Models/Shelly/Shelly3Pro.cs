@@ -2,7 +2,7 @@
 
 namespace Conectify.Services.Shelly.Models.Shelly;
 
-public class Shelly3Pro : IShelly
+public class Shelly3Pro : Shelly
 {
     public Shelly3Pro()
     {
@@ -50,11 +50,4 @@ public class Shelly3Pro : IShelly
             }
             ];
     }
-
-    public string Name { get; set; }
-    public List<Switch> Switches { get; set; }
-    public List<DetachedInput> DetachedInputs { get; set; } = [];
-    public List<Power> Powers { get; set; } = [];
-
-    public string Id { get; set; }
 }

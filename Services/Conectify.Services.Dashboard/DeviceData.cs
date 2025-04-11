@@ -17,13 +17,13 @@ public class DeviceData(Configuration configuration) : IDeviceData
 
     public IEnumerable<ApiSensor> Sensors => GenerateSensors();
 
-    public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>();
+    public IEnumerable<ApiActuator> Actuators => [];
 
-    public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>();
+    public IEnumerable<ApiPreference> Preferences => [];
 
-    public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>();
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors => [];
 
-    private IEnumerable<ApiSensor> GenerateSensors()
+    private List<ApiSensor> GenerateSensors()
     {
         var sensors = new List<ApiSensor>()
         {

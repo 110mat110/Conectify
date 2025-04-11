@@ -119,8 +119,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         }
         catch (Exception ex)
         {
-            logger.LogError("WS failed!");
-            logger.LogError(ex.Message);
+            logger.LogError("WS failed! {message}",ex.Message);
         }
         finally
         {
@@ -152,7 +151,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         string serializedMessage = stream.ReadToEnd();
         stream.Dispose();
 
-        var evnt = SharedDataService.DeserializeJson(serializedMessage, this.mapper);
+        var evnt = SharedDataService.DeserializeJson(serializedMessage);
 
         if (evnt is null)
         {
@@ -177,8 +176,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         }
         catch (Exception ex)
         {
-            logger.LogError("Event processing failed");
-            logger.LogError(ex, ex.Message);
+            logger.LogError("Event processing failed {message}", ex.Message);
         }
     }
 

@@ -13,5 +13,5 @@ public record ApiPreference : IApiModel
 
 public record ApiPreferences : IApiModel
 {
-    public IEnumerable<ApiPreference> Preferences { get; set; } = new List<ApiPreference>();
+    public IEnumerable<ApiPreference> Preferences { get; set; } = [];
 }

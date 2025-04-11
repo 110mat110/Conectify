@@ -10,9 +10,8 @@ namespace Conectify.Shared.Services.Data;
 
 public class SharedDataService
 {
-    public static Event? DeserializeJson(string rawJson, IMapper mapper)
+    public static Event? DeserializeJson(string rawJson)
     {
-        var expectedTypeName = string.Empty;
         try
         {
             return JsonConvert.DeserializeObject<Event>(rawJson);

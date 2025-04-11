@@ -21,22 +21,20 @@ internal class MQTTSender(Configuration configuration) : IMQTTSender
 
 		var mqttFactory = new MqttFactory();
 
-		using (var mqttClient = mqttFactory.CreateMqttClient())
-		{
-			var mqttClientOptions = new MqttClientOptionsBuilder()
-				.WithTcpServer(configuration.Broker)
-				.Build();
+        using var mqttClient = mqttFactory.CreateMqttClient();
+        var mqttClientOptions = new MqttClientOptionsBuilder()
+            .WithTcpServer(configuration.Broker)
+            .Build();
 
-			await mqttClient.ConnectAsync(mqttClientOptions, cancellationToken);
+        await mqttClient.ConnectAsync(mqttClientOptions, cancellationToken);
 
-			var applicationMessage = new MqttApplicationMessageBuilder()
-				.WithTopic(input.SourceId.ToString())
-				.WithPayload(input.NumericValue.Value.ToString())
-				.Build();
+        var applicationMessage = new MqttApplicationMessageBuilder()
+            .WithTopic(input.SourceId.ToString())
+            .WithPayload(input.NumericValue.Value.ToString())
+            .Build();
 
-			await mqttClient.PublishAsync(applicationMessage, cancellationToken);
+        await mqttClient.PublishAsync(applicationMessage, cancellationToken);
 
-			await mqttClient.DisconnectAsync();
-		}
-	}
+        await mqttClient.DisconnectAsync();
+    }
 }

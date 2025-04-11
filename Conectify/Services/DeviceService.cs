@@ -55,7 +55,7 @@ public class DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceS
             return false;
         }
 
-        logger.LogError($"There is not device in dbs with id {deviceId}");
+        logger.LogError("There is not device in dbs with id {deviceId}", deviceId);
 
         var device = new Device()
         {
@@ -67,7 +67,7 @@ public class DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceS
             SubscribeToAll = false,
         };
 
-        await database.AddAsync(device);
+        await database.AddAsync(device, ct);
         await database.SaveChangesAsync(ct);
         return true;
     }

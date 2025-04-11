@@ -69,7 +69,7 @@ public class PipelineServiceTest
         var websocketService = A.Fake<IWebSocketService>();
         var subCahce = A.Fake<ISubscribersCache>();
         var targetDeviceId = Guid.NewGuid();
-        A.CallTo(() => subCahce.AllSubscribers()).Returns(new List<Subscriber>() { new() { DeviceId = targetDeviceId, IsSubedToAll = true } });
+        A.CallTo(() => subCahce.AllSubscribers()).Returns([new() { DeviceId = targetDeviceId, IsSubedToAll = true }]);
         var service = new PipelineService(new ConectifyDb(dbContextoptions), subCahce, websocketService, mapper, A.Fake<ILogger<PipelineService>>());
 
         await service.ResendEventToSubscribers(input);
@@ -88,14 +88,12 @@ public class PipelineServiceTest
         var subCahce = A.Fake<ISubscribersCache>();
         var targetDeviceId = Guid.NewGuid();
         A.CallTo(() => subCahce.AllSubscribers())
-            .Returns(new List<Subscriber>() {
+            .Returns([
                 new() {
                     DeviceId = targetDeviceId,
                     IsSubedToAll = false,
-                    Preferences = new List<Preference>()
-                    {
-                    }
-                }});
+                    Preferences = []
+                }]);
         var service = new PipelineService(new ConectifyDb(dbContextoptions), subCahce, websocketService, mapper, A.Fake<ILogger<PipelineService>>());
 
         await service.ResendEventToSubscribers(input);
@@ -111,7 +109,7 @@ public class PipelineServiceTest
 
         var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
 
-        await service.SetPreference(sourceDeviceId, new List<ApiPreference>() { new() });
+        await service.SetPreference(sourceDeviceId, [new()]);
 
         Assert.Empty(new ConectifyDb(dbContextoptions).Set<Preference>().ToList());
     }
@@ -125,7 +123,7 @@ public class PipelineServiceTest
         var sensorId = Guid.NewGuid();
         var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
 
-        await service.SetPreference(sourceDeviceId, new List<ApiPreference>() { new() { SubscibeeId = sensorId } });
+        await service.SetPreference(sourceDeviceId, [new() { SubscibeeId = sensorId }]);
 
         Assert.Equal(sensorId, new ConectifyDb(dbContextoptions).Set<Device>().Include(i => i.Preferences).First().Preferences.First().SubscibeeId);
     }
@@ -139,7 +137,7 @@ public class PipelineServiceTest
         var subCache = A.Fake<ISubscribersCache>();
         var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
 
-        await service.SetPreference(sourceDeviceId, new List<ApiPreference>() { new() });
+        await service.SetPreference(sourceDeviceId, [new()]);
         A.CallTo(() => subCache.UpdateSubscriber(sourceDeviceId, A<CancellationToken>.Ignored)).MustHaveHappened();
     }
 
@@ -272,13 +270,6 @@ public class PipelineServiceTest
 
     private class TestEvent : Event
     {
-        public Guid SourceId { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Unit { get; set; } = string.Empty;
-        public string StringValue { get; set; } = string.Empty;
-        public float? NumericValue { get; set; }
-        public long TimeCreated { get; set; }
-        public Guid Id { get; set; }
     }
 
 }

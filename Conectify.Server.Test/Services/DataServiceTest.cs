@@ -12,7 +12,7 @@ namespace Conectify.Server.Test.Services;
 
 public class DataServiceTest
 {
-    ConectifyDb dbContext;
+    readonly ConectifyDb dbContext;
     public DataServiceTest()
     {
         var contextOptions = new DbContextOptionsBuilder<ConectifyDb>()
@@ -26,7 +26,7 @@ public class DataServiceTest
     [Fact]
     public async Task ItShallNotCrashWhenInvalidJson() //This is more integration test than UT
     {
-        DataService ds = new(A.Fake<ILogger<DataService>>(), dbContext, A.Fake<IPipelineService>(), A.Fake<IDeviceService>(), A.Fake<ISensorService>(), A.Fake<IActuatorService>(), A.Fake<IMapper>());
+        DataService ds = new(A.Fake<ILogger<DataService>>(), dbContext, A.Fake<IPipelineService>(), A.Fake<IDeviceService>(), A.Fake<ISensorService>());
 
         try
         {
@@ -52,7 +52,7 @@ public class DataServiceTest
         var sensorService = A.Fake<ISensorService>();
         var deviceService = A.Fake<IDeviceService>();
         var actuatorService = A.Fake<IActuatorService>();
-        DataService ds = new(A.Fake<ILogger<DataService>>(), dbContext, A.Fake<IPipelineService>(), deviceService, sensorService, actuatorService, mapper);
+        DataService ds = new(A.Fake<ILogger<DataService>>(), dbContext, A.Fake<IPipelineService>(), deviceService, sensorService);
 
         var sensorId = Guid.NewGuid();
         var deviceId = Guid.NewGuid();
@@ -93,7 +93,7 @@ public class DataServiceTest
             cfg.AddProfile<EventProfile>();
         }).CreateMapper();
 
-        DataService ds = new(A.Fake<ILogger<DataService>>(), dbContext, A.Fake<IPipelineService>(), A.Fake<IDeviceService>(), A.Fake<ISensorService>(), A.Fake<IActuatorService>(), mapper);
+        DataService ds = new(A.Fake<ILogger<DataService>>(), dbContext, A.Fake<IPipelineService>(), A.Fake<IDeviceService>(), A.Fake<ISensorService>());
 
         var id = Guid.NewGuid();
         var deviceId = Guid.NewGuid();

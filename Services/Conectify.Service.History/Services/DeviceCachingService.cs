@@ -18,7 +18,7 @@ public interface IDeviceCachingService
 public class DeviceCachingService : IDeviceCachingService
 {
     private IDictionary<Guid, DateTime> sensorsCache = new Dictionary<Guid, DateTime>();
-    private IDictionary<Guid, DateTime> actuatorCache = new Dictionary<Guid, DateTime>();
+    private readonly IDictionary<Guid, DateTime> actuatorCache = new Dictionary<Guid, DateTime>();
 	private readonly IConnectorService connectorService;
 
 	public DeviceCachingService(IConnectorService connectorService)

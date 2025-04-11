@@ -155,41 +155,37 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
     static async Task<JArray> ListFiles(string owner, string repo, string token)
     {
         string url = $"https://api.github.com/repos/{owner}/{repo}/contents/";
-        using (var client = new HttpClient())
-        {
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Mozilla", "5.0"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Mozilla", "5.0"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            HttpResponseMessage response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode();
+        HttpResponseMessage response = await client.GetAsync(url);
+        response.EnsureSuccessStatusCode();
 
-            string content = await response.Content.ReadAsStringAsync();
-            return JArray.Parse(content); // Return list of files as a JArray
-        }
+        string content = await response.Content.ReadAsStringAsync();
+        return JArray.Parse(content); // Return list of files as a JArray
     }
 
     static async Task<string> GetLastModifiedDate(string owner, string repo, string filePath, string token)
     {
         string url = $"https://api.github.com/repos/{owner}/{repo}/commits?path={filePath}";
-        using (var client = new HttpClient())
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Mozilla", "5.0"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        HttpResponseMessage response = await client.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+
+        string content = await response.Content.ReadAsStringAsync();
+        JArray commits = JArray.Parse(content);
+
+        if (commits.Count > 0)
         {
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Mozilla", "5.0"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-            HttpResponseMessage response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-
-            string content = await response.Content.ReadAsStringAsync();
-            JArray commits = JArray.Parse(content);
-
-            if (commits.Count > 0)
-            {
-                var lastCommit = commits[0];
-                var commitDate = lastCommit["commit"]!["committer"]!["date"]!.ToString();
-                return commitDate; // Return the last commit date for the file
-            }
-
-            return "No commits found";
+            var lastCommit = commits[0];
+            var commitDate = lastCommit["commit"]!["committer"]!["date"]!.ToString();
+            return commitDate; // Return the last commit date for the file
         }
+
+        return "No commits found";
     }
 }

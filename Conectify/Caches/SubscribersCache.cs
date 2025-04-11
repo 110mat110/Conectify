@@ -18,18 +18,15 @@ public interface ISubscribersCache
 
 public class SubscribersCache(IServiceProvider serviceProvider, IMapper mapper) : ISubscribersCache
 {
-    private static Dictionary<Guid, Subscriber> subscribers = new();
+    private static readonly Dictionary<Guid, Subscriber> subscribers = [];
     private readonly object locker = new();
 
     public IEnumerable<Subscriber> AllSubscribers() => subscribers.Select(x => x.Value);
 
     public Subscriber? GetSubscriber(Guid deviceId)
     {
-        if (subscribers.ContainsKey(deviceId))
-        {
-            return subscribers[deviceId];
-        }
-        return null;
+        subscribers.TryGetValue(deviceId, out Subscriber? value);
+        return value;
     }
 
     public bool RemoveSubscriber(Guid deviceId)
@@ -62,13 +59,13 @@ public class SubscribersCache(IServiceProvider serviceProvider, IMapper mapper) 
         if (device is not null)
         {
             var sub = mapper.Map<Subscriber>(device);
-            if (subscribers.ContainsKey(deviceId))
+            if (!subscribers.TryAdd(deviceId, sub))
             {
                 lock (locker) { subscribers[deviceId] = sub; }
             }
             else
             {
-                lock (locker) { subscribers.Add(deviceId, sub); }
+                lock (locker) { }
                 var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
                 if (meterFactory is not null)
                 {

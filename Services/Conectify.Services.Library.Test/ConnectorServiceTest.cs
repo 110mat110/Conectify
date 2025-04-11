@@ -7,11 +7,11 @@ namespace Conectify.Services.Library.Test;
 
 public class ConnectorServiceTest
 {
-    IConfiguration Configuration;
+    readonly IConfiguration Configuration;
     const string serverUrl = "test.test";
     public ConnectorServiceTest()
     {
-        var myConfiguration = new Dictionary<string, string>
+        var myConfiguration = new Dictionary<string, string?>
     {
         {"ServerUrl", serverUrl}
     };
@@ -30,7 +30,7 @@ public class ConnectorServiceTest
         A.CallTo(() => provider.HttpClient).Returns(client);
         var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
 
-        await service.RegisterDevice(new ApiDevice(), new List<ApiSensor>(), new List<ApiActuator>());
+        await service.RegisterDevice(new ApiDevice(), [], []);
 
         var resultUri = serverUrl + "/api/device";
         A.CallTo(() => client.SendAsync(A<HttpRequestMessage>.That.Matches(x => x.Method.Method == HttpMethod.Post.Method && x.RequestUri!.OriginalString == resultUri), A<CancellationToken>.Ignored)).MustHaveHappenedOnceExactly();
@@ -44,7 +44,7 @@ public class ConnectorServiceTest
         A.CallTo(() => provider.HttpClient).Returns(client);
         var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
 
-        await service.RegisterDevice(new ApiDevice(), new List<ApiSensor>() { new(), new(), new() }, new List<ApiActuator>() { new(), new() });
+        await service.RegisterDevice(new ApiDevice(), [new(), new(), new()], [new(), new()]);
 
         var deviceResultUrl = serverUrl + "/api/device";
         var sensorResultUrl = serverUrl + "/api/sensors";
@@ -60,7 +60,7 @@ public class ConnectorServiceTest
         var provider = A.Fake<IHttpFactory>();
         var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
 
-        var result = await service.SetPreferences(Guid.NewGuid(), new List<ApiPreference>());
+        var result = await service.SetPreferences(Guid.NewGuid(), []);
 
         Assert.False(result);
     }
@@ -74,7 +74,7 @@ public class ConnectorServiceTest
         var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
         var deviceId = Guid.NewGuid();
 
-        var result = await service.SetPreferences(deviceId, new List<ApiPreference>() { new(), new() });
+        var result = await service.SetPreferences(deviceId, [new(), new()]);
 
         var subsribeUrl = serverUrl + "/api/subscribe/" + deviceId.ToString();
         A.CallTo(() => client.SendAsync(A<HttpRequestMessage>.That.Matches(x => x.Method.Method == HttpMethod.Post.Method && x.RequestUri!.OriginalString == subsribeUrl), A<CancellationToken>.Ignored)).MustHaveHappenedOnceExactly();
@@ -88,7 +88,7 @@ public class ConnectorServiceTest
         var provider = A.Fake<IHttpFactory>();
         var service = new ConnectorService(A.Fake<ILogger<ConnectorService>>(), new ConfigurationBase(Configuration), A.Fake<IMapper>(), provider);
 
-        var result = await service.SendMetadataForDevice(Guid.NewGuid(), new List<MetadataServiceConnector>());
+        var result = await service.SendMetadataForDevice(Guid.NewGuid(), []);
 
         Assert.False(result);
     }

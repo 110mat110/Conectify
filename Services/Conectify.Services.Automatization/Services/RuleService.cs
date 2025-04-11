@@ -16,7 +16,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 {
     public async Task<GetRuleApiModel> AddNewRule(Guid behaviourId, CancellationToken cancellationToken)
     {
-        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(behaviourId, services);
+        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(behaviourId, services) ?? throw new Exception($"Behaviour {behaviourId} does not exist");
 
         var inputs = new List<InputPoint>();
         int inputIndex = 0;
@@ -48,8 +48,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
         };
 
         await AddExtraParamsToModel(rule, cancellationToken);
-
-        var savedRuleId = await automatizationCache.AddNewRule(rule, cancellationToken);
+        _ = await automatizationCache.AddNewRule(rule, cancellationToken);
 
         return mapper.Map<GetRuleApiModel>(rule);
     }
@@ -57,9 +56,9 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
     public async Task<Guid> AddInput(AddInputApiModel apiInput, CancellationToken ct = default)
     {
         var input = mapper.Map<InputPoint>(apiInput);
-        var rule = await automatizationCache.GetRuleByIdAsync(input.RuleId) ?? throw new ArgumentException("Rule does not exist!");
+        var rule = await automatizationCache.GetRuleByIdAsync(input.RuleId, ct) ?? throw new ArgumentException("Rule does not exist!");
 
-        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(rule.RuleTypeId, services);
+        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(rule.RuleTypeId, services) ?? throw new Exception("Behaviour not found");
 
         if (!rule.CanAddInput(behaviour, input.Type))
         {
@@ -81,11 +80,9 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
     public async Task<Guid> AddOutput(AddOutputApiModel apiOutput, CancellationToken ct = default)
     {
         var output = mapper.Map<OutputPoint>(apiOutput);
-        var rule = await automatizationCache.GetRuleByIdAsync(output.RuleId) ?? throw new ArgumentException("Rule does not exist!");
+        var rule = await automatizationCache.GetRuleByIdAsync(output.RuleId, ct) ?? throw new ArgumentException("Rule does not exist!");
 
-        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(rule.RuleTypeId, services);
-
-
+        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(rule.RuleTypeId, services) ?? throw new Exception("Behaviour not found");
         if (!rule.CanAddOutput(behaviour))
         {
             throw new Exception("Cannot add new output");
@@ -232,9 +229,12 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
     public async Task<bool> Remove(Guid ruleId, CancellationToken ct)
     {
         var rule = await database.Rules.FirstOrDefaultAsync(x => x.Id == ruleId,ct);
+
+        if (rule is null) return false;
+
         database.Rules.Remove(rule);
         await database.SaveChangesAsync(ct);
-        await automatizationCache.Reload(ruleId);
+        await automatizationCache.Reload(ruleId, ct);
 
         return true;
     }

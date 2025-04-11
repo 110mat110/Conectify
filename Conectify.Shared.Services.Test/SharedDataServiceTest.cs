@@ -9,22 +9,12 @@ namespace Conectify.Shared.Services.Test;
 
 public class SharedDataServiceTest
 {
-    IMapper Mapper;
-
-    public SharedDataServiceTest()
-    {
-        Mapper = new MapperConfiguration(cfg =>
-        {
-            cfg.AddProfile<EventProfile>();
-        }).CreateMapper();
-    }
-
     [Fact]
     public void ItShallThrowWhenInvalidJson()
     {
         try
         {
-            SharedDataService.DeserializeJson("!@#$", Mapper);
+            SharedDataService.DeserializeJson("!@#$");
         }
         catch (ConectifyException ex)
         {
@@ -37,7 +27,7 @@ public class SharedDataServiceTest
     {
         try
         {
-            SharedDataService.DeserializeJson("{\"test\":\"test\"", Mapper);
+            SharedDataService.DeserializeJson("{\"test\":\"test\"");
         }
         catch (ConectifyException ex)
         {
@@ -50,7 +40,7 @@ public class SharedDataServiceTest
     {
         try
         {
-            SharedDataService.DeserializeJson("{\"Type\":\"test\" }", Mapper);
+            SharedDataService.DeserializeJson("{\"Type\":\"test\" }");
         }
         catch (ConectifyException ex)
         {
@@ -61,10 +51,6 @@ public class SharedDataServiceTest
     [Fact]
     public void ItShallFailOnMapper()
     {
-        var mapper = new MapperConfiguration(cfg =>
-        {
-        }).CreateMapper();
-
         var websocketValue = new WebsocketEvent()
         {
             Id = Guid.NewGuid(),
@@ -79,7 +65,7 @@ public class SharedDataServiceTest
 
         try
         {
-            SharedDataService.DeserializeJson(websocketValue, mapper);
+            SharedDataService.DeserializeJson(websocketValue);
         }
         catch (AutoMapperMappingException)
         {
@@ -104,10 +90,10 @@ public class SharedDataServiceTest
             Unit = "Test"
         }.ToJson();
 
-        var result = SharedDataService.DeserializeJson(websocketValue, Mapper);
+        var result = SharedDataService.DeserializeJson(websocketValue);
 
-        Assert.Equal("Test", result.Name);
-        Assert.Equal(10, result.NumericValue);
+        Assert.Equal("Test", result?.Name);
+        Assert.Equal(10, result?.NumericValue);
     }
 
 }

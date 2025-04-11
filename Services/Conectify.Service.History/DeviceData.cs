@@ -16,18 +16,18 @@ public class DeviceData(Configuration configuration) : IDeviceData
         Name = "History service"
     };
 
-    public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
-        {
+    public IEnumerable<ApiSensor> Sensors =>
+        [
             new()
             {
                 Id = configuration.SensorId,
                 Name = "History Service Sensor",
                 SourceDeviceId = configuration.DeviceId,
             }
-        };
+        ];
 
-    public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>()
-        {
+    public IEnumerable<ApiActuator> Actuators =>
+        [
             new()
             {
                 Id = configuration.ActuatorId,
@@ -35,7 +35,7 @@ public class DeviceData(Configuration configuration) : IDeviceData
                 SourceDeviceId = configuration.DeviceId,
                 SensorId = configuration.SensorId
             }
-        };
+        ];
 
     public IEnumerable<ApiPreference> Preferences =>
     [
@@ -57,8 +57,8 @@ public class DeviceData(Configuration configuration) : IDeviceData
         }
     ];
 
-    public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
-    {
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors =>
+    [
         new()
         {
             MaxVal = 1,
@@ -69,5 +69,5 @@ public class DeviceData(Configuration configuration) : IDeviceData
             TypeValue = 0,
             Unit = string.Empty,
         }
-    };
+    ];
 }

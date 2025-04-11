@@ -17,7 +17,7 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
         { "SPSW-003XE16EU", typeof(Shelly3Pro) },
         { "SNPM-001PCEU16", typeof(ShellyPmG3) },
     };
-    public async Task<IShelly> GetShelly(string model, string id, string name)
+    public async Task<IShelly?> GetShelly(string model, string id, string name)
     {
         IShelly? shelly = null;
 
@@ -35,7 +35,7 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
 
         if (shelly is null)
         {
-            object[] parameters = { name, id};
+            object[] parameters = [name, id];
             shelly = Activator.CreateInstance(shellyType, parameters) as IShelly;
         }
 
@@ -132,5 +132,5 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
 
 public class ShellyData
 {
-    public Dictionary<string, string> shellyData = new();
+    public Dictionary<string, string> shellyData = [];
 }

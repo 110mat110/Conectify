@@ -19,7 +19,7 @@ public class DeviceData(Configuration configuration) : IDeviceData
     public IEnumerable<ApiSensor> Sensors => [];
     public IEnumerable<ApiActuator> Actuators => [];
 
-    public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>();
+    public IEnumerable<ApiPreference> Preferences => [];
 
-    public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>();
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors => [];
 }

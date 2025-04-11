@@ -28,16 +28,14 @@ public class RuleProfile : Profile
         this.CreateMap<InputPoint, InputApiModel>();
         this.CreateMap<OutputPoint, OutputApiModel>();
 
-
-        this.CreateMap<OutputPoint, OutputPointDTO>();
-
-
         this.CreateMap<Rule, RuleDTO>()
             .ForMember(x => x.RuleTypeId, opt => opt.MapFrom(x => x.RuleType))
             .ForMember(x => x.OutputValue, opt => opt.Ignore())
             .ForMember(x => x.SourceSensorId, opt => opt.MapFrom(x => SharedDataService.ExtractSourceId(x.ParametersJson)))
             .ForMember(x => x.Inputs, opt => opt.MapFrom(x => x.InputConnectors))
-                        .ForMember(x => x.Outputs, opt => opt.Ignore());
+                        .ForMember(x => x.Outputs, opt => opt.Ignore())
+                                                .ForMember(x => x.TriggerOnValue, opt => opt.Ignore())
+                        .ForMember(x => x.RuleBehaviour, opt => opt.Ignore());
 
 
         this.CreateMap<RuleDTO, Rule>()

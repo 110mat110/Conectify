@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace Conectify.Database.Models.Shelly;
 public class Shelly
 {
-    public string ShellyId { get; set; }
-    public string Json {  get; set; }
+    public string ShellyId { get; set; } = string.Empty;
+    public string Json { get; set; } = string.Empty;
 }

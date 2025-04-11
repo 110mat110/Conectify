@@ -1,6 +1,6 @@
 ﻿namespace Conectify.Services.Shelly.Models.Shelly;
 
-public class ShellyPmG3 : IShelly
+public class ShellyPmG3 : Shelly
 {
     public ShellyPmG3()
     {
@@ -23,11 +23,4 @@ public class ShellyPmG3 : IShelly
         Switches = [];
         DetachedInputs = [];
     }
-
-    public string Name { get; set; }
-    public List<Switch> Switches { get; set; }
-    public List<DetachedInput> DetachedInputs { get; set; } = [];
-    public List<Power> Powers { get; set; } = [];
-
-    public string Id { get; set; }
 }

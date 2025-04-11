@@ -7,7 +7,9 @@ using System.Globalization;
 
 namespace Conectify.Services.Automatization.Rules;
 
+#pragma warning disable CS9113 // Parameter is unread. Required for Behaviour factory 
 public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
+#pragma warning restore CS9113 // Parameter is unread.
 {
     public MinMaxDef Outputs => new(1, 1, 1);
 
@@ -56,7 +58,7 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
 
     private static bool IsCorrectDay(TimeRuleOptions options)
     {
-        string todayShort = DateTime.Now.ToString("dd", new CultureInfo("en-US")).Substring(0, 2);
+        string todayShort = DateTime.Now.ToString("dd", new CultureInfo("en-US"))[..2];
 
         return options.Days.Contains(todayShort);
     }

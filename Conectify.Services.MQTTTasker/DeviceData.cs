@@ -19,28 +19,28 @@ public class DeviceData(Configuration configuration) : IDeviceData
 
     public IEnumerable<ApiSensor> Sensors => GenerateSensors();
 
-	public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>()
-		{
-			new()
+	public IEnumerable<ApiActuator> Actuators =>
+        [
+            new()
 			{
 				Id = configuration.ActuatorId,
 				Name = "MQTTActuator",
 				SourceDeviceId = configuration.DeviceId,
 				SensorId = configuration.SensorId
 			}
-		};
+		];
 
-	public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>()
-	{
-		new()
+	public IEnumerable<ApiPreference> Preferences =>
+    [
+        new()
 		{
 			EventType = Constants.Events.Value
 		}
-	};
+	];
 
-	public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
-	{
-		new()
+	public IEnumerable<MetadataServiceConnector> MetadataConnectors =>
+    [
+        new()
 		{
 			MaxVal = 1,
 			MinVal = 0,
@@ -50,9 +50,9 @@ public class DeviceData(Configuration configuration) : IDeviceData
 			TypeValue = 0,
 			Unit = string.Empty,
 		}
-	};
+	];
 
-	private IEnumerable<ApiSensor> GenerateSensors()
+	private List<ApiSensor> GenerateSensors()
     {
         var sensors = new List<ApiSensor>()
         {

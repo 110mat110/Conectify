@@ -7,13 +7,13 @@ namespace Conectify.Services.Automatization.Rules;
 
 public class AndRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
 {
-    public MinMaxDef Outputs => new MinMaxDef(1,1,1);
+    public MinMaxDef Outputs => new(1,1,1);
 
-    public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => new List<Tuple<InputTypeEnum, MinMaxDef>>() { 
+    public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => [ 
             new(InputTypeEnum.Value, new(2,2,10)), 
             new(InputTypeEnum.Trigger, new(0,1,1)), 
             new(InputTypeEnum.Parameter, new(0,0,0)) 
-        };
+        ];
 
     public async Task Execute(RuleDTO masterRule, AutomatisationEvent trigger, CancellationToken ct)
     {
@@ -65,8 +65,9 @@ public class AndRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
     { 
     }
 
-    public async Task SetParameters(Rule rule, CancellationToken cancellationToken)
+    public Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
         rule.Description = "AND";
+        return Task.CompletedTask;
     }
 }

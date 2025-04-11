@@ -1,7 +1,7 @@
 ﻿using Conectify.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Conectify.Services.Dashboard.Controllers;
+namespace Conectify.Server.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class UserController(UserService userService) : ControllerBase

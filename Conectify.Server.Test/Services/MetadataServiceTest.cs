@@ -10,8 +10,8 @@ namespace Conectify.Server.Test.Services;
 
 public class MetadataServiceTest
 {
-    private DbContextOptions<ConectifyDb> dbContextoptions;
-    private IMapper mapper;
+    private readonly DbContextOptions<ConectifyDb> dbContextoptions;
+    private readonly IMapper mapper;
 
     public MetadataServiceTest()
     {

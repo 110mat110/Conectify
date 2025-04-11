@@ -4,7 +4,7 @@ using Conectify.Services.Shelly.Services;
 
 namespace Conectify.Services.Shelly.Models.Shelly;
 
-public class Shelly1G3 : IShelly
+public class Shelly1G3 : Shelly
 {
     public Shelly1G3()
     {
@@ -31,11 +31,4 @@ public class Shelly1G3 : IShelly
             }
             ];
     }
-
-    public string Name { get; set; }
-    public List<Switch> Switches { get; set;  } 
-    public List<DetachedInput> DetachedInputs {get; set;} = [];
-    public List<Power> Powers { get; set; }= [];
-
-    public string Id { get; set; }
 }

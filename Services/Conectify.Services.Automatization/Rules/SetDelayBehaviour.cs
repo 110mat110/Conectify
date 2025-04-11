@@ -7,7 +7,9 @@ using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
 
+#pragma warning disable CS9113 // Parameter is unread. Need to be there due to BehaviourFactory
 public class SetDelayBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
+#pragma warning restore CS9113 // Parameter is unread.
 {
     public MinMaxDef Outputs => new(1, 1, 1);
 
@@ -73,7 +75,7 @@ public class SetDelayBehaviour(IServiceProvider serviceProvider) : IRuleBehaviou
 
         if(options?.Delay is not null)
         {
-            rule.Description = $"Delay {options.Delay.ToString()}";
+            rule.Description = $"Delay {options.Delay}";
         }
 
         return Task.CompletedTask;

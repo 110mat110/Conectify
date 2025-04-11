@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using Conectify.Services.Shelly.Services
 @attribute [StreamRendering]
+@inject WebsocketCache websocketCache;
 
 <PageTitle>Shelly</PageTitle>
 
@@ -28,9 +29,6 @@
 
 @code {
     private ShellyDeviceCacheItem[] shellys = [];
-    [Inject]
-    private WebsocketCache websocketCache { get; set; }
-
 
     protected override void OnInitialized()
     {

@@ -52,7 +52,7 @@ public class MetadataService : IMetadataService
 
 	public async Task<ApiBasicMetadata?> GetMetadataByCode(string code, CancellationToken ct = default)
 	{
-		var metadata = await database.Set<Metadata>().FirstOrDefaultAsync(metadata => metadata.Code.ToLower() == code.ToLower(), ct);
+		var metadata = await database.Set<Metadata>().FirstOrDefaultAsync(metadata => metadata.Code.Equals(code, StringComparison.CurrentCultureIgnoreCase), ct);
         return mapper.Map<ApiBasicMetadata>(metadata);
 	}
 

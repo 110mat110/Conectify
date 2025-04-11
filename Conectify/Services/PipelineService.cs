@@ -35,7 +35,7 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
 
         if (device is null) return;
 
-        var preferences = mapper.Map<IEnumerable<Preference>>(apiPreferences);
+        var preferences = mapper.Map<List<Preference>>(apiPreferences);
         foreach (var preference in preferences)
         {
             preference.SubscriberId = deviceId;
@@ -49,7 +49,7 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
 
 
         device.Preferences.Concat(filteredPreferences);
-        await conectifyDb.AddRangeAsync(filteredPreferences);
+        await conectifyDb.AddRangeAsync(filteredPreferences, ct);
         device.SubscribeToAll = device.Preferences.Any(x => x.EventType == Constants.Events.All);
         conectifyDb.Update(device);
         await conectifyDb.SaveChangesAsync(ct);

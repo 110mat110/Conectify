@@ -9,13 +9,13 @@ namespace Conectify.Services.Automatization.Rules;
 
 public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
 {
-    public MinMaxDef Outputs => new MinMaxDef(1, 1, 10);
+    public MinMaxDef Outputs => new(1, 1, 10);
 
-    public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => new List<Tuple<InputTypeEnum, MinMaxDef>>() {
+    public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => [
             new(InputTypeEnum.Value, new(1,1,10)),
             new(InputTypeEnum.Trigger, new(0,1,1)),
             new(InputTypeEnum.Parameter, new(2,2,2))
-        };
+        ];
     public string DisplayName() => "DECISION";
 
     public Guid GetId()
@@ -23,7 +23,7 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
         return Guid.Parse("62d50548-fff0-44c4-8bf3-b592042b1c2b");
     }
 
-    private bool ComputeValue(string param, float? input, float? comparingValue)
+    private static bool ComputeValue(string param, float? input, float? comparingValue)
     {
         return param switch
         {
@@ -49,7 +49,7 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
             var outputs = masterRule.Outputs.OrderBy(x => x.Index).ToList();
             if(pinputs.Count != 2 || pinputs.Any(x => x.GetEvent(serviceProvider).Result is null))
             {
-                logger.LogWarning($"Not sufficient inputs. Count {pinputs.Count} P1: {pinputs.FirstOrDefault()?.GetEvent(serviceProvider)?.Result}, P2: {pinputs.Skip(1).FirstOrDefault()?.GetEvent(serviceProvider)?.Result}");
+                logger.LogWarning("Not sufficient inputs. Count {Count} P1: {p1}, P2: {p2}", pinputs.Count, pinputs.FirstOrDefault()?.GetEvent(serviceProvider)?.Result, pinputs.Skip(1).FirstOrDefault()?.GetEvent(serviceProvider)?.Result);
                 return;
             }
 
@@ -98,7 +98,7 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
             return;
 
         var cache = serviceProvider.GetRequiredService<IAutomatizationCache>();
-        var ruleDTO = await cache.GetRuleByIdAsync(rule.Id);
+        var ruleDTO = await cache.GetRuleByIdAsync(rule.Id, cancellationToken);
 
         if (ruleDTO is null)
         {
@@ -114,7 +114,7 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
             return;
         }
 
-        rule.Description = $"If P{ps[0].Index.ToString()} {parameters.Rule} P{ps[1].Index.ToString()} THEN I -> O";
+        rule.Description = $"If P{ps[0].Index} {parameters.Rule} P{ps[1].Index} THEN I -> O";
     }
 
     private record DecisionOptions

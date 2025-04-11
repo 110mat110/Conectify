@@ -16,18 +16,18 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
         Name = "Automatization 2 service"
     };
 
-    public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
-        {
+    public IEnumerable<ApiSensor> Sensors =>
+        [
             new()
             {
                 Id = configuration.SensorId,
                 Name = "Automatization 2 Sensor",
                 SourceDeviceId = configuration.DeviceId,
             }
-        };
+        ];
 
-    public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>()
-        {
+    public IEnumerable<ApiActuator> Actuators =>
+        [
             new()
             {
                 Id = configuration.ActuatorId,
@@ -35,7 +35,7 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
                 SourceDeviceId = configuration.DeviceId,
                 SensorId = configuration.SensorId
             }
-        };
+        ];
 
     public IEnumerable<ApiPreference> Preferences =>
     [
@@ -45,9 +45,9 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
         }
     ];
 
-	public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
-	{
-		new()
+	public IEnumerable<MetadataServiceConnector> MetadataConnectors =>
+    [
+        new()
 		{
 			MaxVal = 1,
 			MinVal = 0,
@@ -57,5 +57,5 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
 			TypeValue = 0,
 			Unit = string.Empty,
 		}
-	};
+	];
 }

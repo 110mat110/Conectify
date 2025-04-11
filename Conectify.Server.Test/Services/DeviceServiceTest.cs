@@ -14,9 +14,9 @@ namespace Conectify.Server.Test.Services;
 
 public class DeviceServiceTest
 {
-    private DbContextOptions<ConectifyDb> dbContextoptions;
-    private IMapper mapper;
-    private Configuration configuration;
+    private readonly DbContextOptions<ConectifyDb> dbContextoptions;
+    private readonly IMapper mapper;
+    private readonly Configuration configuration;
 
     public DeviceServiceTest()
     {
@@ -282,7 +282,7 @@ public class DeviceServiceTest
     }
 
     [Fact]
-    public async Task ItShallOverwriteExistingMetadata()
+    public async Task ItShallOverwriteExistingMetadataWhenExclusive()
     {
         var dbs = new ConectifyDb(dbContextoptions);
         var deviceId = Guid.NewGuid();
@@ -290,6 +290,7 @@ public class DeviceServiceTest
         dbs.Add(new Metadata()
         {
             Id = metadataId,
+            Exclusive = true,
         });
         dbs.Add(new Device()
         {

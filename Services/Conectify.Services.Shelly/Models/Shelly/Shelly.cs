@@ -13,6 +13,16 @@ public interface IShelly
 
 }
 
+public class Shelly() : IShelly
+{
+    public string Name { get; set; } = string.Empty;
+    public List<Switch> Switches { get; set; } = [];
+    public List<DetachedInput> DetachedInputs { get; set; } = [];
+    public List<Power> Powers { get; set; } = [];
+
+    public string Id { get; set; } = null!;
+}
+
 public class Switch
 {
     public int ShellyId { get; set; }

@@ -12,13 +12,13 @@ public interface IDataService
     Task ProcessEntity(Event mapedEntity, Guid deviceId, CancellationToken ct = default);
 }
 
-public class DataService(ILogger<DataService> logger, ConectifyDb database, IPipelineService pipelineService, IDeviceService deviceService, ISensorService sensorService, IActuatorService actuatorService, IMapper mapper) : IDataService
+public class DataService(ILogger<DataService> logger, ConectifyDb database, IPipelineService pipelineService, IDeviceService deviceService, ISensorService sensorService) : IDataService
 {
     public async Task InsertJsonModel(string rawJson, Guid deviceId, CancellationToken ct = default)
     {
         try
         {
-            var e = SharedDataService.DeserializeJson(rawJson, mapper);
+            var e = SharedDataService.DeserializeJson(rawJson);
 
             if (e == null)
             {
@@ -31,8 +31,8 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
         catch (Exception ex)
         {
             logger.LogError(ex, "Exception catched when working with devices");
-            logger.LogInformation(ex.Message);
-            logger.LogDebug(ex.StackTrace);
+            logger.LogInformation("{message}",ex.Message);
+            logger.LogDebug("{stack}",ex.StackTrace);
             database.ChangeTracker.Clear();
         }
     }
@@ -52,7 +52,7 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
         }
         catch (Exception ex)
         {
-            logger.LogError($"{ex.Message}", ex);
+            logger.LogError("{Message}", ex.Message);
         }
     }
 

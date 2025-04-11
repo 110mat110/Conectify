@@ -6,6 +6,6 @@ public class Configuration(IConfiguration configuration) : Library.Configuration
 
     public Guid ActuatorId { get; set; }
 
-    public string Token { get; set; }
-    public string ClientKey { get; set; }
+    public string Token { get; set; } = string.Empty;
+    public string ClientKey { get; set; } = string.Empty;
 }

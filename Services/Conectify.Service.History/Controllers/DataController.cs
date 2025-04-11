@@ -6,7 +6,7 @@ namespace Conectify.Service.History.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class DataController(ILogger<DataController> logger, IDataCachingService dataCachingService) : ControllerBase
+public class DataController(IDataCachingService dataCachingService) : ControllerBase
 {
     [HttpGet("{sensorId}/values")]
     public async Task<IEnumerable<ApiEvent>> Get(Guid sensorId)

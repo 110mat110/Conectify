@@ -38,7 +38,7 @@ public class ActuatorService(ConectifyDb database, IMapper mapper, IDeviceServic
             SourceDeviceId = deviceId,
         };
 
-        await database.AddAsync(actuator);
+        await database.AddAsync(actuator, ct);
         await database.SaveChangesAsync(ct);
         return true;
     }
@@ -53,7 +53,7 @@ public class ActuatorService(ConectifyDb database, IMapper mapper, IDeviceServic
         var actuator = await database.Set<Actuator>().FirstOrDefaultAsync(x => x.Id == actuatorId, ct);
         if (actuator is null)
         {
-            return new List<ApiMetadata>();
+            return [];
         }
         var actuatorMetadatas = await database.Set<MetadataConnector<Actuator>>().Where(x => x.DeviceId == actuatorId).AsNoTracking().ProjectTo<ApiMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
 

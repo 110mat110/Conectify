@@ -33,7 +33,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
         }
         else
         {
-            logger.LogWarning("There was already websocket connected as " + deviceId.ToString() + " so I have redirected old traffic to new one");
+            logger.LogWarning("There was already websocket connected as {deviceId} so I have redirected old traffic to new one", deviceId);
         }
 
         return true;
@@ -53,13 +53,13 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
             else
             {
                 var incomingJson = Encoding.UTF8.GetString(buffer);
-                logger.LogInformation(incomingJson);
+                logger.LogInformation("{incomingJson}",incomingJson);
                 var dataService = serviceProvider.GetRequiredService<IDataService>();
                 await dataService.InsertJsonModel(incomingJson, deviceId, ct);
             }
 
         } while (webSocket.State == WebSocketState.Open);
-        logger.LogCritical($"Websocket have been closed! Websocket state: {webSocket.State}, client: {deviceId}");
+        logger.LogCritical("Websocket have been closed! Websocket state: {State}, client: {deviceId}", webSocket.State, deviceId);
     }
 
     public async Task<bool> SendToDeviceAsync(Guid deviceId, IWebsocketModel returnValue, CancellationToken cancelationToken = default)
@@ -75,7 +75,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
         try
         {
             var msg = Encoding.UTF8.GetBytes(rawString);
-            var socket = websocketCache.GetActiveSocket(deviceId);
+            var socket = websocketCache.GetActiveSocket(deviceId) ?? throw new InvalidOperationException("Socket does not exist");
 
             await socket.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, cancelationToken);
             logger.LogInformation("Value sended to active websocket {deviceId}", deviceId);
@@ -86,7 +86,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
             cache.RemoveSubscriber(deviceId);
             await websocketCache.Remove(deviceId, cancelationToken);
             logger.LogError("Cannot send message to {deviceId}", deviceId);
-            logger.LogError(ex.Message);
+            logger.LogError("{message}",ex.Message);
             return false;
         }
     }

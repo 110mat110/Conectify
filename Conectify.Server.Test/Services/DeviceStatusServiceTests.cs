@@ -11,9 +11,9 @@ namespace Conectify.Server.Test.Services;
 
 public class DeviceStatusServiceTests
 {
-    private ISubscribersCache fakeSubscribersCache;
-    private Configuration fakeConfiguration;
-    private IServiceScopeFactory fakeDataService;
+    private readonly ISubscribersCache fakeSubscribersCache;
+    private readonly Configuration fakeConfiguration;
+    private readonly IServiceScopeFactory fakeDataService;
 
     public DeviceStatusServiceTests()
     {

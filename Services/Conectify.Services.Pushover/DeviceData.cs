@@ -15,19 +15,19 @@ public class DeviceData(Configuration configuration) : IDeviceData
         Name = "Pushover"
     };
 
-    public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
-    {
+    public IEnumerable<ApiSensor> Sensors =>
+    [
         new()
         {
             Id = configuration.SensorId,
             Name = "Pushover",
             SourceDeviceId = configuration.DeviceId,
         }
-    };
+    ];
 
-    public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>();
+    public IEnumerable<ApiPreference> Preferences => [];
 
-    public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>();
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors => [];
 
     public IEnumerable<ApiActuator> Actuators =>
     [

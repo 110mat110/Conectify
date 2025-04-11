@@ -33,10 +33,7 @@ public class RuleDTO
 
     public void Clock(TimeSpan timeSpan)
     {
-        if (RuleBehaviour is not null)
-        {
-            RuleBehaviour.Clock(this, timeSpan);
-        }
+        RuleBehaviour?.Clock(this, timeSpan);
     }
 
     public async Task InsertEvent(Event evnt, CancellationToken ct)

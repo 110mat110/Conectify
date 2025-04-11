@@ -20,7 +20,7 @@ public interface IWebsocketCache
 
 public class WebsocketCache(IServiceProvider serviceProvider, ILogger<WebsocketCache> logger) : IWebsocketCache
 {
-    private static readonly Dictionary<Guid, WSCahceItem> sockets = new();
+    private static readonly Dictionary<Guid, WSCahceItem> sockets = [];
     private readonly object locker = new();
 
     public int ActiveSocketCount => sockets.Count;
@@ -104,7 +104,7 @@ public class WebsocketCache(IServiceProvider serviceProvider, ILogger<WebsocketC
 
     public int GetNoOfActiveSockets(Guid deviceId)
     {
-        return sockets.ContainsKey(deviceId) ? sockets[deviceId].Count : 0;
+        return sockets.TryGetValue(deviceId, out WSCahceItem? value) ? value.Count : 0;
     }
 
     public bool IsActiveSocket(Guid deviceId)

@@ -11,5 +11,5 @@ public record ApiActuator : IApiModel
     public Guid SourceDeviceId { get; set; }
     public Guid SensorId { get; set; }
 
-    public virtual List<ApiMetadata> Metadata { get; set; } = new List<ApiMetadata>();
+    public virtual List<ApiMetadata> Metadata { get; set; } = [];
 }

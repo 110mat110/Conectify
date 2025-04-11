@@ -23,6 +23,6 @@ if (app.Environment.IsDevelopment())
 await app.Services.ConnectToConectifyServer();
 
 var scraper = app.Services.GetRequiredService<OccupancyService>();
-scraper.CheckForLiveDevices();
+await scraper.CheckForLiveDevices();
 
 app.Run();

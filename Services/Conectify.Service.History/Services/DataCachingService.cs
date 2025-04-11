@@ -20,7 +20,7 @@ public interface IDataCachingService
 public class DataCachingService : IDataCachingService
 {
     private readonly object locker = new();
-    private readonly IDictionary<Guid, CacheItem<Event>> valueCache = new Dictionary<Guid, CacheItem<Event>>(); //TODO check if I should not use Concurency dictionary here
+    private readonly Dictionary<Guid, CacheItem<Event>> valueCache = []; //TODO check if I should not use Concurency dictionary here
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
     private readonly ILogger<DataCachingService> logger;

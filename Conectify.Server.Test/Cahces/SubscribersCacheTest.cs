@@ -12,8 +12,8 @@ namespace Conectify.Server.Test.Cahces;
 
 public class SubscribersCacheTest
 {
-    private ConectifyDb dbContext;
-    private IServiceProvider serviceProvider;
+    private readonly ConectifyDb dbContext;
+    private readonly IServiceProvider serviceProvider;
 
     public SubscribersCacheTest()
     {
@@ -64,15 +64,15 @@ public class SubscribersCacheTest
             Name = "test",
             MacAdress = "test",
             IPAdress = "test",
-            Preferences = new List<Preference>()
-            {
+            Preferences =
+            [
                 new()
                 {
                     SubscriberId=deviceId,
                     Id = Guid.NewGuid(),
                     EventType = Constants.Events.Value
                 }
-            }
+            ]
         };
         await dbContext.AddAsync(device);
         await dbContext.SaveChangesAsync();
@@ -103,15 +103,15 @@ public class SubscribersCacheTest
             Name = "test",
             MacAdress = "test",
             IPAdress = "test",
-            Preferences = new List<Preference>()
-            {
+            Preferences =
+            [
                 new()
                 {
                     SubscriberId=deviceId,
                     Id = Guid.NewGuid(),
                     EventType = Constants.Events.Value
                 }
-            }
+            ]
         };
         await dbContext.AddAsync(device);
         await dbContext.SaveChangesAsync();

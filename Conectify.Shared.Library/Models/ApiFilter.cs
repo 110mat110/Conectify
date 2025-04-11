@@ -13,7 +13,7 @@ public record ApiFilter : IApiModel
 
     public int Count { get; set; } = 20;
 
-    public IEnumerable<ApiMetadataFilter> MetadataFilters { get; set; } = new List<ApiMetadataFilter>();
+    public IEnumerable<ApiMetadataFilter> MetadataFilters { get; set; } = [];
 }
 
 public record ApiMetadataFilter: IApiModel

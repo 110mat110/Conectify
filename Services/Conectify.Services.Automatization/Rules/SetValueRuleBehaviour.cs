@@ -6,7 +6,10 @@ using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
 
+#pragma warning disable CS9113 // Parameter is unread. Required for Behaviour factory 
 public class SetValueRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
+#pragma warning restore CS9113 // Parameter is unread.
+
 {
     public MinMaxDef Outputs => new(1, 1, 1);
 
@@ -69,12 +72,13 @@ public class SetValueRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
     {
     }
 
-    public async Task SetParameters(Rule rule, CancellationToken cancellationToken)
+    public Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
         var value = JsonConvert.DeserializeObject<SetValueOptions>(rule.ParametersJson);
-        if (value is null) return; 
+        if (value is null) return Task.CompletedTask;  
         var stringValue = !string.IsNullOrEmpty(value.StringValue) ? $" || {value.StringValue} {value.Unit}" : string.Empty;
         rule.Description = $"{value.NumericValue}{value.Unit}{stringValue} ";
+        return Task.CompletedTask;
     }
 
     private record SetValueOptions

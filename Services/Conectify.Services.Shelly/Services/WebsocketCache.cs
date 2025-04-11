@@ -11,9 +11,9 @@ public class WebsocketCache
 
 public class ShellyDeviceCacheItem
 {
-    public string ShellyId { get; set; }
-    public WebSocket WebSocket { get; set; }
-    public IShelly Shelly { get; set; }
+    public required string ShellyId { get; set; }
+    public WebSocket? WebSocket { get; set; }
+    public required IShelly Shelly { get; set; }
 }
 
 public class ShellyFequentValueCahceItem

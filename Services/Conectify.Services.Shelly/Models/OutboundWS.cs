@@ -7,7 +7,7 @@ public class OutboundWS
     public string jsonrpc = "2.0";
     public int id = 10;
     public string src = "wsserver";
-    public string method { get; set; }
+    public string method { get; set; } = string.Empty;
     [JsonProperty("params")]
-    public object Params { get; set; }
+    public object? Params { get; set; }
 }

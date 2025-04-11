@@ -15,20 +15,20 @@ public class DeviceData(Configuration configuration) : IDeviceData
         Name = "Occupancy check"
     };
 
-    public IEnumerable<ApiSensor> Sensors => new List<ApiSensor>()
-    {
+    public IEnumerable<ApiSensor> Sensors =>
+    [
         new()
         {
             Id = configuration.SensorId,
             Name = "Occupancy",
             SourceDeviceId = configuration.DeviceId,
         }
-    };
+    ];
 
-    public IEnumerable<ApiPreference> Preferences => new List<ApiPreference>();
+    public IEnumerable<ApiPreference> Preferences => [];
 
-    public IEnumerable<MetadataServiceConnector> MetadataConnectors => new List<MetadataServiceConnector>()
-    {
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors =>
+    [
         new()
         {
             MaxVal = 1,
@@ -39,7 +39,7 @@ public class DeviceData(Configuration configuration) : IDeviceData
             TypeValue = 0,
             Unit = string.Empty,
         }
-    };
+    ];
 
-    public IEnumerable<ApiActuator> Actuators => new List<ApiActuator>();
+    public IEnumerable<ApiActuator> Actuators => [];
 }

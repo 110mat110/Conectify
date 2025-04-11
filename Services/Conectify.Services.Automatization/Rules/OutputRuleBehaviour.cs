@@ -13,13 +13,13 @@ namespace Conectify.Services.Automatization.Rules;
 
 public class OutputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
 {
-    public MinMaxDef Outputs => new MinMaxDef(0, 0, 0);
+    public MinMaxDef Outputs => new(0, 0, 0);
 
-    public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => new List<Tuple<InputTypeEnum, MinMaxDef>>() {
+    public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => [
             new(InputTypeEnum.Value, new(1,1,1)),
             new(InputTypeEnum.Trigger, new(0,1,1)),
             new(InputTypeEnum.Parameter, new(0,0,0))
-        };
+        ];
 
     public string DisplayName() => "OUTPUT";
 
@@ -39,7 +39,7 @@ public class OutputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavi
 
                 var command = new WebsocketEvent()
                 {
-                    DestinationId = options.DestinationId,
+                    DestinationId = options?.DestinationId,
                     Name = triggerValue.Name,
                     NumericValue = triggerValue.NumericValue,
                     StringValue = triggerValue.StringValue,

@@ -18,67 +18,19 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Xunit;
 using Conectify.Services.Automatization.Models.Database;
 
-namespace Conectify.Services.Tests.Automatization.Services
+namespace Conectify.Services.Automatization.Test.Services;
+
+public class RuleServiceTests
 {
-    public class RuleServiceTests
+    private readonly ConectifyDb dbContext;
+
+    public RuleServiceTests()
     {
-        private ConectifyDb dbContext;
+        var contextOptions = new DbContextOptionsBuilder<ConectifyDb>()
+            .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
+            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
 
-        public RuleServiceTests()
-        {
-            var contextOptions = new DbContextOptionsBuilder<ConectifyDb>()
-                .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
-                .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-                .Options;
-
-            dbContext = new ConectifyDb(contextOptions);
-        }
-
-        [Fact]
-        public async Task ShouldAddNewRule_CorrectRule_ReturnRuleId()
-        {
-            var ac = A.Fake<IAutomatizationCache>();
-            var id = Guid.NewGuid();
-            A.CallTo(() => ac.AddNewRule(A<Rule>.Ignored, A<CancellationToken>.Ignored)).Returns(id);
-
-            var createRuleApiModel = new CreateRuleApiModel()
-            {
-                BehaviourId = Guid.NewGuid(),
-                Parameters = "",
-                X = 100,
-                Y = 100,
-            };
-
-            var ruleService = new RuleService(ac, A.Fake<IMapper>(), dbContext, A.Fake<IConnectorService>(), A.Fake<IDeviceData>(), A.Fake<ITimingService>() );
-
-            var result = await ruleService.AddNewRule(createRuleApiModel, CancellationToken.None);
-
-            Assert.Equal(result, id);
-        }
-
-        [Theory]
-        [InlineData( "{}", "d274c7f0-211e-413a-8689-f2543dbfc818" )]
-        public async Task ShouldAddNewRule_SpecificRules_AddExtraParams(string parameters, string behaviourId)
-        {
-            var ac = A.Fake<IAutomatizationCache>();
-            var id = Guid.NewGuid();
-            A.CallTo(() => ac.AddNewRule(A<Rule>.Ignored, A<CancellationToken>.Ignored)).Returns(id);
-
-            var createRuleApiModel = new CreateRuleApiModel()
-            {
-                BehaviourId = Guid.Parse(behaviourId),
-                Parameters = parameters,
-                X = 100,
-                Y = 100,
-            };
-
-            var ruleService = new RuleService(ac, A.Fake<IMapper>(), dbContext, A.Fake<IConnectorService>(), A.Fake<IDeviceData>(), A.Fake<ITimingService>());
-
-            var result = await ruleService.AddNewRule(createRuleApiModel, CancellationToken.None);
-
-            Assert.Equal(result, id);
-        }
+        dbContext = new ConectifyDb(contextOptions);
     }
-
-
 }

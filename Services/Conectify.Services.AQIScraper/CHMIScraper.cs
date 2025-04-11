@@ -39,7 +39,7 @@ public class CHMIScraper(IServicesWebsocketClient websocketClient, Configuration
                 Unit = "PM10",
                 Type = Constants.Events.Value,
             };
-            logger.LogInformation($"Got values! AQI is {AQI}");
+            logger.LogInformation("Got values! AQI is {AQI}", AQI);
             await websocketClient.SendMessageAsync(value);
         }
         catch (Exception ex)

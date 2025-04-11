@@ -13,11 +13,11 @@ public class InputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
 {
     public MinMaxDef Outputs => new(1, 1, 1);
 
-    public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => new List<Tuple<InputTypeEnum, MinMaxDef>>() {
+    public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => [
             new(InputTypeEnum.Value, new(0,0,0)),
             new(InputTypeEnum.Trigger, new(0,0,0)),
             new(InputTypeEnum.Parameter, new(0,0,0))
-        };
+        ];
 
     public string DisplayName() => "ON EVENT";
 
