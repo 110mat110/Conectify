@@ -1,8 +1,8 @@
 ﻿namespace Conectify.Shared.Library.Models.Websocket;
 
+using System;
 using Conectify.Shared.Library.Classes;
 using Conectify.Shared.Library.Interfaces;
-using System;
 
 public interface IWebsocketEvent : ISerializable, IWebsocketModel
 {

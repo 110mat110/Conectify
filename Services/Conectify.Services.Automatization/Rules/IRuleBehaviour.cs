@@ -13,13 +13,13 @@ public interface IRuleBehaviour
 
     MinMaxDef Outputs { get; }
 
-    IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs { get;}
+    IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs { get; }
 
     Task Execute(RuleDTO masterRule, AutomatisationEvent triggerValue, CancellationToken ct = default);
 
     Task InitializationValue(RuleDTO rule, RuleDTO? oldDTO);
 
-    void Clock(RuleDTO masterRule, TimeSpan interval,  CancellationToken ct = default);
+    void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default);
 
     Task SetParameters(Rule rule, CancellationToken cancellationToken);
 }

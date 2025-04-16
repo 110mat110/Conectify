@@ -38,7 +38,7 @@ public class DeviceServiceTest
     public async Task ItShallAddUnknownDeviceToDatabase()
     {
         var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
-		var deviceId = Guid.NewGuid();
+        var deviceId = Guid.NewGuid();
 
         var result = await service.TryAddUnknownDevice(deviceId);
 
@@ -160,7 +160,7 @@ public class DeviceServiceTest
         dbs.SaveChanges();
 
         var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
-		var result = await service.GetSpecificDevice(deviceId);
+        var result = await service.GetSpecificDevice(deviceId);
 
         Assert.NotNull(result);
         Assert.Equal(deviceName, result!.Name);
@@ -171,7 +171,7 @@ public class DeviceServiceTest
     public async Task ItShallReturnNullWhenDeviceIsNotInDb()
     {
         var service = new DeviceService(new ConectifyDb(dbContextoptions), mapper, A.Fake<ILogger<DeviceService>>(), A.Fake<IHttpFactory>(), configuration, A.Fake<IWebsocketCache>());
-		var result = await service.GetSpecificDevice(Guid.NewGuid());
+        var result = await service.GetSpecificDevice(Guid.NewGuid());
 
         Assert.Null(result);
     }
@@ -368,7 +368,7 @@ public class DeviceServiceTest
         dbs.Add(new MetadataConnector<Device>()
         {
             DeviceId = hiddenDeviceId,
-            Metadata = new Metadata() { Name = Constants.Metadatas.Visible},
+            Metadata = new Metadata() { Name = Constants.Metadatas.Visible },
             NumericValue = 0,
         });
         dbs.Add(new Device()

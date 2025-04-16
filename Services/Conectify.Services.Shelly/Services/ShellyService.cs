@@ -1,10 +1,10 @@
-﻿using Conectify.Services.Library;
+﻿using System.Net.WebSockets;
+using System.Text;
+using Conectify.Services.Library;
 using Conectify.Services.Shelly.Models;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
 using Newtonsoft.Json;
-using System.Net.WebSockets;
-using System.Text;
 
 namespace Conectify.Services.Shelly.Services;
 
@@ -210,26 +210,26 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             }
             var measuredPower = message.Params?.Pm0?.apower;
 
-                var res = value.ProcessValue(message.Params?.Pm0?.apower, TimeSpan.FromSeconds(measuredPower < 1 ? 0 : 10));
+            var res = value.ProcessValue(message.Params?.Pm0?.apower, TimeSpan.FromSeconds(measuredPower < 1 ? 0 : 10));
 
-                if (res is null)
-                {
-                    return;
-                }
+            if (res is null)
+            {
+                return;
+            }
 
-                var pwr = new WebsocketEvent()
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Power",
-                    NumericValue = res.Value,
-                    StringValue = "",
-                    TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-                    Unit = "W",
-                    SourceId = shelly.Shelly.Powers[0].SensorId,
-                    Type = Constants.Events.Value,
-                };
+            var pwr = new WebsocketEvent()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Power",
+                NumericValue = res.Value,
+                StringValue = "",
+                TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                Unit = "W",
+                SourceId = shelly.Shelly.Powers[0].SensorId,
+                Type = Constants.Events.Value,
+            };
 
-                await websocketClient.SendMessageAsync(pwr);
+            await websocketClient.SendMessageAsync(pwr);
 
             if (measuredPower < 1)
             {

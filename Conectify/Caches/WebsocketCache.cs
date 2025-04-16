@@ -1,9 +1,8 @@
 ﻿namespace Conectify.Server.Caches;
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Writers;
 using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
+using Microsoft.Extensions.DependencyInjection;
 
 public interface IWebsocketCache
 {

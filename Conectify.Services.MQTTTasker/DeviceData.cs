@@ -5,7 +5,6 @@ using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Services;
 using Conectify.Shared.Services;
-using System.Reflection.Metadata;
 
 public class DeviceData(Configuration configuration) : IDeviceData
 {
@@ -19,40 +18,40 @@ public class DeviceData(Configuration configuration) : IDeviceData
 
     public IEnumerable<ApiSensor> Sensors => GenerateSensors();
 
-	public IEnumerable<ApiActuator> Actuators =>
+    public IEnumerable<ApiActuator> Actuators =>
         [
             new()
-			{
-				Id = configuration.ActuatorId,
-				Name = "MQTTActuator",
-				SourceDeviceId = configuration.DeviceId,
-				SensorId = configuration.SensorId
-			}
-		];
+            {
+                Id = configuration.ActuatorId,
+                Name = "MQTTActuator",
+                SourceDeviceId = configuration.DeviceId,
+                SensorId = configuration.SensorId
+            }
+        ];
 
-	public IEnumerable<ApiPreference> Preferences =>
+    public IEnumerable<ApiPreference> Preferences =>
     [
         new()
-		{
-			EventType = Constants.Events.Value
-		}
-	];
+        {
+            EventType = Constants.Events.Value
+        }
+    ];
 
-	public IEnumerable<MetadataServiceConnector> MetadataConnectors =>
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors =>
     [
         new()
-		{
-			MaxVal = 1,
-			MinVal = 0,
-			MetadataName = "Visible",
-			NumericValue = 0,
-			StringValue = string.Empty,
-			TypeValue = 0,
-			Unit = string.Empty,
-		}
-	];
+        {
+            MaxVal = 1,
+            MinVal = 0,
+            MetadataName = "Visible",
+            NumericValue = 0,
+            StringValue = string.Empty,
+            TypeValue = 0,
+            Unit = string.Empty,
+        }
+    ];
 
-	private List<ApiSensor> GenerateSensors()
+    private List<ApiSensor> GenerateSensors()
     {
         var sensors = new List<ApiSensor>()
         {

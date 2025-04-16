@@ -1,10 +1,10 @@
 ﻿namespace Conectify.Database.Models;
 
-using Conectify.Database.Interfaces;
-using Conectify.Shared.Library.Classes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Conectify.Database.Interfaces;
+using Conectify.Shared.Library.Classes;
 
 public class Sensor : Serializable, IMetadatable<Sensor>, IEntity, IDevice
 {

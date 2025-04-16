@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Conectify.Database.Models.Updates;
+﻿namespace Conectify.Database.Models.Updates;
 public class DeviceVersion
 {
     public Guid DeviceId { get; set; }

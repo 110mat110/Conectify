@@ -18,8 +18,8 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<ISubscribersCache, SubscribersCache>();
         services.AddSingleton<IWebsocketCache, WebsocketCache>();
         services.AddTransient<IMetadataService, MetadataService>();
-		services.AddSingleton<Configuration>();
-		services.AddTransient<IHttpFactory, HttpFactory>();
+        services.AddSingleton<Configuration>();
+        services.AddTransient<IHttpFactory, HttpFactory>();
         services.AddSingleton<IDeviceStatusService, DeviceStatusService>();
         services.AddTransient<IUpdateService, UpdateService>();
         services.AddTransient<UserService>();

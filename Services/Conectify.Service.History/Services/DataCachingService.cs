@@ -5,7 +5,6 @@ using Conectify.Service.History.Models;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Values;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
 
 namespace Conectify.Service.History.Services;
 
@@ -89,7 +88,7 @@ public class DataCachingService : IDataCachingService
                     valueCache.Add(value.SourceId, new CacheItem<Event>(value));
                 }
             }
-        }, value.Id, "Insert value"); 
+        }, value.Id, "Insert value");
     }
 
     private async Task ReloadCache(Guid sensorId, Guid traceId, CancellationToken ct = default)

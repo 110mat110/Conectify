@@ -3,7 +3,6 @@ using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
 using Conectify.Shared.Services.Data;
-using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Mapper;
 

@@ -4,7 +4,6 @@ using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
 using Conectify.Services.Library;
 using Conectify.Shared.Library;
-using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
@@ -30,7 +29,8 @@ public class InputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
     {
         Options = JsonConvert.DeserializeObject<InputRuleOptions>(masterRule.ParametersJson);
 
-        if(string.IsNullOrEmpty(Options?.Event) || Options.Event == Constants.Events.All || triggerValue.Type == Options.Event){
+        if (string.IsNullOrEmpty(Options?.Event) || Options.Event == Constants.Events.All || triggerValue.Type == Options.Event)
+        {
             await masterRule.SetAllOutputs(triggerValue);
         }
     }

@@ -17,4 +17,4 @@ public class Dashboard : IEntity
     public virtual User User { get; set; } = null!;
 }
 
-public enum DashboardType { Basic, Grid}
+public enum DashboardType { Basic, Grid }

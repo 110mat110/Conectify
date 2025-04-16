@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Text;
+using AutoMapper;
 using Conectify.Database.Models;
 using Conectify.Shared.Library.Interfaces;
 using Conectify.Shared.Library.Models;
@@ -7,7 +8,6 @@ using Conectify.Shared.Library.Models.Values;
 using Conectify.Shared.Library.Services;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Text;
 
 namespace Conectify.Services.Library;
 

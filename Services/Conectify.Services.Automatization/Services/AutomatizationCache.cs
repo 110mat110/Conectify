@@ -1,5 +1,5 @@
-﻿using AutoMapper;
-using Conectify.Database;
+﻿using System.Diagnostics;
+using AutoMapper;
 using Conectify.Services.Automatization.Database;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
@@ -35,12 +35,16 @@ public class AutomatizationCache : IAutomatizationCache
     private DateTime lastReload;
     private readonly TimeSpan cacheLongevity = new(0, 10, 0);
 
-    private static bool reloading;
-    public AutomatizationCache(IServiceProvider services, IMapper mapper)
+    private bool reloading = false;
+    public AutomatizationCache(IServiceProvider services, IMapper mapper, bool reload = true)
     {
+        reloading = false;
         this.services = services;
         this.mapper = mapper;
-        _ = Reload().Result;
+        if (reload)
+        {
+            _ = Reload().Result;
+        }
     }
 
     public async Task<RuleDTO?> GetRuleByIdAsync(Guid id, CancellationToken ct = default)
@@ -72,9 +76,9 @@ public class AutomatizationCache : IAutomatizationCache
     public async Task<Guid> AddNewRule(Rule rule, CancellationToken cancellationToken)
     {
         using var scope = services.CreateScope();
-        var automatizaionDb = scope.ServiceProvider.GetRequiredService<AutomatizationDb>();
-        await automatizaionDb.Set<Rule>().AddAsync(rule, cancellationToken);
-        await automatizaionDb.SaveChangesAsync(cancellationToken);
+        var automatizationDb = scope.ServiceProvider.GetRequiredService<AutomatizationDb>();
+        await automatizationDb.Set<Rule>().AddAsync(rule, cancellationToken);
+        await automatizationDb.SaveChangesAsync(cancellationToken);
 
         var dto = mapper.Map<RuleDTO>(rule);
         await dto.InitializeAsync(services, null);
@@ -87,7 +91,7 @@ public class AutomatizationCache : IAutomatizationCache
     {
         if (DateTime.UtcNow.Subtract(lastReload).CompareTo(cacheLongevity) > 0)
         {
-           await Reload();
+            await Reload();
         }
     }
 
@@ -97,7 +101,7 @@ public class AutomatizationCache : IAutomatizationCache
         var automatizationDb = scope.ServiceProvider.GetRequiredService<AutomatizationDb>();
         var rule = await automatizationDb.Set<Rule>().AsNoTracking().Include(x => x.OutputConnectors).Include(x => x.InputConnectors).FirstOrDefaultAsync(x => x.Id == id, ct);
 
-        if(rule is null)
+        if (rule is null)
         {
             cache.Remove(id);
             return;
@@ -123,13 +127,14 @@ public class AutomatizationCache : IAutomatizationCache
 
     private async Task<bool> Reload()
     {
-        if(reloading) return false;
+        if (reloading) return false;
         reloading = true;
+        Debug.WriteLine("Reloading");
         await ReloadRules();
         await ReloadConnections();
 
         reloading = false;
-
+        Debug.WriteLine("Done reloading");
         return true;
     }
 
@@ -158,7 +163,7 @@ public class AutomatizationCache : IAutomatizationCache
 
         var inputIds = connections.Where(x => x.Item1 == outputId).Select(x => x.Item2).ToList();
 
-       return cache.SelectMany(x => x.Value.Inputs).Where(x => inputIds.Contains(x.Id));
+        return cache.SelectMany(x => x.Value.Inputs).Where(x => inputIds.Contains(x.Id));
     }
 
     public async Task<IEnumerable<OutputPointDTO>> GetPreviousOutputs(Guid inputId)

@@ -21,9 +21,7 @@ public class BehaviourController(IServiceProvider serviceProvider) : ControllerB
     [HttpGet("{id}")]
     public BehaviourMenuApiModel? GetBehaviour(Guid id)
     {
-        var x = BehaviourFactory.GetRuleBehaviorByTypeId(id, serviceProvider);
-
-        if (x is null) return null;
+        var x = BehaviourFactory.GetRuleBehaviourByTypeId(id, serviceProvider);
 
         return new BehaviourMenuApiModel(x!.GetId(), x.DisplayName(), x.Outputs, x.Inputs);
     }

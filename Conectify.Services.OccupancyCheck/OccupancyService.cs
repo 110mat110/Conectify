@@ -3,7 +3,6 @@ using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Edge;
 using OpenQA.Selenium.Remote;
 using OpenQA.Selenium.Support.UI;
 

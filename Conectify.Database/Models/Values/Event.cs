@@ -1,6 +1,6 @@
-﻿using Conectify.Database.Interfaces;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Conectify.Database.Interfaces;
 
 namespace Conectify.Database.Models.Values;
 public class Event : IEntity

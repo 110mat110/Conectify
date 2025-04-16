@@ -1,7 +1,7 @@
-﻿using Conectify.Server.Caches;
-using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics.Metrics;
+﻿using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
+using Conectify.Server.Caches;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Conectify.Server.Test.Cahces;
 
@@ -14,12 +14,12 @@ public class WebsocketCacheTest
         var serviceCollection = new ServiceCollection();
 
         // Add DI configurations if necessary 
-        serviceCollection.AddScoped<IMeterFactory, FakeMeterFactory> ();
+        serviceCollection.AddScoped<IMeterFactory, FakeMeterFactory>();
 
         // Build ServiceProvider
         serviceProvider = serviceCollection.BuildServiceProvider();
 
-         loggerMock = A.Fake<ILogger<WebsocketCache>>();
+        loggerMock = A.Fake<ILogger<WebsocketCache>>();
 
     }
 

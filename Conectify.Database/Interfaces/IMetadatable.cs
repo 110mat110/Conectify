@@ -1,7 +1,7 @@
 ﻿namespace Conectify.Database.Interfaces;
 
-using Conectify.Database.Models;
 using System.Collections.Generic;
+using Conectify.Database.Models;
 
 public interface IMetadatable<T> : IEntity
 {

@@ -1,11 +1,6 @@
-﻿using Conectify.Server;
-using Conectify.Server.Caches;
+﻿using Conectify.Server.Caches;
 using Conectify.Server.Services;
-using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace Conectify.Server.Test.Services;
 

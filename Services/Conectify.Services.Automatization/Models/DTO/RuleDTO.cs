@@ -55,7 +55,7 @@ public class RuleDTO
 
     public async Task OnTrigger(AutomatisationEvent trigger, CancellationToken ct)
     {
-        if(RuleBehaviour is null)
+        if (RuleBehaviour is null)
         {
             return;
         }
@@ -64,12 +64,8 @@ public class RuleDTO
     }
     public async Task InitializeAsync(IServiceProvider serviceProvider, RuleDTO? oldDto)
     {
-        RuleBehaviour = BehaviourFactory.GetRuleBehaviorByTypeId(RuleTypeId, serviceProvider);
+        RuleBehaviour = BehaviourFactory.GetRuleBehaviourByTypeId(RuleTypeId, serviceProvider);
 
-        if(RuleBehaviour is null)
-        {
-            throw new ArgumentNullException($"Cannot load rule {RuleTypeId}");
-        }
         await Tracing.Trace(async () => await RuleBehaviour.InitializationValue(this, oldDto), Guid.NewGuid(), $"Initializing rule {RuleBehaviour.DisplayName()}");
     }
 
@@ -85,10 +81,10 @@ public class RuleDTO
 
     public async Task SetAllOutputs(AutomatisationEvent evnt, bool trigger = true)
     {
-            foreach (var output in Outputs)
-            {
-                await output.SetOutputEvent(evnt, trigger);
-            }
+        foreach (var output in Outputs)
+        {
+            await output.SetOutputEvent(evnt, trigger);
+        }
     }
 
     public async Task<bool> SetAllOutputs(RuleDTO? oldDTO, bool trigger = false)

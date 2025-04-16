@@ -1,7 +1,7 @@
+using System.Timers;
 using Conectify.Services.AQIScraper;
 using Conectify.Services.Library;
 using Conectify.Shared.Services;
-using System.Timers;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.AddRemoteLogging();

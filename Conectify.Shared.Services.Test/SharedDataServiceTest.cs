@@ -2,7 +2,6 @@ using AutoMapper;
 using Conectify.Database.Models.Values;
 using Conectify.Shared.Library.ErrorHandling;
 using Conectify.Shared.Library.Models.Websocket;
-using Conectify.Shared.Maps;
 using Conectify.Shared.Services.Data;
 
 namespace Conectify.Shared.Services.Test;

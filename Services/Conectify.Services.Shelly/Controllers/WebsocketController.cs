@@ -1,5 +1,4 @@
 ﻿using Conectify.Services.Shelly.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Conectify.Services.Shelly.Controllers;

@@ -6,26 +6,26 @@ namespace Conectify.Services.MQTTTasker.Services;
 
 public interface IValueService
 {
-	Task<bool> SetAction(Guid actuatorId, float  value);
+    Task<bool> SetAction(Guid actuatorId, float value);
 }
 
 internal class ValueService(IServicesWebsocketClient websocketClient, IDeviceData deviceData) : IValueService
 {
     public async Task<bool> SetAction(Guid actuatorId, float value)
-	{
-		var response = new WebsocketEvent()
-		{
-			Id = Guid.NewGuid(),
-			DestinationId = actuatorId,
-			Name = "SetFromTasker",
-			NumericValue = value,
-			SourceId = deviceData.Sensors.First().Id,
-			TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-			Unit = string.Empty,
-			Type = Constants.Events.Action,
-			StringValue = string.Empty
-		};
+    {
+        var response = new WebsocketEvent()
+        {
+            Id = Guid.NewGuid(),
+            DestinationId = actuatorId,
+            Name = "SetFromTasker",
+            NumericValue = value,
+            SourceId = deviceData.Sensors.First().Id,
+            TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            Unit = string.Empty,
+            Type = Constants.Events.Action,
+            StringValue = string.Empty
+        };
 
-		return await websocketClient.SendMessageAsync(response);
-	}
+        return await websocketClient.SendMessageAsync(response);
+    }
 }

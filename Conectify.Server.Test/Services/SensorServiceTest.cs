@@ -51,7 +51,7 @@ public class SensorServiceTest
     public async Task ItShallNotAddSensorAgainToDatabase()
     {
         var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
-		var SensorId = Guid.NewGuid();
+        var SensorId = Guid.NewGuid();
         var dbs = new ConectifyDb(dbContextoptions);
         var SensorName = "Test known Sensor";
         dbs.Add(new Sensor()
@@ -74,7 +74,7 @@ public class SensorServiceTest
     public async Task ItShallAddKnownDeviceWithId()
     {
         var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
-		var SensorId = Guid.NewGuid();
+        var SensorId = Guid.NewGuid();
         var SensorName = Guid.NewGuid().ToString();
         var apiSensor = new ApiSensor()
         {
@@ -95,7 +95,7 @@ public class SensorServiceTest
     public async Task ItShallOverwriteKnownSensor()
     {
         var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
-		var SensorName = Guid.NewGuid().ToString();
+        var SensorName = Guid.NewGuid().ToString();
         var SensorId = Guid.NewGuid();
         var dbs = new ConectifyDb(dbContextoptions);
         dbs.Add(new Sensor()
@@ -124,7 +124,7 @@ public class SensorServiceTest
     public async Task ItShallAddKnownDeviceWithoutId()
     {
         var service = new SensorService(new ConectifyDb(dbContextoptions), mapper, A.Fake<IDeviceService>(), A.Fake<ILogger<SensorService>>(), A.Fake<IHttpFactory>(), configuration);
-		var SensorName = Guid.NewGuid().ToString();
+        var SensorName = Guid.NewGuid().ToString();
         var apiSensor = new ApiSensor()
         {
             Name = SensorName,

@@ -2,6 +2,7 @@
 interface. */
 namespace Conectify.Server.Services;
 
+using System.Collections.Generic;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Conectify.Database;
@@ -11,7 +12,6 @@ using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Services;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 
 public interface IDeviceService : IUniversalDeviceService<ApiDevice>
 {
@@ -29,11 +29,11 @@ public class DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceS
         var set = database.Set<Device>().AsNoTracking().Include(x => x.Metadata).ThenInclude(x => x.Metadata).AsQueryable();
         if (filter.MetadataFilters.Any())
         {
-            foreach(var metadata in filter.MetadataFilters)
+            foreach (var metadata in filter.MetadataFilters)
             {
-                set = set.Where(x => 
+                set = set.Where(x =>
                     x.Metadata.Any(m =>
-                        m.Metadata.Name == metadata.Name && 
+                        m.Metadata.Name == metadata.Name &&
                         (string.IsNullOrEmpty(metadata.Value) && (metadata.EqualityComparator && m.StringValue == metadata.Value) ||
                         metadata.NumericValue != null && m.NumericValue == metadata.NumericValue
                         )));
@@ -85,9 +85,9 @@ public class DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceS
             else
             {
                 if (await database.Events.AsNoTracking().AnyAsync(
-                    x => x.Name == Constants.Commands.Active 
+                    x => x.Name == Constants.Commands.Active
                     && x.Type == Constants.Events.CommandResponse
-                    && x.SourceId == device.Id 
+                    && x.SourceId == device.Id
                     && x.TimeCreated > currentTime, cancellationToken: ct))
                 {
                     device.State = ApiDeviceState.Online;

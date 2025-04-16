@@ -27,9 +27,9 @@ ws.OnIncomingEvent += async (ws_Event) =>
 {
     var config = app.Services.GetRequiredService<Configuration>();
 
-    if(config.SensorId == ws_Event.DestinationId)
+    if (config.SensorId == ws_Event.DestinationId)
     {
-        await Tracing.Trace(async() =>
+        await Tracing.Trace(async () =>
         {
             var parameters = new Dictionary<string, string>
             {

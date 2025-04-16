@@ -1,10 +1,10 @@
+using Conectify.Database;
 using Conectify.Services.Library;
+using Conectify.Services.Shelly;
 using Conectify.Services.Shelly.Components;
 using Conectify.Services.Shelly.Services;
-using Conectify.Services.Shelly;
-using Conectify.Database;
-using Microsoft.EntityFrameworkCore;
 using Conectify.Shared.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

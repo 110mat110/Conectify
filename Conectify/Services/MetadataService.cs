@@ -50,17 +50,17 @@ public class MetadataService : IMetadataService
         return await database.Set<Metadata>().ProjectTo<ApiBasicMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
     }
 
-	public async Task<ApiBasicMetadata?> GetMetadataByCode(string code, CancellationToken ct = default)
-	{
-		var metadata = await database.Set<Metadata>().FirstOrDefaultAsync(metadata => metadata.Code.Equals(code, StringComparison.CurrentCultureIgnoreCase), ct);
+    public async Task<ApiBasicMetadata?> GetMetadataByCode(string code, CancellationToken ct = default)
+    {
+        var metadata = await database.Set<Metadata>().FirstOrDefaultAsync(metadata => metadata.Code.Equals(code, StringComparison.CurrentCultureIgnoreCase), ct);
         return mapper.Map<ApiBasicMetadata>(metadata);
-	}
+    }
 
     public async Task<bool> Remove(Guid metadataId, Guid deviceId, CancellationToken ct = default)
     {
         var deviceMetadata = await database.Set<MetadataConnector<Device>>().FirstOrDefaultAsync(x => x.MetadataId == metadataId && x.DeviceId == deviceId, ct);
 
-        if(deviceMetadata != null)
+        if (deviceMetadata != null)
         {
             database.Set<MetadataConnector<Device>>().Remove(deviceMetadata);
             return true;

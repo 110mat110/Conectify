@@ -42,19 +42,19 @@ public class DashboardController(DashboardService dashboardService) : Controller
     [HttpDelete("{id}")]
     public async Task Delete(Guid id)
     {
-       await dashboardService.Remove(id);
+        await dashboardService.Remove(id);
     }
 
     // POST api/<DashboardController>
     [HttpPost("{id}/Device")]
-    public async Task<Guid> DevicePost(Guid id,[FromBody] AddDeviceApi device)
+    public async Task<Guid> DevicePost(Guid id, [FromBody] AddDeviceApi device)
     {
         return await dashboardService.AddDevice(id, device, default);
     }
 
     // PUT api/<DashboardController>/5
     [HttpPut("{id}/Device")]
-    public async Task Put(Guid id,[FromBody] EditDeviceApi dashboard)
+    public async Task Put(Guid id, [FromBody] EditDeviceApi dashboard)
     {
         await dashboardService.EditDevice(dashboard, default);
     }

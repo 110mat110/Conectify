@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Diagnostics;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Conectify.Services.Automatization.Database;
 using Conectify.Services.Automatization.Models.ApiModels;
@@ -8,7 +9,6 @@ using Conectify.Services.Automatization.Rules;
 using Conectify.Services.Library;
 using Conectify.Shared.Library.Models;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Services;
 
@@ -16,18 +16,18 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 {
     public async Task<GetRuleApiModel> AddNewRule(Guid behaviourId, CancellationToken cancellationToken)
     {
-        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(behaviourId, services) ?? throw new Exception($"Behaviour {behaviourId} does not exist");
+        var behaviour = BehaviourFactory.GetRuleBehaviourByTypeId(behaviourId, services) ?? throw new Exception($"Behaviour {behaviourId} does not exist");
 
         var inputs = new List<InputPoint>();
         int inputIndex = 0;
         foreach (var input in behaviour.Inputs)
         {
-            for(int i =0; i< input.Item2.Def; i++)
-            inputs.Add(new InputPoint()
-            {
-                Index = inputIndex++,
-                Type = input.Item1,
-            });
+            for (int i = 0; i < input.Item2.Def; i++)
+                inputs.Add(new InputPoint()
+                {
+                    Index = inputIndex++,
+                    Type = input.Item1,
+                });
         }
         var outputs = new List<OutputPoint>();
 
@@ -58,7 +58,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
         var input = mapper.Map<InputPoint>(apiInput);
         var rule = await automatizationCache.GetRuleByIdAsync(input.RuleId, ct) ?? throw new ArgumentException("Rule does not exist!");
 
-        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(rule.RuleTypeId, services) ?? throw new Exception("Behaviour not found");
+        var behaviour = BehaviourFactory.GetRuleBehaviourByTypeId(rule.RuleTypeId, services);
 
         if (!rule.CanAddInput(behaviour, input.Type))
         {
@@ -82,7 +82,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
         var output = mapper.Map<OutputPoint>(apiOutput);
         var rule = await automatizationCache.GetRuleByIdAsync(output.RuleId, ct) ?? throw new ArgumentException("Rule does not exist!");
 
-        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(rule.RuleTypeId, services) ?? throw new Exception("Behaviour not found");
+        var behaviour = BehaviourFactory.GetRuleBehaviourByTypeId(rule.RuleTypeId, services);
         if (!rule.CanAddOutput(behaviour))
         {
             throw new Exception("Cannot add new output");
@@ -133,6 +133,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 
     public async Task<bool> SetConnection(Guid sourceId, Guid destinationId, CancellationToken ct = default)
     {
+        Debug.WriteLine("Starting set connection");
         var sourcePoint = await automatizationCache.GetOutputPointById(sourceId);
         var destinationPoint = await automatizationCache.GetInputPointById(destinationId);
 
@@ -219,16 +220,16 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
     {
         if (rule is null) return;
 
-        var behaviour = BehaviourFactory.GetRuleBehaviorByTypeId(rule.RuleType, services);
+        var behaviour = BehaviourFactory.GetRuleBehaviourByTypeId(rule.RuleType, services);
 
-        if(behaviour is null) return;
+        if (behaviour is null) return;
 
         await behaviour.SetParameters(rule, cancellationToken);
     }
 
     public async Task<bool> Remove(Guid ruleId, CancellationToken ct)
     {
-        var rule = await database.Rules.FirstOrDefaultAsync(x => x.Id == ruleId,ct);
+        var rule = await database.Rules.FirstOrDefaultAsync(x => x.Id == ruleId, ct);
 
         if (rule is null) return false;
 

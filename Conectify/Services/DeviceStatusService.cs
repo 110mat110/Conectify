@@ -1,9 +1,7 @@
-﻿using Conectify.Database.Models.Values;
+﻿using System.Timers;
+using Conectify.Database.Models.Values;
 using Conectify.Server.Caches;
 using Conectify.Shared.Library;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using System.Timers;
 
 namespace Conectify.Server.Services;
 
@@ -39,10 +37,10 @@ public class DeviceStatusService : IDeviceStatusService, IDisposable
 
     public async Task CheckIfAlive()
     {
-       var allDevices = subscribersCache.AllSubscribers();
+        var allDevices = subscribersCache.AllSubscribers();
 
-       foreach (var device in allDevices.Where(x => x.DeviceId != Guid.Empty).DistinctBy(x => x.DeviceId))
-       {
+        foreach (var device in allDevices.Where(x => x.DeviceId != Guid.Empty).DistinctBy(x => x.DeviceId))
+        {
             var command = new Event()
             {
                 Type = Constants.Events.Command,
@@ -61,7 +59,7 @@ public class DeviceStatusService : IDeviceStatusService, IDisposable
             var dataService = scope.ServiceProvider.GetRequiredService<IDataService>();
 
             await dataService.ProcessEntity(command, configuration.DeviceId, default);
-       }
+        }
     }
 
     public void Dispose()

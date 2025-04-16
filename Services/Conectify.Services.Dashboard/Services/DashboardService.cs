@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Conectify.Database;
-using Conectify.Database.Migrations;
 using Conectify.Database.Models.Dashboard;
 using Conectify.Services.Dashboard.Models;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +11,7 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
 {
     public async Task<DashboardApi> Add(AddDashboardApi addDashboardApi, CancellationToken cancellationToken = default)
     {
-        if(!conectifyDb.Users.Any(x => x.Id == addDashboardApi.UserId))
+        if (!conectifyDb.Users.Any(x => x.Id == addDashboardApi.UserId))
         {
             throw new ArgumentException("User with id {id} does not exist", addDashboardApi.UserId.ToString());
         }
@@ -25,10 +24,10 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
 
     public async Task<IEnumerable<DashboardApi>> GetDashboards(Guid userId, CancellationToken cancellationToken = default)
     {
-        var dashboardsDbs = await conectifyDb.Dashboards.Where(x => x.UserId ==  userId).OrderBy(x => x.Position).ToListAsync(cancellationToken);
+        var dashboardsDbs = await conectifyDb.Dashboards.Where(x => x.UserId == userId).OrderBy(x => x.Position).ToListAsync(cancellationToken);
         var dashboards = mapper.Map<IEnumerable<DashboardApi>>(dashboardsDbs);
 
-        foreach(var dashboard in dashboards)
+        foreach (var dashboard in dashboards)
         {
             var devices = await conectifyDb.DashboardsDevice.Where(x => x.DashBoardId == dashboard.Id).ProjectTo<DashboardDeviceApi>(mapper.ConfigurationProvider).ToListAsync(cancellationToken);
             dashboard.DashboardDevices = devices;
@@ -39,7 +38,7 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
 
     public async Task<DashboardApi> GetDashboard(Guid dashboardId, CancellationToken cancellationToken = default)
     {
-        var dbModel= await conectifyDb.Dashboards.FirstOrDefaultAsync(x => x.Id == dashboardId, cancellationToken) ?? throw new ArgumentException("Selected dashboard does not exist");
+        var dbModel = await conectifyDb.Dashboards.FirstOrDefaultAsync(x => x.Id == dashboardId, cancellationToken) ?? throw new ArgumentException("Selected dashboard does not exist");
         var dashboard = mapper.Map<DashboardApi>(dbModel);
 
         var devices = await conectifyDb.DashboardsDevice.Where(x => x.DashBoardId == dashboardId).ProjectTo<DashboardDeviceApi>(mapper.ConfigurationProvider).ToListAsync(cancellationToken);
@@ -54,7 +53,7 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
         conectifyDb.RemoveRange(devices);
 
         var dashboard = conectifyDb.Dashboards.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-        if(dashboard != null)
+        if (dashboard != null)
         {
             conectifyDb.Remove(dashboard);
         }
@@ -62,9 +61,9 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
         await conectifyDb.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task Edit(Guid id, EditDashboardApi editDashboardApi,CancellationToken cancellationToken = default)
+    public async Task Edit(Guid id, EditDashboardApi editDashboardApi, CancellationToken cancellationToken = default)
     {
-        var dashboard = await conectifyDb.Dashboards.FirstOrDefaultAsync(x => x.Id==id, cancellationToken) ?? throw new ArgumentException("Selected dashboard does not exist");
+        var dashboard = await conectifyDb.Dashboards.FirstOrDefaultAsync(x => x.Id == id, cancellationToken) ?? throw new ArgumentException("Selected dashboard does not exist");
 
         dashboard.Background = editDashboardApi.Background;
         dashboard.Name = editDashboardApi.Name;
@@ -72,7 +71,7 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
         await conectifyDb.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Guid> AddDevice(Guid dashboardId, AddDeviceApi deviceApi,CancellationToken cancellationToken = default)
+    public async Task<Guid> AddDevice(Guid dashboardId, AddDeviceApi deviceApi, CancellationToken cancellationToken = default)
     {
         var device = mapper.Map<DashboardDevice>(deviceApi);
         device.DashBoardId = dashboardId;

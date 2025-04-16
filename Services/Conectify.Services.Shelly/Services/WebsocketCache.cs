@@ -1,5 +1,5 @@
-﻿using Conectify.Services.Shelly.Models.Shelly;
-using System.Net.WebSockets;
+﻿using System.Net.WebSockets;
+using Conectify.Services.Shelly.Models.Shelly;
 
 namespace Conectify.Services.Shelly.Services;
 

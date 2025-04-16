@@ -1,14 +1,10 @@
-﻿
-using Conectify.Database.Models;
-using Conectify.Services.Shelly.Services;
-
-namespace Conectify.Services.Shelly.Models.Shelly;
+﻿namespace Conectify.Services.Shelly.Models.Shelly;
 
 public class Shelly1G3 : Shelly
 {
     public Shelly1G3()
     {
-        
+
     }
 
     public Shelly1G3(string name, string id)

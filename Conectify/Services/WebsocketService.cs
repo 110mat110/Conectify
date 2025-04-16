@@ -1,11 +1,10 @@
 ﻿namespace Conectify.Server.Services;
 
+using System.Net.WebSockets;
+using System.Text;
 using Conectify.Server.Caches;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Interfaces;
-using System.Diagnostics;
-using System.Net.WebSockets;
-using System.Text;
 
 public interface IWebSocketService
 {
@@ -53,7 +52,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
             else
             {
                 var incomingJson = Encoding.UTF8.GetString(buffer);
-                logger.LogInformation("{incomingJson}",incomingJson);
+                logger.LogInformation("{incomingJson}", incomingJson);
                 var dataService = serviceProvider.GetRequiredService<IDataService>();
                 await dataService.InsertJsonModel(incomingJson, deviceId, ct);
             }
@@ -86,7 +85,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
             cache.RemoveSubscriber(deviceId);
             await websocketCache.Remove(deviceId, cancelationToken);
             logger.LogError("Cannot send message to {deviceId}", deviceId);
-            logger.LogError("{message}",ex.Message);
+            logger.LogError("{message}", ex.Message);
             return false;
         }
     }

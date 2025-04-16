@@ -1,5 +1,5 @@
-﻿using Conectify.Shared.Library.Classes;
-using System;
+﻿using System;
+using Conectify.Shared.Library.Classes;
 
 namespace Conectify.Shared.Library.Interfaces;
 

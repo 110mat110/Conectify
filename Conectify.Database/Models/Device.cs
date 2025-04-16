@@ -1,11 +1,11 @@
 ﻿namespace Conectify.Database.Models;
 
-using Conectify.Database.Interfaces;
-using Conectify.Database.Models.Updates;
-using Conectify.Shared.Library.Classes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Conectify.Database.Interfaces;
+using Conectify.Database.Models.Updates;
+using Conectify.Shared.Library.Classes;
 
 public class Device : Serializable, IEntity, IMetadatable<Device>, IDevice
 {

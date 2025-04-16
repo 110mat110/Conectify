@@ -1,7 +1,6 @@
 ﻿namespace Conectify.Services.Shelly;
 
 using Conectify.Services.Library;
-using Conectify.Services.Shelly;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Services;
 using Conectify.Shared.Services;

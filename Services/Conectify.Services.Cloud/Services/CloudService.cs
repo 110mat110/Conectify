@@ -1,10 +1,10 @@
-﻿using AutoMapper;
+﻿using System.Text;
+using AutoMapper;
 using Conectify.Database.Models.Values;
 using Conectify.Services.Library;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
 using Newtonsoft.Json;
-using System.Text;
 
 namespace Conectify.Services.Cloud.Services;
 
@@ -28,7 +28,7 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
 
     private void WebsocketClient_OnIncomingEvent(Event evnt)
     {
-        if(evnt.Type == Constants.Events.Command)
+        if (evnt.Type == Constants.Events.Command)
         {
             WebsocketClient_OnIncomingCommand(evnt);
         }
@@ -46,7 +46,7 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
 
         var values = JsonConvert.DeserializeObject<ApiValues>(jsonResult);
 
-        foreach(var value in values?.Actuators?? [])
+        foreach (var value in values?.Actuators ?? [])
         {
             var action = new WebsocketEvent()
             {
@@ -59,7 +59,7 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
                 SourceId = cloudConfiguration.SensorId,
                 Type = Constants.Events.Action,
             };
-           await websocketClient.SendMessageAsync(action);
+            await websocketClient.SendMessageAsync(action);
         }
     }
 
@@ -75,9 +75,9 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
         var actuatorsForCloud = actuators.Where(a => a.Metadata.Any(m => m.MetadataId == Constants.Metadatas.CloudMetadata)).ToList();
 
 
-        foreach (var actuatorForCloud  in actuatorsForCloud)
+        foreach (var actuatorForCloud in actuatorsForCloud)
         {
-            var finalURL = string.Format("{0}/api/actuators", cloudConfiguration.BaseAddress);;
+            var finalURL = string.Format("{0}/api/actuators", cloudConfiguration.BaseAddress); ;
 
             var typeMetadata = actuatorForCloud.Metadata.FirstOrDefault(x => x.MetadataId == Constants.Metadatas.IOTypeMetada);
             string ioType = Constants.Metadatas.DefaultIOType;
@@ -88,7 +88,7 @@ public class CloudService(IServicesWebsocketClient websocketClient, IMapper mapp
 
             var lastValue = await connectorService.LoadLastValue(actuatorForCloud.SensorId);
 
-            var apiCloudActuator = new ApiCloudActuator(actuatorForCloud.Id.ToString(), actuatorForCloud.Name, lastValue?.StringValue ?? string.Empty, lastValue?.NumericValue ?? 0f ,lastValue?.Unit ?? string.Empty, ioType);
+            var apiCloudActuator = new ApiCloudActuator(actuatorForCloud.Id.ToString(), actuatorForCloud.Name, lastValue?.StringValue ?? string.Empty, lastValue?.NumericValue ?? 0f, lastValue?.Unit ?? string.Empty, ioType);
 
             using var client = new HttpClient();
             var message = new HttpRequestMessage(HttpMethod.Post, finalURL)

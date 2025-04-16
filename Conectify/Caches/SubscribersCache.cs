@@ -1,9 +1,9 @@
 ﻿namespace Conectify.Server.Caches;
 
+using System.Diagnostics.Metrics;
 using AutoMapper;
 using Conectify.Database;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.Metrics;
 
 public interface ISubscribersCache
 {
@@ -31,7 +31,7 @@ public class SubscribersCache(IServiceProvider serviceProvider, IMapper mapper) 
 
     public bool RemoveSubscriber(Guid deviceId)
     {
-        
+
         var result = subscribers.Remove(deviceId);
 
         if (result)

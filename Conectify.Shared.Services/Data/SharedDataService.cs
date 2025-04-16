@@ -1,10 +1,6 @@
-﻿using AutoMapper;
-using Conectify.Database.Interfaces;
-using Conectify.Database.Models.Values;
+﻿using Conectify.Database.Models.Values;
 using Conectify.Shared.Library.ErrorHandling;
-using Conectify.Shared.Library.Models.Websocket;
 using Newtonsoft.Json;
-using System.Reflection;
 
 namespace Conectify.Shared.Services.Data;
 
@@ -19,7 +15,8 @@ public class SharedDataService
         catch (Exception)
         {
             throw new ConectifyException("Json to deserialize is not an event!!");
-        };
+        }
+        ;
     }
 
     public static Guid? ExtractSourceId(string rawJson)
@@ -27,7 +24,7 @@ public class SharedDataService
         try
         {
             var sSensor = JsonConvert.DeserializeAnonymousType(rawJson, new { SourceSensorId = Guid.Empty });
-             if(sSensor != null && sSensor.SourceSensorId != Guid.Empty)
+            if (sSensor != null && sSensor.SourceSensorId != Guid.Empty)
                 return sSensor.SourceSensorId;
 
             var sActuator = JsonConvert.DeserializeAnonymousType(rawJson, new { SourceActuatorId = Guid.Empty });
@@ -36,7 +33,8 @@ public class SharedDataService
         catch (Exception)
         {
             return null;
-        };
+        }
+        ;
     }
 
     public static Guid? ExtractDestinationId(string rawJson)
@@ -49,6 +47,7 @@ public class SharedDataService
         catch (Exception)
         {
             return null;
-        };
+        }
+        ;
     }
 }

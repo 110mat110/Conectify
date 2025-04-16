@@ -1,6 +1,4 @@
-﻿using OpenTelemetry;
-using OpenTelemetry.Trace;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 

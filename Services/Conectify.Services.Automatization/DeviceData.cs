@@ -45,17 +45,17 @@ public class DeviceData(AutomatizationConfiguration configuration) : IDeviceData
         }
     ];
 
-	public IEnumerable<MetadataServiceConnector> MetadataConnectors =>
+    public IEnumerable<MetadataServiceConnector> MetadataConnectors =>
     [
         new()
-		{
-			MaxVal = 1,
-			MinVal = 0,
-			MetadataName = Constants.Metadatas.Visible,
-			NumericValue = 0,
-			StringValue = string.Empty,
-			TypeValue = 0,
-			Unit = string.Empty,
-		}
-	];
+        {
+            MaxVal = 1,
+            MinVal = 0,
+            MetadataName = Constants.Metadatas.Visible,
+            NumericValue = 0,
+            StringValue = string.Empty,
+            TypeValue = 0,
+            Unit = string.Empty,
+        }
+    ];
 }

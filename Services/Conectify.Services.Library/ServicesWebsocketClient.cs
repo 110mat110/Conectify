@@ -1,14 +1,12 @@
-﻿using AutoMapper;
-using Conectify.Database.Interfaces;
+﻿using System.Net.WebSockets;
+using System.Text;
+using AutoMapper;
 using Conectify.Database.Models.Values;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Interfaces;
-using Conectify.Shared.Library.Models.Websocket;
 using Conectify.Shared.Services.Data;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Net.WebSockets;
-using System.Text;
 
 namespace Conectify.Services.Library;
 
@@ -76,7 +74,8 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
             logger.LogWarning("Connected to websocket!");
             await Task.Factory.StartNew(ReceiveLoop, CTS.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
-        catch (Exception) { };
+        catch (Exception) { }
+        ;
     }
 
     public async Task DisconnectAsync()
@@ -119,7 +118,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
         }
         catch (Exception ex)
         {
-            logger.LogError("WS failed! {message}",ex.Message);
+            logger.LogError("WS failed! {message}", ex.Message);
         }
         finally
         {
@@ -158,7 +157,7 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
             logger.LogError("Received invalid event {serializedMessage}", serializedMessage);
             return;
         }
-       
+
 
         if (evnt.Id == Guid.Empty)
         {
@@ -191,12 +190,14 @@ public class ServicesWebsocketClient : IServicesWebsocketClient
     private async Task NotifyAboutIncomingMessage(Event evnt, CancellationToken ct)
     {
         bool handled = false;
-        if(evnt.Type == Constants.Events.Command)
+        if (evnt.Type == Constants.Events.Command)
         {
             handled = await internalCommandService.HandleInternalCommand(evnt, ct);
-        };
+        }
+        ;
 
-        if (!handled) {
+        if (!handled)
+        {
             OnIncomingEvent?.Invoke(evnt);
         }
     }

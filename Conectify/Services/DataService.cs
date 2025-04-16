@@ -1,6 +1,5 @@
 ﻿namespace Conectify.Server.Services;
 
-using AutoMapper;
 using Conectify.Database;
 using Conectify.Shared.Library;
 using Conectify.Shared.Services.Data;
@@ -31,8 +30,8 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
         catch (Exception ex)
         {
             logger.LogError(ex, "Exception catched when working with devices");
-            logger.LogInformation("{message}",ex.Message);
-            logger.LogDebug("{stack}",ex.StackTrace);
+            logger.LogInformation("{message}", ex.Message);
+            logger.LogDebug("{stack}", ex.StackTrace);
             database.ChangeTracker.Clear();
         }
     }
@@ -63,7 +62,7 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
             return false;
         }
 
-        if(evnt.Id == Guid.Empty)
+        if (evnt.Id == Guid.Empty)
         {
             evnt.Id = Guid.NewGuid();
         }

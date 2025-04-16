@@ -1,6 +1,6 @@
-﻿using Conectify.Shared.Library.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Conectify.Shared.Library.Interfaces;
 
 namespace Conectify.Shared.Library.Models;
 

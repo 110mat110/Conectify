@@ -1,7 +1,7 @@
 ﻿namespace Conectify.Shared.Library.Models;
 
-using Conectify.Shared.Library.Interfaces;
 using System;
+using Conectify.Shared.Library.Interfaces;
 
 public class ApiMetadataConnector : IApiModel
 {

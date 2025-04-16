@@ -1,9 +1,9 @@
-﻿using Conectify.Services.Library;
+﻿using System.Globalization;
+using System.Net.Http.Headers;
+using Conectify.Services.Library;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
 using HtmlAgilityPack;
-using System.Globalization;
-using System.Net.Http.Headers;
 
 namespace Conectify.Services.AQIScraper;
 

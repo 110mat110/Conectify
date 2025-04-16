@@ -1,6 +1,5 @@
-﻿using Conectify.Shared.Library.Interfaces;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Conectify.Shared.Library.Interfaces;
 
 namespace Conectify.Shared.Library.Models;
 public record ApiFilter : IApiModel
@@ -16,7 +15,7 @@ public record ApiFilter : IApiModel
     public IEnumerable<ApiMetadataFilter> MetadataFilters { get; set; } = [];
 }
 
-public record ApiMetadataFilter: IApiModel
+public record ApiMetadataFilter : IApiModel
 {
     public string Name { get; set; } = string.Empty;
 

@@ -1,7 +1,7 @@
+using System.Reflection;
 using AutoMapper;
 using Conectify.Server.Mapper;
 using Conectify.Services.Automatization.Mapper;
-using System.Reflection;
 
 namespace Conectify.Shared.Maps.Test;
 

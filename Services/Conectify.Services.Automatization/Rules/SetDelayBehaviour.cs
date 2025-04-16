@@ -1,5 +1,4 @@
-﻿using Conectify.Database.Models;
-using Conectify.Services.Automatization.Models;
+﻿using Conectify.Services.Automatization.Models;
 using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
@@ -46,7 +45,7 @@ public class SetDelayBehaviour(IServiceProvider serviceProvider) : IRuleBehaviou
     {
         var options = JsonConvert.DeserializeObject<SetDelayOptions>(masterRule.ParametersJson);
 
-        if(options is null)
+        if (options is null)
         {
             return Task.CompletedTask;
         }
@@ -73,7 +72,7 @@ public class SetDelayBehaviour(IServiceProvider serviceProvider) : IRuleBehaviou
     {
         var options = JsonConvert.DeserializeObject<SetDelayOptions>(rule.ParametersJson);
 
-        if(options?.Delay is not null)
+        if (options?.Delay is not null)
         {
             rule.Description = $"Delay {options.Delay}";
         }

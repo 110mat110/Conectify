@@ -5,7 +5,6 @@ using Conectify.Services.Automatization.Services;
 using Conectify.Services.Library;
 using Conectify.Shared.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +30,8 @@ try
 {
     var automatizationService = app.Services.GetRequiredService<IAutomatizationService>();
     automatizationService.StartServiceAsync();
-} catch (Exception ex)
+}
+catch (Exception ex)
 {
     Console.WriteLine(ex.Message);
 }

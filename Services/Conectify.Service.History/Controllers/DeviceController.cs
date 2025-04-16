@@ -20,8 +20,8 @@ public class DeviceController(IDeviceCachingService deviceCachingService) : Cont
     }
 
     [HttpGet("reset")]
-    public IActionResult Reset() 
-    { 
+    public IActionResult Reset()
+    {
         deviceCachingService.Reset();
         return Ok();
     }

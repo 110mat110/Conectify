@@ -89,7 +89,8 @@ public class SystemController(ConectifyDb database, IDataService dataService) : 
                     TimeCreated = DateTimeOffset.UtcNow.AddSeconds(random.NextDouble() * 100).ToUnixTimeMilliseconds(),
                     Unit = "Test",
                 });
-            };
+            }
+            ;
         }
         await database.SaveChangesAsync();
         return "Database seeded";

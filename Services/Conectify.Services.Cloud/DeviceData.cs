@@ -1,5 +1,4 @@
-﻿using Conectify.Services.Cloud;
-using Conectify.Services.Library;
+﻿using Conectify.Services.Library;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Services;
@@ -63,14 +62,14 @@ public class DeviceData(CloudConfiguration configuration) : IDeviceData
     public IEnumerable<MetadataServiceConnector> MetadataConnectors =>
     [
         new()
-		{
-			MaxVal = 1,
-			MinVal = 0,
-			MetadataName = "Visible",
-			NumericValue = 0,
-			StringValue = string.Empty,
-			TypeValue = 0,
-			Unit = string.Empty,
-		}
-	];
+        {
+            MaxVal = 1,
+            MinVal = 0,
+            MetadataName = "Visible",
+            NumericValue = 0,
+            StringValue = string.Empty,
+            TypeValue = 0,
+            Unit = string.Empty,
+        }
+    ];
 }

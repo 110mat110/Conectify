@@ -1,6 +1,4 @@
-﻿using Conectify.Services.Shelly.Services;
-
-namespace Conectify.Services.Shelly.Models.Shelly;
+﻿namespace Conectify.Services.Shelly.Models.Shelly;
 
 public class Shelly3Pro : Shelly
 {

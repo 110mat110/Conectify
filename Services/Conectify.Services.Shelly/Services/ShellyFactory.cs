@@ -28,7 +28,8 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
 
         var shellyDb = conectifyDb.Shellys.FirstOrDefault(x => x.ShellyId == id);
 
-        if (shellyDb is not null) {
+        if (shellyDb is not null)
+        {
             shelly = JsonConvert.DeserializeObject(shellyDb.Json, shellyType) as IShelly;
         }
 
@@ -69,7 +70,7 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
     {
         List<ApiSensor> sensors = [];
         List<ApiActuator> actuators = [];
-        List<Tuple<Guid,MetadataServiceConnector>> metadatas = [];
+        List<Tuple<Guid, MetadataServiceConnector>> metadatas = [];
 
         foreach (var power in shelly.Powers)
         {
@@ -81,7 +82,7 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
             });
         }
 
-        foreach(var sw in shelly.Switches)
+        foreach (var sw in shelly.Switches)
         {
             sensors.Add(new ApiSensor()
             {
@@ -96,7 +97,7 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
                 Name = $"{shelly.Name} SW-{sw.ShellyId}",
                 SourceDeviceId = configuration.DeviceId
             });
-            metadatas.Add(new (sw.SensorId, new MetadataServiceConnector()
+            metadatas.Add(new(sw.SensorId, new MetadataServiceConnector()
             {
                 MaxVal = 101,
                 MinVal = 60,
@@ -114,7 +115,7 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
             }
         }
 
-        foreach(var sw in shelly.DetachedInputs)
+        foreach (var sw in shelly.DetachedInputs)
         {
             sensors.Add(new ApiSensor()
             {

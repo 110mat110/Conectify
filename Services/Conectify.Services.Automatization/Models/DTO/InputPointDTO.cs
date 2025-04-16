@@ -1,5 +1,4 @@
-﻿using Conectify.Database.Models.Values;
-using Conectify.Services.Automatization.Models.Database;
+﻿using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Services;
 
 namespace Conectify.Services.Automatization.Models.DTO;

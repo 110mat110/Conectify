@@ -1,5 +1,7 @@
 ﻿namespace Conectify.Server.Services;
 
+using System;
+using System.Collections.Generic;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Conectify.Database;
@@ -8,8 +10,6 @@ using Conectify.Database.Models;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Services;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 
 public interface IUniversalDeviceService<TApi>
 {
@@ -36,9 +36,9 @@ public abstract class UniversalDeviceService<TDbs, TApi>(ConectifyDb database, I
 
     private async Task NotifyAboutNewDevice(CancellationToken ct)
     {
-		using var client = httpProvider.HttpClient;
-		await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, configuration.HistoryService + "/api/device/reset"), ct);
-	}
+        using var client = httpProvider.HttpClient;
+        await client.SendAsync(new HttpRequestMessage(HttpMethod.Get, configuration.HistoryService + "/api/device/reset"), ct);
+    }
 
     public abstract Task<bool> TryAddUnknownDevice(Guid deviceId, Guid parentId = default, CancellationToken ct = default);
 
@@ -69,9 +69,9 @@ public abstract class UniversalDeviceService<TDbs, TApi>(ConectifyDb database, I
         var incomingMetadata = mapper.Map<MetadataConnector<TDbs>>(apiModel);
         var existingMetadataList = await database.Set<MetadataConnector<TDbs>>().AsNoTracking().Where(x => x.Id == apiModel.Id || (x.MetadataId == apiModel.MetadataId && x.DeviceId == apiModel.DeviceId)).ToListAsync(cancellationToken: ct);
 
-        if(existingMetadataList.Count > 0 && metada?.Exclusive is false)
+        if (existingMetadataList.Count > 0 && metada?.Exclusive is false)
         {
-            if(existingMetadataList.Any(range =>
+            if (existingMetadataList.Any(range =>
             (incomingMetadata.MinVal ?? int.MinValue) <= (range.MaxVal ?? int.MaxValue) &&
             (incomingMetadata.MaxVal ?? int.MaxValue) >= (range.MinVal ?? int.MinValue)))
             {

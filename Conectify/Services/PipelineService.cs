@@ -1,18 +1,16 @@
 ﻿namespace Conectify.Server.Services;
 
+using System.Linq;
 using AutoMapper;
 using Conectify.Database;
-using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
 using Conectify.Database.Models.Values;
 using Conectify.Server.Caches;
 using Conectify.Shared.Library;
-using Conectify.Shared.Library.Interfaces;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Websocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 
 public interface IPipelineService
 {
@@ -39,7 +37,8 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
         foreach (var preference in preferences)
         {
             preference.SubscriberId = deviceId;
-        };
+        }
+        ;
 
         var filteredPreferences = preferences
             .Where(newPref => !device.Preferences.Any(existingPref =>
@@ -100,14 +99,14 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
         {
             var target = GetAllSubscribers().FirstOrDefault(x => x.AllDependantIds.Contains(evnt.DestinationId.Value));
 
-            if(target is not null)
+            if (target is not null)
             {
                 subs = subs.Append(target.DeviceId);
             }
         }
 
-        return subs;        
-    
+        return subs;
+
     }
 
 }

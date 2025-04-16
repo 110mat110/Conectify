@@ -1,8 +1,8 @@
 ﻿namespace Conectify.Shared.Library.Models;
 
-using Conectify.Shared.Library.Interfaces;
 using System;
 using System.Collections.Generic;
+using Conectify.Shared.Library.Interfaces;
 
 public record ApiActuator : IApiModel
 {

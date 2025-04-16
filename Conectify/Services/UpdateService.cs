@@ -1,11 +1,9 @@
-﻿using Conectify.Database;
+﻿using System.Net.Http.Headers;
+using Conectify.Database;
 using Conectify.Database.Models.Values;
 using Conectify.Shared.Library;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
-using System.Net.Http.Headers;
-using static System.Net.WebRequestMethods;
 
 namespace Conectify.Server.Services;
 
@@ -57,7 +55,7 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
         if (deviceVersion is not null)
         {
             deviceVersion.LastUpdate = DateTime.UtcNow;
-            await conectifyDb.SaveChangesAsync(); 
+            await conectifyDb.SaveChangesAsync();
         }
     }
 
@@ -86,9 +84,9 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
                 var lastModifiedDate = await GetLastModifiedDate(owner, repo, filePath, token);
                 var date = DateTime.Parse(lastModifiedDate).ToUniversalTime();
                 var sw = await conectifyDb.Softwares.Include(x => x.Versions).FirstOrDefaultAsync(x => x.Name == filePath);
-                if (sw is not null) 
-                { 
-                    if(!sw.Versions.Any(x => x.ReleaseDate == date))
+                if (sw is not null)
+                {
+                    if (!sw.Versions.Any(x => x.ReleaseDate == date))
                     {
                         sw.Versions.Add(new Database.Models.Updates.SoftwareVersion()
                         {
@@ -115,7 +113,7 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
                             }
                         ]
                     };
-                    await conectifyDb.AddAsync( newSw );
+                    await conectifyDb.AddAsync(newSw);
                 }
             }
             await conectifyDb.SaveChangesAsync();
@@ -126,7 +124,7 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
             return "git error";
         }
 
-        foreach( var device in await conectifyDb.DeviceVersions.Include(x => x.Device).ToListAsync())
+        foreach (var device in await conectifyDb.DeviceVersions.Include(x => x.Device).ToListAsync())
         {
 
             var command = new Event()

@@ -1,9 +1,9 @@
-﻿using Conectify.Services.Automatization.Models;
+﻿using System.Globalization;
+using Conectify.Services.Automatization.Models;
 using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
 using Newtonsoft.Json;
-using System.Globalization;
 
 namespace Conectify.Services.Automatization.Rules;
 
@@ -70,7 +70,7 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
 
     public Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
-        var options = JsonConvert.DeserializeObject<TimeRuleOptions>(rule.ParametersJson); 
+        var options = JsonConvert.DeserializeObject<TimeRuleOptions>(rule.ParametersJson);
 
         rule.Name = $"Run at {options?.Days} {options?.TimeSet.ToLocalTime().ToShortTimeString()}";
         rule.Description = $"Run at {options?.Days} {options?.TimeSet.ToLocalTime().ToShortTimeString()}";

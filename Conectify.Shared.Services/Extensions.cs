@@ -24,7 +24,8 @@ public static class Extensions
 
     public static ILoggingBuilder AddRemoteLogging(this ILoggingBuilder builder)
     {
-        return builder.AddOpenTelemetry(x => {
+        return builder.AddOpenTelemetry(x =>
+        {
             x.IncludeScopes = true;
             x.IncludeFormattedMessage = true;
         });

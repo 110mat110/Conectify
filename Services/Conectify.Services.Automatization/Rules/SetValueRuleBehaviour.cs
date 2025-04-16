@@ -75,7 +75,7 @@ public class SetValueRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
     public Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
         var value = JsonConvert.DeserializeObject<SetValueOptions>(rule.ParametersJson);
-        if (value is null) return Task.CompletedTask;  
+        if (value is null) return Task.CompletedTask;
         var stringValue = !string.IsNullOrEmpty(value.StringValue) ? $" || {value.StringValue} {value.Unit}" : string.Empty;
         rule.Description = $"{value.NumericValue}{value.Unit}{stringValue} ";
         return Task.CompletedTask;
