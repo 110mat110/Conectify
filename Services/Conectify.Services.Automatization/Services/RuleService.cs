@@ -16,7 +16,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 {
     public async Task<GetRuleApiModel> AddNewRule(Guid behaviourId, CancellationToken cancellationToken)
     {
-        var behaviour = BehaviourFactory.GetRuleBehaviourByTypeId(behaviourId, services) ?? throw new Exception($"Behaviour {behaviourId} does not exist");
+        var behaviour = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, services) ?? throw new Exception($"Behaviour {behaviourId} does not exist");
 
         var inputs = new List<InputPoint>();
         int inputIndex = 0;
@@ -58,9 +58,9 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
         var input = mapper.Map<InputPoint>(apiInput);
         var rule = await automatizationCache.GetRuleByIdAsync(input.RuleId, ct) ?? throw new ArgumentException("Rule does not exist!");
 
-        var behaviour = BehaviourFactory.GetRuleBehaviourByTypeId(rule.RuleTypeId, services);
+        var behavior = BehaviorFactory.GetRuleBehaviorByTypeId(rule.RuleTypeId, services);
 
-        if (!rule.CanAddInput(behaviour, input.Type))
+        if (!rule.CanAddInput(behavior, input.Type))
         {
             throw new Exception("Cannot add new input");
         }
@@ -82,8 +82,8 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
         var output = mapper.Map<OutputPoint>(apiOutput);
         var rule = await automatizationCache.GetRuleByIdAsync(output.RuleId, ct) ?? throw new ArgumentException("Rule does not exist!");
 
-        var behaviour = BehaviourFactory.GetRuleBehaviourByTypeId(rule.RuleTypeId, services);
-        if (!rule.CanAddOutput(behaviour))
+        var behavior = BehaviorFactory.GetRuleBehaviorByTypeId(rule.RuleTypeId, services);
+        if (!rule.CanAddOutput(behavior))
         {
             throw new Exception("Cannot add new output");
         }
@@ -144,17 +144,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 
         if (automatizationCache.ConnectionExist(sourceId, destinationId))
         {
-            var rule = await database.Set<RuleConnector>().FirstOrDefaultAsync(x => x.SourceRuleId == sourceId && x.TargetRuleId == destinationId, ct);
-
-            if (rule is not null)
-            {
-                database.Set<RuleConnector>().Remove(rule);
-                await database.SaveChangesAsync(ct);
-
-
-                await automatizationCache.ReloadConnections();
-                return true;
-            }
+            return await RemoveConnection(sourceId, destinationId,ct);
         }
 
         var connection = new RuleConnector()
@@ -174,15 +164,16 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
     {
         var rule = await database.Set<RuleConnector>().FirstOrDefaultAsync(x => x.SourceRuleId == sourceId && x.TargetRuleId == destinationId, ct);
 
-        if (rule is null)
+        if (rule is not null)
         {
-            return false;
+            database.Set<RuleConnector>().Remove(rule);
+            await database.SaveChangesAsync(ct);
+
+
+            await automatizationCache.ReloadConnections();
+            return true;
         }
-
-        database.Set<RuleConnector>().Remove(rule);
-        await database.SaveChangesAsync(ct);
-
-        return true;
+        return false;
     }
 
     public async Task<bool> AddCustomInput(AddActuatorApiModel actuator, CancellationToken cancellationToken = default)
@@ -220,7 +211,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
     {
         if (rule is null) return;
 
-        var behaviour = BehaviourFactory.GetRuleBehaviourByTypeId(rule.RuleType, services);
+        var behaviour = BehaviorFactory.GetRuleBehaviorByTypeId(rule.RuleType, services);
 
         if (behaviour is null) return;
 

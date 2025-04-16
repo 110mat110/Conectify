@@ -5,7 +5,7 @@ using Conectify.Services.Automatization.Models.DTO;
 
 namespace Conectify.Services.Automatization.Rules;
 
-public class AndRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
+public class AndRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
 {
     public MinMaxDef Outputs => new(1, 1, 1);
 

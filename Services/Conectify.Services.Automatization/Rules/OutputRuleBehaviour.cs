@@ -5,11 +5,13 @@ using Conectify.Services.Automatization.Models.DTO;
 using Conectify.Services.Library;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
 
-public class OutputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
+public class OutputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
 {
     public MinMaxDef Outputs => new(0, 0, 0);
 
@@ -32,24 +34,24 @@ public class OutputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavi
 
         if (triggerValue is not null)
         {
-            using var scope = serviceProvider.CreateScope();
-            var configuration = scope.ServiceProvider.GetRequiredService<AutomatizationConfiguration>();
+                using var scope = serviceProvider.CreateScope();
+                var configuration = scope.ServiceProvider.GetRequiredService<AutomatizationConfiguration>();
 
-            var command = new WebsocketEvent()
-            {
-                DestinationId = options?.DestinationId,
-                Name = triggerValue.Name,
-                NumericValue = triggerValue.NumericValue,
-                StringValue = triggerValue.StringValue,
-                TimeCreated = triggerValue.TimeCreated,
-                Unit = triggerValue.Unit,
-                SourceId = configuration.SensorId,
-                Type = Constants.Events.Action,
-            };
+                var command = new WebsocketEvent()
+                {
+                    DestinationId = options?.DestinationId,
+                    Name = triggerValue.Name,
+                    NumericValue = triggerValue.NumericValue,
+                    StringValue = triggerValue.StringValue,
+                    TimeCreated = triggerValue.TimeCreated,
+                    Unit = triggerValue.Unit,
+                    SourceId = configuration.SensorId,
+                    Type = Constants.Events.Action,
+                };
 
-            var wsClient = scope.ServiceProvider.GetRequiredService<IServicesWebsocketClient>();
-            await wsClient.SendMessageAsync(command, ct);
-        }
+                var wsClient = scope.ServiceProvider.GetRequiredService<IServicesWebsocketClient>();
+                await wsClient.SendMessageAsync(command, ct);
+            }
     }
 
     public Task InitializationValue(RuleDTO rule, RuleDTO? oldDTO)

@@ -13,7 +13,7 @@ public class BehaviourController(IServiceProvider serviceProvider) : ControllerB
     public IEnumerable<BehaviourMenuApiModel> GetAllBehaviours()
     {
         var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes())
-       .Where(t => t.GetInterfaces().Contains(typeof(IRuleBehaviour))).Select(x => Activator.CreateInstance(x, serviceProvider) as IRuleBehaviour).ToList();
+       .Where(t => t.GetInterfaces().Contains(typeof(IRuleBehavior))).Select(x => Activator.CreateInstance(x, serviceProvider) as IRuleBehavior).ToList();
 
         return types.Where(x => x is not null).Select(x => new BehaviourMenuApiModel(x!.GetId(), x.DisplayName(), x.Outputs, x.Inputs));
     }
@@ -21,7 +21,9 @@ public class BehaviourController(IServiceProvider serviceProvider) : ControllerB
     [HttpGet("{id}")]
     public BehaviourMenuApiModel? GetBehaviour(Guid id)
     {
-        var x = BehaviourFactory.GetRuleBehaviourByTypeId(id, serviceProvider);
+        var x = BehaviorFactory.GetRuleBehaviorByTypeId(id, serviceProvider);
+
+        if (x is null) return null;
 
         return new BehaviourMenuApiModel(x!.GetId(), x.DisplayName(), x.Outputs, x.Inputs);
     }

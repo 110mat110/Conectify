@@ -5,7 +5,7 @@ using Conectify.Services.Automatization.Models.DTO;
 
 namespace Conectify.Services.Automatization.Rules;
 
-public interface IRuleBehaviour
+public interface IRuleBehavior
 {
     Guid GetId();
 

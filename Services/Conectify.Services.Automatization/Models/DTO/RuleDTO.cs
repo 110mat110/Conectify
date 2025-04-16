@@ -25,7 +25,7 @@ public class RuleDTO
 
     public Guid? SourceSensorId { get; set; }
 
-    public IRuleBehaviour? RuleBehaviour { get; set; } = null;
+    public IRuleBehavior? RuleBehaviour { get; set; } = null;
 
     public AutomatisationEvent? OutputValue { get; set; }
 
@@ -55,7 +55,7 @@ public class RuleDTO
 
     public async Task OnTrigger(AutomatisationEvent trigger, CancellationToken ct)
     {
-        if (RuleBehaviour is null)
+        if(RuleBehaviour is null)
         {
             return;
         }
@@ -64,27 +64,34 @@ public class RuleDTO
     }
     public async Task InitializeAsync(IServiceProvider serviceProvider, RuleDTO? oldDto)
     {
-        RuleBehaviour = BehaviourFactory.GetRuleBehaviourByTypeId(RuleTypeId, serviceProvider);
+        RuleBehaviour = BehaviorFactory.GetRuleBehaviorByTypeId(RuleTypeId, serviceProvider);
 
+        if(RuleBehaviour is null)
+        {
+            throw new ArgumentNullException($"Cannot load rule {RuleTypeId}");
+        }
         await Tracing.Trace(async () => await RuleBehaviour.InitializationValue(this, oldDto), Guid.NewGuid(), $"Initializing rule {RuleBehaviour.DisplayName()}");
     }
 
-    public bool CanAddInput(IRuleBehaviour ruleBehaviour, InputTypeEnum inputType)
+    public bool CanAddInput(IRuleBehavior? ruleBehaviour, InputTypeEnum inputType)
     {
+        if(ruleBehaviour is null) return false;
         return Inputs.Count(x => x.Type == inputType) < ruleBehaviour.Inputs.FirstOrDefault(x => x.Item1 == inputType)?.Item2.Max;
     }
 
-    public bool CanAddOutput(IRuleBehaviour ruleBehaviour)
+    public bool CanAddOutput(IRuleBehavior? ruleBehaviour)
     {
+        if(ruleBehaviour is null) return false;
+
         return Outputs.Count() < ruleBehaviour.Outputs.Max;
     }
 
     public async Task SetAllOutputs(AutomatisationEvent evnt, bool trigger = true)
     {
-        foreach (var output in Outputs)
-        {
-            await output.SetOutputEvent(evnt, trigger);
-        }
+            foreach (var output in Outputs)
+            {
+                await output.SetOutputEvent(evnt, trigger);
+            }
     }
 
     public async Task<bool> SetAllOutputs(RuleDTO? oldDTO, bool trigger = false)

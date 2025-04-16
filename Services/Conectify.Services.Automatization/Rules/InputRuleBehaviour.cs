@@ -4,11 +4,12 @@ using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
 using Conectify.Services.Library;
 using Conectify.Shared.Library;
+using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
 
-public class InputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
+public class InputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
 {
     public MinMaxDef Outputs => new(1, 1, 1);
 
@@ -29,13 +30,12 @@ public class InputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
     {
         Options = JsonConvert.DeserializeObject<InputRuleOptions>(masterRule.ParametersJson);
 
-        if (string.IsNullOrEmpty(Options?.Event) || Options.Event == Constants.Events.All || triggerValue.Type == Options.Event)
-        {
+        if(string.IsNullOrEmpty(Options?.Event) || Options.Event == Constants.Events.All || triggerValue.Type == Options.Event){
             await masterRule.SetAllOutputs(triggerValue);
         }
     }
 
-    async Task IRuleBehaviour.InitializationValue(RuleDTO rule, RuleDTO? ruleDTO)
+    async Task IRuleBehavior.InitializationValue(RuleDTO rule, RuleDTO? ruleDTO)
     {
         if (await rule.SetAllOutputs(ruleDTO))
         {

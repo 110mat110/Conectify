@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 namespace Conectify.Services.Automatization.Rules;
 
 #pragma warning disable CS9113 // Parameter is unread. Need to be there due to BehaviourFactory
-public class SetDelayBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
+public class SetDelayBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
 #pragma warning restore CS9113 // Parameter is unread.
 {
     public MinMaxDef Outputs => new(1, 1, 1);

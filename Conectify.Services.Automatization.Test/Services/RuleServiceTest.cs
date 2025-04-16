@@ -369,6 +369,55 @@ public class RuleServiceTests
         Assert.NotNull(localDbContext.Set<RuleConnector>().Single(x => x.SourceRuleId == outputId && x.TargetRuleId == inputId));
     }
 
+    [Fact]
+    public async Task AddingConnectionAgain_ShouldRemoveConnection_Success()
+    {
+        var inputId = Guid.NewGuid();
+        var outputId = Guid.NewGuid();
+
+
+        var contextOptions = new DbContextOptionsBuilder<AutomatizationDb>()
+    .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
+    .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+    .Options;
+        var localDbContext = new AutomatizationDb(contextOptions);
+
+        var localServices = new ServiceCollection();
+        localServices.AddTransient<IConnectorService>(services => connectorService);
+        localServices.AddScoped(services => new AutomatizationDb(contextOptions));
+        var localServiceProvider = localServices.BuildServiceProvider();
+        var automatizationCacheLocal = new AutomatizationCache(localServiceProvider, mapper, false);
+
+        await localDbContext.Rules.AddAsync(new Models.Database.Rule()
+        {
+            Id = Guid.NewGuid(),
+            RuleType = new AndRuleBehaviour(default).GetId(),
+            ParametersJson = Guid.NewGuid().ToString(),
+            InputConnectors = [new() { Id = inputId }]
+        });
+        await localDbContext.Rules.AddAsync(new Models.Database.Rule()
+        {
+            Id = Guid.NewGuid(),
+            RuleType = new AndRuleBehaviour(default).GetId(),
+            ParametersJson = Guid.NewGuid().ToString(),
+            OutputConnectors = [new() { Id = outputId }]
+        });
+        await localDbContext.SaveChangesAsync();
+
+        var ruleService = new RuleService(automatizationCacheLocal, mapper, localDbContext, connectorService, new FakeConfig(), localServiceProvider);
+        var addedRules = await ruleService.SetConnection(outputId, inputId);
+
+        Assert.True(automatizationCacheLocal.ConnectionExist(outputId, inputId));
+
+        var removedRule = await ruleService.SetConnection(outputId, inputId);
+
+        Assert.True(removedRule);
+
+        Assert.False(automatizationCacheLocal.ConnectionExist(outputId, inputId));
+
+        Assert.Null(localDbContext.Set<RuleConnector>().SingleOrDefault(x => x.SourceRuleId == outputId && x.TargetRuleId == inputId));
+    }
+
     private class FakeConfig : ConfigurationBase, IDeviceData
     {
         public FakeConfig() : base(A.Fake<IConfiguration>())

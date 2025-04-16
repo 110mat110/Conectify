@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
 
-public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
+public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
 {
     public MinMaxDef Outputs => new(1, 1, 10);
 
@@ -47,7 +47,7 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
             var pinputs = masterRule.Inputs.Where(x => x.Type == InputTypeEnum.Parameter).OrderBy(x => x.Index).ToList();
             var inputs = masterRule.Inputs.Where(x => x.Type == InputTypeEnum.Value).OrderBy(x => x.Index).ToList();
             var outputs = masterRule.Outputs.OrderBy(x => x.Index).ToList();
-            if (pinputs.Count != 2 || pinputs.Any(x => x.GetEvent(serviceProvider).Result is null))
+            if(pinputs.Count != 2 || pinputs.Any(x => x.GetEvent(serviceProvider).Result is null))
             {
                 logger.LogWarning("Not sufficient inputs. Count {Count} P1: {p1}, P2: {p2}", pinputs.Count, pinputs.FirstOrDefault()?.GetEvent(serviceProvider)?.Result, pinputs.Skip(1).FirstOrDefault()?.GetEvent(serviceProvider)?.Result);
                 return;
@@ -82,7 +82,7 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
         }
     }
 
-    Task IRuleBehaviour.InitializationValue(RuleDTO rule, RuleDTO? ruleDTO)
+    Task IRuleBehavior.InitializationValue(RuleDTO rule, RuleDTO? ruleDTO)
     {
         return Task.CompletedTask;
     }

@@ -1,14 +1,14 @@
-﻿using System.Globalization;
-using Conectify.Services.Automatization.Models;
+﻿using Conectify.Services.Automatization.Models;
 using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace Conectify.Services.Automatization.Rules;
 
 #pragma warning disable CS9113 // Parameter is unread. Required for Behaviour factory 
-public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
+public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
 #pragma warning restore CS9113 // Parameter is unread.
 {
     public MinMaxDef Outputs => new(1, 1, 1);
@@ -63,14 +63,14 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
         return options.Days.Contains(todayShort);
     }
 
-    Task IRuleBehaviour.InitializationValue(RuleDTO rule, RuleDTO? oldDTO)
+    Task IRuleBehavior.InitializationValue(RuleDTO rule, RuleDTO? oldDTO)
     {
         return Task.CompletedTask;
     }
 
     public Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
-        var options = JsonConvert.DeserializeObject<TimeRuleOptions>(rule.ParametersJson);
+        var options = JsonConvert.DeserializeObject<TimeRuleOptions>(rule.ParametersJson); 
 
         rule.Name = $"Run at {options?.Days} {options?.TimeSet.ToLocalTime().ToShortTimeString()}";
         rule.Description = $"Run at {options?.Days} {options?.TimeSet.ToLocalTime().ToShortTimeString()}";

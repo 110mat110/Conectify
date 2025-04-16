@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
 
-public class UserInputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehaviour
+public class UserInputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
 {
     public MinMaxDef Outputs => new(1, 1, 1);
 
@@ -39,7 +39,7 @@ public class UserInputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeh
         throw new NotImplementedException();
     }
 
-    Task IRuleBehaviour.InitializationValue(RuleDTO rule, RuleDTO? oldDTO)
+    Task IRuleBehavior.InitializationValue(RuleDTO rule, RuleDTO? oldDTO)
     {
         throw new NotImplementedException();
     }
