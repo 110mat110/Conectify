@@ -25,6 +25,7 @@ builder.Services.AddSingleton<IAutomatizationService, AutomatizationService>();
 builder.Services.AddTransient<RuleService>();
 
 var app = builder.Build();
+app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 await app.Services.ConnectToConectifyServer();
 try
 {
@@ -47,5 +48,4 @@ app.UseHealthChecks("/health");
 app.UseAuthorization();
 
 app.MapControllers();
-app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.Run();
