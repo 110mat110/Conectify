@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, ObservableInput } from 'rxjs';
 import { CreateRule } from 'src/models/Automatization/CreateRule';
 import { AdressesService } from './adresses.service';
 import { BehaviourMenuItem } from 'src/models/Automatization/BehaviourMenuItem';
@@ -64,5 +64,9 @@ export class BefetchAutomatizationService {
   }
   getBehaviour(behaviourId: string): Observable<BehaviourMenuItem>{
     return this.http.get<BehaviourMenuItem>(this.adresses.behaviour(behaviourId));
+  }
+
+  getRule(ruleId: string): Observable<RuleModel>{
+    return this.http.get<RuleModel>(this.adresses.rule(ruleId))
   }
 }

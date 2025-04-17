@@ -171,4 +171,8 @@ export class AdressesService {
   addOutputNode() {
     return this.automatizationURL + "rule/addoutputnode";
   }
+
+  rule(ruleId: string){
+    return this.automatizationURL + "rule/" + ruleId;
+  }
 }

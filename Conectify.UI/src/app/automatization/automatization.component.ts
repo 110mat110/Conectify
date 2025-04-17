@@ -30,8 +30,10 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
   selectedRuleId: string = "";
   constructor(public messenger: MessagesService, public ruleService: RuleProviderService, public be: BefetchAutomatizationService) { }
   ngAfterViewInit(): void {
-    this.ReDrawConnections();
-  }
+    setTimeout(() => {
+      this.ReDrawConnections();
+    }, 500);
+    }
   lineToFill: number = 0;
   lineHeight: number = 150;
   connections: RuleConnection[] = [];
@@ -55,7 +57,9 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
       this.DrawConnections();
     })
 
-
+    window.addEventListener('resize', () => {
+      this.ReDrawConnections();
+    });
   }
 
   createRule() {
@@ -75,6 +79,10 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
     this.MoveComponent();
     let apiModel: EditRule = { id: rule.id, x: rule.dragPosition.x, y: rule.dragPosition.y, behaviourId: rule.behaviorId, parameters: rule.getParametersJSon() };
     this.be.saveRule(apiModel);
+
+    setTimeout(() => {
+      this.MoveComponent();
+    }, 50);
   }
 
   SourceClick(source: string) {
@@ -110,7 +118,19 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   DrawConnections() {
-    this.lines.forEach(line => line.remove()); // Remove all old lines
+    // First check if we have all references needed
+    const allReferencesReady = this.connections.every(conn => 
+      this.references.some(ref => ref.id === conn.sourceId) && 
+      this.references.some(ref => ref.id === conn.destinationId)
+    );
+    
+    if (!allReferencesReady) {
+      console.warn('Not all references are ready. Delaying drawing.');
+      setTimeout(() => this.DrawConnections(), 200);
+      return;
+    }
+    
+    this.lines.forEach(line => line.remove());
     this.lines = [];
     this.connections.forEach(connecion => {
       console.log("Drawing line")
@@ -154,8 +174,10 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
     this.ruleService.LoadAllRules();
   }
 
-  ngOnDestroy() {
-    // Remove the leader line when the component is destroyed
-    this.lines.forEach(line => line.remove()); // Remove all old lines
+  ngOnDestroy(): void {
+    this.lines.forEach(line => line.remove());
+    window.removeEventListener('resize', () => {
+      this.ReDrawConnections();
+    });
   }
 }

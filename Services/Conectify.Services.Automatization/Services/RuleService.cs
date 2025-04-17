@@ -230,4 +230,11 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 
         return true;
     }
+
+    public async Task<GetRuleApiModel?> GetRule(Guid ruleId)
+    {
+        var result = await database.Set<Rule>().AsNoTracking().Include(i => i.InputConnectors).Include(i => i.OutputConnectors).ProjectTo<GetRuleApiModel>(mapper.ConfigurationProvider).FirstOrDefaultAsync(x => x.Id == ruleId);
+
+        return result;
+    }
 }

@@ -35,7 +35,7 @@ public class AutomatizationCache : IAutomatizationCache
     private DateTime lastReload;
     private readonly TimeSpan cacheLongevity = new(0, 10, 0);
 
-    private bool reloading = false;
+    private static bool reloading = false;
     public AutomatizationCache(IServiceProvider services, IMapper mapper, bool reload = true)
     {
         reloading = false;

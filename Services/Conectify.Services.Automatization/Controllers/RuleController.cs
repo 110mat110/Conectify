@@ -63,4 +63,10 @@ public class RuleController(RuleService ruleService) : ControllerBase
     {
         return Ok(await ruleService.Remove(ruleId, default));
     }
+
+    [HttpGet("{ruleId}")]
+    public async Task<IActionResult> GetRule(Guid ruleId)
+    {
+        return Ok(await ruleService.GetRule(ruleId));
+    }
 }

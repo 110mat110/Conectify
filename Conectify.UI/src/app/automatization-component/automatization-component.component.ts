@@ -81,7 +81,25 @@ export class AutomatizationComponentComponent implements OnInit, AfterViewInit {
       width: '500px', // Adjust width as needed
       data: { rule: this.Rule} // Pass any data to the dialog
     });
-
+    this.dialog.afterAllClosed.subscribe(() => {
+      if (this.Rule?.id) {
+        
+        // If you need to fully refresh the rule from the backend
+        this.be.getRule(this.Rule?.id).subscribe(updatedRule => {
+          if (this.Rule && updatedRule) {
+            this.Rule.description = updatedRule.description;
+            this.Rule.name = updatedRule.name;
+            
+            // Trigger change detection if needed
+            setTimeout(() => {
+              if (this.Cage) {
+                this.Cage.ReDrawConnections();
+              }
+            }, 100);
+          }
+        });
+      }
+    });
   }
 
   public saveClick(){
