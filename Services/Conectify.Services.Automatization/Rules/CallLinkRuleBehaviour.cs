@@ -9,14 +9,8 @@ using static Conectify.Services.Automatization.Rules.OutputRuleBehaviour;
 
 namespace Conectify.Services.Automatization.Rules;
 
-public class CallLinkRuleBehavior : IRuleBehavior
+public class CallLinkRuleBehavior(IServiceProvider serviceProvider) : IRuleBehavior
 {
-    private readonly ServiceProvider serviceProvider;
-
-    public CallLinkRuleBehavior(ServiceProvider serviceProvider)
-    {
-        this.serviceProvider = serviceProvider;
-    }
 
     public MinMaxDef Outputs => new(0, 0, 0);
 
