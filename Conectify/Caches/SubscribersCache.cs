@@ -59,13 +59,13 @@ public class SubscribersCache(IServiceProvider serviceProvider, IMapper mapper) 
         if (device is not null)
         {
             var sub = mapper.Map<Subscriber>(device);
-            if (!subscribers.TryAdd(deviceId, sub))
+            if (subscribers.ContainsKey(deviceId))
             {
                 lock (locker) { subscribers[deviceId] = sub; }
             }
             else
             {
-                lock (locker) { }
+                lock (locker) { subscribers.Add(deviceId, sub); }
                 var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
                 if (meterFactory is not null)
                 {
