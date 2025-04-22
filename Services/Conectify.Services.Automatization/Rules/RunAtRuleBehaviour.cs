@@ -58,7 +58,7 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
 
     private static bool IsCorrectDay(TimeRuleOptions options)
     {
-        string todayShort = DateTime.Now.ToString("dd", new CultureInfo("en-US"))[..2];
+        string todayShort = DateTime.Now.DayOfWeek.ToString()[..2];
 
         return options.Days.Contains(todayShort);
     }

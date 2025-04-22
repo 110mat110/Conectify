@@ -39,7 +39,7 @@ export class AutSetTimeComponent implements OnInit {
       currentDate.setHours(Number(timeParts[0]));
       currentDate.setMinutes(Number(timeParts[1]));
       currentDate.setSeconds(Number(timeParts[2]));
-      this.Rule.behaviour.TimeSet = currentDate.toISOString();
+      this.Rule.behaviour.TimeSet = currentDate.toLocaleTimeString();
     }
   }
 
