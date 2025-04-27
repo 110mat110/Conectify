@@ -41,12 +41,11 @@ public class UserInputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeh
 
     Task IRuleBehavior.InitializationValue(RuleDTO rule, RuleDTO? oldDTO)
     {
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
     public void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
     }
 
     public async Task SetParameters(Rule rule, CancellationToken cancellationToken)
