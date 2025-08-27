@@ -81,6 +81,8 @@ export class SensorCubeComponent implements OnInit, OnChanges {
                   previousValue = value.numericValue;
                   previousTick = value.timeCreated;
                 });
+                let lastValue = values[values.length-1].numericValue;
+                this.mapedValues.push([new Date().getTime(), lastValue])
               }
             });
           this.chartOption = {

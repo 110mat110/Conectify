@@ -69,9 +69,10 @@ export class ActuatorCubeComponent implements OnInit {
           this.be.getDevice(this.actuator.sourceDeviceId).subscribe(x => this.device = x);
         }
       });
-      if (this.latestVal)
+      if (this.latestVal){
         this.stringvalue = this.latestVal?.stringValue;
-      this.numericvalue = this.latestVal?.numericValue;
+        this.numericvalue = this.latestVal?.numericValue;
+      }
     }
   }
 

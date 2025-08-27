@@ -104,7 +104,7 @@ export class AutomatizationComponentComponent implements OnInit, AfterViewInit {
 
   public saveClick(){
     if(this.Rule){
-      let apiModel: EditRule = {id: this.Rule.id, x: this.Rule.dragPosition.x, y: this.Rule.dragPosition.y, behaviourId: this.Rule.behaviorId, parameters: this.Rule.getParametersJSon() };
+      let apiModel: EditRule = {id: this.Rule.id, x: Number(this.Rule.dragPosition.x) || 0 , y: Number(this.Rule.dragPosition.y) || 0 , behaviourId: this.Rule.behaviorId, parameters: this.Rule.getParametersJSon() };
       this.be.saveRule(apiModel); 
     }
   }

@@ -20,19 +20,21 @@ export class MetadataComponent implements OnInit {
   metadatas: Metadata[] = [];
   avaliableMetadata: ApiMetadata[] = [];
   exclusive: boolean = false;
-  constructor(private beFetcher: BEFetcherService ) { }
+  constructor(private beFetcher: BEFetcherService) { }
 
   ngOnInit(): void {
-    this.beFetcher.getAllActuators().subscribe(x => x.forEach(device => {
-      this.supportedDevices.push({name: "Act: " + device.name, id: device.id, type: 1});
-    }));
-    this.beFetcher.getAllSensors().subscribe(x => x.forEach(device => {
-      this.supportedDevices.push({name: "Sensor: " + device.name, id: device.id, type: 2});
-    }));
+    this.beFetcher.getAllDevices().subscribe(devices => {
+      this.beFetcher.getAllActuators().subscribe(x => x.forEach(device => {
+        this.supportedDevices.push({ name: "Act: " + device.name, id: device.id, type: 1 });
+      }));
+      this.beFetcher.getAllSensors().subscribe(x => x.forEach(device => {
+        this.supportedDevices.push({ name: "Sensor: " + device.name, id: device.id, type: 2 });
+      }));
+    });
     this.reloadMetadata();
   }
 
-  reloadMetadata(){
+  reloadMetadata() {
     this.beFetcher.getAllMetadata().subscribe(x => {
       this.avaliableMetadata = x;
       this.formControlObj = new UntypedFormControl(this.avaliableMetadata);
@@ -44,16 +46,16 @@ export class MetadataComponent implements OnInit {
     let selection = e.options[0].value;
     this.selectedMetadata = this.metadatas.find(x => x.metadataId = selection);
     this.formControlObj?.setValue(this.selectedMetadata?.metadataId);
-}
+  }
 
-  selectDevice(){
-    if(this.selectedDeviceId){
+  selectDevice() {
+    if (this.selectedDeviceId) {
       let selectedDevice = this.supportedDevices.find(x => x.id == this.selectedDeviceId);
-      if(selectedDevice){
-        if(selectedDevice.type === 1){
+      if (selectedDevice) {
+        if (selectedDevice.type === 1) {
           this.beFetcher.getActuatorMetadatas(selectedDevice.id).subscribe(x => this.metadatas = x);
         }
-        if(selectedDevice.type === 2){
+        if (selectedDevice.type === 2) {
           this.beFetcher.getSensorMetadatas(selectedDevice.id).subscribe(x => this.metadatas = x);
         }
       }
@@ -64,26 +66,26 @@ export class MetadataComponent implements OnInit {
     return object1 && object2 && object1 === object2;
   }
 
-  updateMetadata(numericValue: string, stringValue: string, minVal: string, maxVal: string){
+  updateMetadata(numericValue: string, stringValue: string, minVal: string, maxVal: string) {
     let metadataId = this.formControlObj?.value;
     console.log(metadataId);
     let selectedMetadata = this.avaliableMetadata.find(x => x.id == metadataId);
     let device = this.supportedDevices.find(x => x.id == this.selectedDeviceId);
 
-    if(selectedMetadata && device){
-      if(device.type == 1){
-        this.beFetcher.postActuatorMetadata({name: selectedMetadata.name, metadataId: selectedMetadata.id, numericValue: Number(numericValue), stringValue: stringValue, minVal: Number(minVal), maxVal: Number(maxVal), unit: "", deviceId: device.id, typeValue: 0})
+    if (selectedMetadata && device) {
+      if (device.type == 1) {
+        this.beFetcher.postActuatorMetadata({ name: selectedMetadata.name, metadataId: selectedMetadata.id, numericValue: Number(numericValue), stringValue: stringValue, minVal: Number(minVal), maxVal: Number(maxVal), unit: "", deviceId: device.id, typeValue: 0 })
       }
-      if(device.type == 2){
-        this.beFetcher.postSensorMetadata({name: selectedMetadata.name, metadataId: selectedMetadata.id, numericValue: Number(numericValue), stringValue: stringValue, minVal: Number(minVal), maxVal: Number(maxVal), unit: "", deviceId: device.id, typeValue: 0})
+      if (device.type == 2) {
+        this.beFetcher.postSensorMetadata({ name: selectedMetadata.name, metadataId: selectedMetadata.id, numericValue: Number(numericValue), stringValue: stringValue, minVal: Number(minVal), maxVal: Number(maxVal), unit: "", deviceId: device.id, typeValue: 0 })
       }
     }
-    setTimeout(()=>{ this.selectDevice() }, 1000)
+    setTimeout(() => { this.selectDevice() }, 1000)
     this.selectDevice();
   }
 
-  createMetadata(name: string){
-    this.beFetcher.postMetadata({id:"00000000-0000-0000-0000-000000000000", name: name, exclusive: this.exclusive});
-    setTimeout(()=>{ this.reloadMetadata() }, 1000)
+  createMetadata(name: string) {
+    this.beFetcher.postMetadata({ id: "00000000-0000-0000-0000-000000000000", name: name, exclusive: this.exclusive });
+    setTimeout(() => { this.reloadMetadata() }, 1000)
   }
 }
