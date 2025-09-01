@@ -146,6 +146,22 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
             await websocketClient.SendMessageAsync(pwr);
         }
+        if (message.Params.Switch2?.Output is not null)
+        {
+            var value = new WebsocketEvent()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Light",
+                NumericValue = message.Params.Switch2.Output.Value ? 100 : 0,
+                StringValue = "",
+                TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                Unit = "%",
+                SourceId = shelly.Shelly.Switches[0].SensorId,
+                Type = Constants.Events.Value,
+            };
+
+            await websocketClient.SendMessageAsync(value);
+        }
 
         if (message.Params.Switch2 is not null)
         {
