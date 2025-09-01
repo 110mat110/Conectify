@@ -156,7 +156,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                 StringValue = "",
                 TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 Unit = "%",
-                SourceId = shelly.Shelly.Switches[0].SensorId,
+                SourceId = shelly.Shelly.Switches[2].SensorId,
                 Type = Constants.Events.Value,
             };
 
