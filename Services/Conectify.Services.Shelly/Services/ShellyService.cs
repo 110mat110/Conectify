@@ -161,8 +161,8 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             };
 
             await websocketClient.SendMessageAsync(value);
-        }
-
+        } 
+        else
         if (message.Params.Switch2 is not null)
         {
             var value = new WebsocketEvent()
