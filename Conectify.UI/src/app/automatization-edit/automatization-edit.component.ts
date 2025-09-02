@@ -13,6 +13,7 @@ import { EditRule } from 'src/models/Automatization/EditRule';
 import { BefetchAutomatizationService } from '../befetch-automatization.service';
 import { BehaviourMenuItem, MinMaxDef } from 'src/models/Automatization/BehaviourMenuItem';
 import { DelayRule } from 'src/models/Automatization/DelayRule';
+import { HttpCallRule } from 'src/models/Automatization/HttpCallRule';
 
 
 @Component({
@@ -31,6 +32,7 @@ export class AutomatizationEditComponent {
   DecisionRule?: DecisionRule;
   AndRuleX?: AndRule;
   Behaviour?: BehaviourMenuItem;
+  HttpRule?: HttpCallRule;
   readonly dialogRef = inject(MatDialogRef<AutomatizationEditComponent>);
 
   CanAddOutput: boolean = false;
@@ -74,6 +76,10 @@ export class AutomatizationEditComponent {
 
     if (this.rule instanceof AndRule) {
       this.AndRuleX = this.rule;
+    }
+
+    if(this.rule instanceof HttpCallRule){
+      this.HttpRule = this.rule;
     }
 
     if (this.data.rule.behaviorId) {

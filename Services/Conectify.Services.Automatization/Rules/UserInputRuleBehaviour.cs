@@ -3,6 +3,7 @@ using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
 using Conectify.Services.Library;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
@@ -34,9 +35,9 @@ public class UserInputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeh
         return Guid.Parse("24ff4530-887b-48d1-a4fa-38cc83925798");
     }
 
-    public Task Execute(RuleDTO masterRule, AutomatisationEvent triggerValue, CancellationToken ct = default)
+    public async Task Execute(RuleDTO masterRule, AutomatisationEvent triggerValue, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+            await masterRule.SetAllOutputs(triggerValue);
     }
 
     Task IRuleBehavior.InitializationValue(RuleDTO rule, RuleDTO? oldDTO)

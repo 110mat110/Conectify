@@ -49,8 +49,8 @@ export class ActuatorCubeComponent implements OnInit {
   }
 
   setLatestVal(val: BaseInputType, soruce: string){
-    this.latestVal = val;
-    console.warn(val.numericValue + " from " + soruce);
+    this.latestVal = val ??  null;
+    console.warn(this.latestVal?.numericValue + " from " + soruce);
   }
 
   refreshActualStatus() {
@@ -60,7 +60,10 @@ export class ActuatorCubeComponent implements OnInit {
         this.websocketService.receivedMessages.subscribe(msg => {
           this.HandleIncomingValue(msg);
         });
-        if(!this.latestVal) this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.setLatestVal(x, "latestSensorValue"));
+        if(!this.latestVal) 
+        {
+          this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.setLatestVal(x, "latestSensorValue"))
+        };
         this.be.getActuatorMetadatas(this.actuator.id).subscribe(x => {
           this.metadatas = x;
           this.processMetadata();
@@ -133,13 +136,6 @@ export class ActuatorCubeComponent implements OnInit {
     var visibilityMetadata = this.metadatas.find(x => x.name === "Visible");
     if(visibilityMetadata && this.actuatorId){
       this.actuatorId.visible = visibilityMetadata.numericValue > 0;
-    }
-    var typeMetadata = this.metadatas.find(x => x.name === "IOType");
-    if (typeMetadata) {
-      this.iotype = IOType[typeMetadata.stringValue as keyof typeof IOType];
-      this.minValue = typeMetadata.minVal;
-      this.maxValue = typeMetadata.maxVal;
-      this.metadataValue = typeMetadata.numericValue;
     }
 
     var nameMetadata = this.metadatas.find(x => x.name === "Name");

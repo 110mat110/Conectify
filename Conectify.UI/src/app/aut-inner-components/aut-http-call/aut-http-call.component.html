@@ -1,0 +1,7 @@
+<p>Call http address:</p>
+<div>
+<mat-form-field class="string-input" style="margin-bottom: -5px; margin-top: -10px;">
+    <mat-label>HTTP adress</mat-label>
+    <input matInput placeholder="String value" value={{httpAdress}} [(ngModel)]="httpAdress" #stringInput (ngModelChange)="onChange()">
+  </mat-form-field>
+</div>

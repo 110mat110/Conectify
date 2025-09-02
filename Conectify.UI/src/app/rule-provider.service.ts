@@ -13,6 +13,7 @@ import { AndRule } from 'src/models/Automatization/AndRule';
 import { BehaviourMenuItem } from 'src/models/Automatization/BehaviourMenuItem';
 import { RuleModel } from 'src/models/Automatization/RuleModel';
 import { DelayRule } from 'src/models/Automatization/DelayRule';
+import { HttpCallRule } from 'src/models/Automatization/HttpCallRule';
 
 @Injectable({
   providedIn: 'root',
@@ -85,6 +86,7 @@ export class RuleProviderService {
     case "62d50548-fff0-44c4-8bf3-b592042b1c2b": return new DecisionRule(id, behaviourId, parametersJson, {Rule:"="}, name, description);
     case "28ff4530-887b-48d1-a4fa-38dc839257a4": return new AndRule(id, behaviourId, parametersJson, {}, name, description);
     case "768fe726-caff-4120-a7f1-3d4c3c6817ac": return new DelayRule(id, behaviourId, parametersJson, {Delay: "00:00:10"}, name, description);
+    case "dbb05c98-9112-460f-be89-7fe399cb5a58": return new HttpCallRule(id, behaviourId, parametersJson, {Http: ""}, name, description);
     default: return;
     }
   }

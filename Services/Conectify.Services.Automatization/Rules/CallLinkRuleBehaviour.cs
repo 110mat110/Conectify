@@ -34,7 +34,7 @@ public class CallLinkRuleBehavior(IServiceProvider serviceProvider) : IRuleBehav
 
 
         HttpClient client = new HttpClient();
-        await client.GetAsync(address, ct);
+        _ =  await client.GetAsync(address, ct);
     }
 
     public Guid GetId() => Guid.Parse("dbb05c98-9112-460f-be89-7fe399cb5a58");

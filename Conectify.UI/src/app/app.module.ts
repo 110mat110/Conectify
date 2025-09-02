@@ -55,6 +55,7 @@ import { AutomatizationEditComponent } from './automatization-edit/automatizatio
 import { AutValueInputComponent } from './aut-inner-components/aut-value-input/aut-value-input.component';
 import { AutUserInputComponent } from './aut-inner-components/aut-user-input/aut-user-input.component';
 import { AutDelayComponent } from './aut-inner-components/aut-delay/aut-delay.component';
+import { AutHttpCallComponent } from './aut-inner-components/aut-http-call/aut-http-call.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -79,6 +80,7 @@ import { AutDelayComponent } from './aut-inner-components/aut-delay/aut-delay.co
         AutEachTimeComponent,
         AutSetValueComponent,
         AutDecisionComponent,
+        AutHttpCallComponent,
         AutAndComponent,
         DashboardComponent,
         DashboardcontentComponent,

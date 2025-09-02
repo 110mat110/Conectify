@@ -17,7 +17,7 @@
   </div>
   <div *ngIf="latestVal && iotype != 3">
     <br/>
-    <div *ngIf="latestVal.numericValue >= 0" style="display: inline-block;">
+    <div *ngIf="latestVal != null && latestVal.numericValue >= 0" style="display: inline-block;">
       <mat-form-field class="current-value">
         <mat-label>Current {{latestVal.name}}</mat-label>
         <input matInput disabled value="{{latestVal.numericValue}} {{latestVal.unit}}" #stringInput>
