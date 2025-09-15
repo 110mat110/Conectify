@@ -56,6 +56,9 @@ public class Params
 
     [JsonProperty("pm1:0")]
     public Pm10? Pm0 { get; set; }
+
+    [JsonProperty("em:0")]
+    public Em0? em0 { get; set; }
     public Event[]? events { get; set; }
 }
 
@@ -66,6 +69,37 @@ public class Pm10
 
     public float? apower { get; set; }
 }
+
+public class Em0
+{
+    public float a_act_power { get; set; }
+    public float a_aprt_power { get; set; }
+    public float a_current { get; set; }
+    public float a_freq { get; set; }
+    public float a_pf { get; set; }
+    public float a_voltage { get; set; }
+
+    public float b_act_power { get; set; }
+    public float b_aprt_power { get; set; }
+    public float b_current { get; set; }
+    public float b_freq { get; set; }
+    public float b_pf { get; set; }
+    public float b_voltage { get; set; }
+
+    public float c_act_power { get; set; }
+    public float c_aprt_power { get; set; }
+    public float c_current { get; set; }
+    public float c_freq { get; set; }
+    public float c_pf { get; set; }
+    public float c_voltage { get; set; }
+
+    public float? n_current { get; set; } // nullable because JSON has null
+
+    public float total_act_power { get; set; }
+    public float total_aprt_power { get; set; }
+    public float total_current { get; set; }
+}
+
 
 public class Event
 {

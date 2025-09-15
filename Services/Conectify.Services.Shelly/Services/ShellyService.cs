@@ -4,6 +4,7 @@ using Conectify.Services.Library;
 using Conectify.Services.Shelly.Models;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Models.Websocket;
+using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 
 namespace Conectify.Services.Shelly.Services;
@@ -161,7 +162,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             };
 
             await websocketClient.SendMessageAsync(value);
-        } 
+        }
         else
         if (message.Params.Switch2 is not null)
         {
@@ -215,6 +216,39 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
                 Type = message.Params.events[0].@event!,
             };
             await websocketClient.SendMessageAsync(evnt);
+        }
+
+        //Powermeter
+        if (message.Params.em0 is not null)
+        {
+            if (!cache.FrequentValueCahce.TryGetValue(shelly.Shelly.Powers[0].SensorId, out ShellyFequentValueCahceItem? value))
+            {
+                value = new ShellyFequentValueCahceItem() { LastSent = DateTime.MinValue };
+                cache.FrequentValueCahce.Add(shelly.Shelly.Powers[0].SensorId, value);
+            }
+
+            var measuredPower = Math.Abs(message.Params?.em0?.total_act_power ?? 0);
+            var res = value.ProcessValue(measuredPower, TimeSpan.FromSeconds(measuredPower < 1 ? 0 : 10));
+
+
+            if (res is null)
+            {
+                return;
+            }
+
+            var pwr = new WebsocketEvent()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Power",
+                NumericValue = res.Value,
+                StringValue = "",
+                TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                Unit = "W",
+                SourceId = shelly.Shelly.Powers[0].SensorId,
+                Type = Constants.Events.Value,
+            };
+
+            await websocketClient.SendMessageAsync(pwr);
         }
 
         if (message.Params.Pm0?.apower is not null && shelly.Shelly.Powers[0] is not null)
