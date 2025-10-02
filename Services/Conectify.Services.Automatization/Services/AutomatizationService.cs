@@ -33,7 +33,7 @@ public class AutomatizationService(IAutomatizationCache automatizationCache,
     {
         foreach (var rule in await automatizationCache.GetAllRulesAsync())
         {
-            rule.Clock(TimeSpan.FromMilliseconds(Timer.Interval));
+            rule.Clock(TimeSpan.FromSeconds(Timer.Interval));
         }
     }
 
