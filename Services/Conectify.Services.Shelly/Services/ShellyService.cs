@@ -44,7 +44,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             }
             catch (Exception ex)
             {
-                logger.LogError("Shelly ws message failed to deserialize! : {message}", message);
+                logger.LogError("Shelly ws message failed! : {message}", message);
                 logger.LogError(ex, "Shelly message read failed");
             }
         } while (!result.CloseStatus.HasValue);

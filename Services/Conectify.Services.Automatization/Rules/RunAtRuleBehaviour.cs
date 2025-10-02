@@ -41,7 +41,7 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
     {
         var options = JsonConvert.DeserializeObject<TimeRuleOptions>(masterRule.ParametersJson);
 
-        if (options is not null && IsCorrectDay(options) && DateTime.Now.TimeOfDay > options.TimeSet.TimeOfDay && DateTime.Now.TimeOfDay < options.TimeSet.Add(interval).TimeOfDay)
+        if (options is not null && IsCorrectDay(options) && DateTime.Now.TimeOfDay > options.TimeSet.TimeOfDay && DateTime.Now.TimeOfDay < options.TimeSet.AddSeconds(interval*5).TimeOfDay)
         {
             await masterRule.SetAllOutputs(new AutomatisationEvent()
             {
