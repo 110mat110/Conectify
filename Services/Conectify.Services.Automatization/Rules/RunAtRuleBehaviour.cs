@@ -40,8 +40,11 @@ public class RunAtRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
     public async void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
     {
         var options = JsonConvert.DeserializeObject<TimeRuleOptions>(masterRule.ParametersJson);
-
-        if (options is not null && IsCorrectDay(options) && DateTime.Now.TimeOfDay > options.TimeSet.TimeOfDay && DateTime.Now.TimeOfDay < options.TimeSet.Add(interval).Add(interval).TimeOfDay)
+        var currentTime = DateTime.Now;
+        var isCorrectDay = IsCorrectDay(options);
+        var isMoreThanCurrentTime = currentTime.TimeOfDay >= options.TimeSet.TimeOfDay;
+        var isLessThanOverTime = currentTime.TimeOfDay <= options.TimeSet.Add(interval).Add(interval).TimeOfDay;
+        if (options is not null && isCorrectDay && isMoreThanCurrentTime && isLessThanOverTime)
         {
             await masterRule.SetAllOutputs(new AutomatisationEvent()
             {
