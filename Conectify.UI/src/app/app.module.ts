@@ -1,4 +1,4 @@
-import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { APP_INITIALIZER, NgModule, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -56,6 +56,7 @@ import { AutValueInputComponent } from './aut-inner-components/aut-value-input/a
 import { AutUserInputComponent } from './aut-inner-components/aut-user-input/aut-user-input.component';
 import { AutDelayComponent } from './aut-inner-components/aut-delay/aut-delay.component';
 import { AutHttpCallComponent } from './aut-inner-components/aut-http-call/aut-http-call.component';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -115,6 +116,12 @@ import { AutHttpCallComponent } from './aut-inner-components/aut-http-call/aut-h
         MatDividerModule,
         MatCardModule,
         MatSidenavModule,
-        MatMenuModule], 
+        MatMenuModule,
+        ServiceWorkerModule.register('ngsw-worker.js', {
+          enabled: !isDevMode(),
+          // Register the ServiceWorker as soon as the application is stable
+          // or after 30 seconds (whichever comes first).
+          registrationStrategy: 'registerWhenStable:30000'
+        })], 
         providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }, provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }
