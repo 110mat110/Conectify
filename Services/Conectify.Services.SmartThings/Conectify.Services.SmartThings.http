@@ -1,0 +1,6 @@
+@Conectify.Services.SmartThings_HostAddress = http://localhost:5019
+
+GET {{Conectify.Services.SmartThings_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

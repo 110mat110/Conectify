@@ -38,7 +38,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
                 if (deserialized is not null)
                 {
-                    logger.LogInformation("RECEIVED: {msg}", message);
+                    logger.LogDebug("RECEIVED: {msg}", message);
                     await ReadMessage(deserialized, webSocket);
                 }
             }
