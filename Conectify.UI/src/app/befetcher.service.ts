@@ -49,6 +49,12 @@ export class BEFetcherService {
     this.http.post(this.adresses.postSensorMetadata(), metadata, this.httpOptions).subscribe();
     this.messenger.addMessage("Sending metadata {" + JSON.stringify(metadata) + "} to adress: " + this.adresses.postSensorMetadata());
   }
+
+  postDeviceMetadata(metadata: ApiMetadataConnector): void {
+    this.http.post(this.adresses.postDeviceMetadata(), metadata, this.httpOptions).subscribe();
+    this.messenger.addMessage("Sending metadata {" + JSON.stringify(metadata) + "} to adress: " + this.adresses.postDeviceMetadata());
+  }
+
   getSensorMetadatas(id: string): Observable<Metadata[]> {
     return this.http.get<Metadata[]>(this.adresses.getSensorMetdatas(id));
   }

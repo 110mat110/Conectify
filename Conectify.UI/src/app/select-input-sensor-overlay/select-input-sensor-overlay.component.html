@@ -1,16 +1,31 @@
 <div *ngIf="sensors" class="overlayDiv" style="width: 100%;">
-    <div #theContainer style="width: 100%;">
-  <mat-grid-list cols="{{columnNum}}" rowHeight="100px" gutterSize="6px" style="width: 100%;">
-      <mat-grid-tile *ngFor="let sensor of sensors" style="background-color: {{sensor.color}};">
+  <div #theContainer style="width: 100%;">
+    <mat-grid-list cols="{{columnNum}}" rowHeight="100px" gutterSize="6px" style="width: 100%;">
+      <mat-grid-tile *ngFor="let sensor of sensors" [style.background-color]="sensor.color">
         <div (click)="select(sensor)" class="cube">
-            {{sensor.sensor.name}}
+          <div class="sensor-name">{{sensor.displayName}}</div>
+          <mat-icon *ngIf="sensor.selected" class="selected-icon">check_circle</mat-icon>
         </div>
       </mat-grid-tile>
     </mat-grid-list>
   </div>
-</div>
+
 
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancel</button>
-  <button mat-button *ngIf="selectedSensor" [mat-dialog-close]="selectedSensor" cdkFocusInitial>Select</button>
+  <button 
+    mat-button 
+    *ngIf="selectedSensors.length > 0" 
+    (click)="clearSelection()"
+    class="clear-button">
+    Clear Selection
+  </button>
+  <button 
+    mat-button 
+    *ngIf="selectedSensors.length > 0" 
+    [mat-dialog-close]="multiselect ? selectedSensors : selectedSensors[0]" 
+    cdkFocusInitial>
+    Select<span *ngIf="multiselect && selectedSensors.length > 1"> ({{selectedSensors.length}})</span>
+  </button>
 </mat-dialog-actions>
+</div>

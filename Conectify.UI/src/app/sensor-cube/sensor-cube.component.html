@@ -1,4 +1,4 @@
-<div *ngIf="sensor" class="cube" (click)="onClick()" height style="border: 1px solid {{ accentColor }};" >
+<div *ngIf="sensors.length === 1" class="cube" (click)="onClick()" height style="border: 1px solid {{ accentColor }};" >
 
 <button *ngIf="device" class="source-button" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
 
@@ -9,24 +9,24 @@
         <b>{{showName}}</b>
       </div>
       <div *ngIf="!showName">
-        <b>{{sensor.name}} &#64; {{device?.name}}</b>
+        <b>{{sensors[0].sensor.name}} &#64; {{device?.name}}</b>
       </div>
-    <div *ngIf="metadatas">
-        <app-metadata-icons [metadatas] = "metadatas"></app-metadata-icons>
+    <div *ngIf="sensors[0].metadatas">
+        <app-metadata-icons [metadatas] = "sensors[0].metadatas"></app-metadata-icons>
       </div>
     <!-- <div><b>{{sensor.sourceThing.thingName}}</b></div> -->
-    <div *ngIf="latestVal">
-        {{latestVal.name}}
-        <div *ngIf="latestVal.numericValue >= 0">
+    <div *ngIf="sensors[0].latestVal">
+        {{sensors[0].latestVal.name}}
+        <div *ngIf="sensors[0].latestVal.numericValue >= 0">
             <mat-form-field>
                 <mat-label>Numeric value</mat-label>
-                <input matInput disabled value="{{latestVal.numericValue}} {{latestVal.unit}}">
+                <input matInput disabled value="{{sensors[0].latestVal.numericValue}} {{sensors[0].latestVal.unit}}">
             </mat-form-field>
         </div>
-        <div *ngIf="latestVal.stringValue">
+        <div *ngIf="sensors[0].latestVal.stringValue">
             <mat-form-field>
                 <mat-label>String value</mat-label>
-                <input matInput disabled value="{{latestVal.stringValue}} {{latestVal.unit}}">
+                <input matInput disabled value="{{sensors[0].latestVal.stringValue}} {{sensors[0].latestVal.unit}}">
             </mat-form-field>
             
         </div>
@@ -41,4 +41,8 @@
 </td>
 </tr>
 </table>
+</div>
+
+<div *ngIf="sensors.length > 1">
+  <!-- new logic here -->
 </div>

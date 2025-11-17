@@ -24,7 +24,7 @@ export class DeviceComponent implements OnInit {
   public actuatorCubes: { id: string, visible: boolean }[] = [];
   public actuatorWithMetadata: { actuator: Actuator, metadatas: Metadata[] }[] = [];
   public sensorWithMetadata: { sensor: Sensor, metadatas: Metadata[] }[] = []
-  public sensorCubes: { id: string, visible: boolean }[] = [];
+  public sensorCubes: { id: string[], visible: boolean }[] = [];
   public sensors: Sensor[] = [];
   public metadatas: Metadata[] = [];
   public deviceSrc: string | undefined;
@@ -47,7 +47,7 @@ export class DeviceComponent implements OnInit {
   ngOnInit(): void {
     this.be.getAllDevices().subscribe(
       devices => {
-        this.devices = devices;
+        this.devices = devices.sort(x => x.state);
 
 
     this.id = this.route.snapshot.paramMap.get('id');
@@ -82,7 +82,7 @@ export class DeviceComponent implements OnInit {
       sensors => {
         this.sensors = sensors;
         sensors.forEach(element => {
-          this.sensorCubes.push({ id: element.id, visible: true })
+          this.sensorCubes.push({ id: [element.id], visible: true })
           this.be.getSensorMetadatas(element.id).subscribe(
             metadatas => {
               this.sensorWithMetadata.push({ sensor: element, metadatas: metadatas })

@@ -23,14 +23,18 @@ export class MetadataComponent implements OnInit {
   constructor(private beFetcher: BEFetcherService) { }
 
   ngOnInit(): void {
-    this.beFetcher.getAllDevices().subscribe(devices => {
+
+
       this.beFetcher.getAllActuators().subscribe(x => x.forEach(device => {
         this.supportedDevices.push({ name: "Act: " + device.name, id: device.id, type: 1 });
       }));
       this.beFetcher.getAllSensors().subscribe(x => x.forEach(device => {
         this.supportedDevices.push({ name: "Sensor: " + device.name, id: device.id, type: 2 });
       }));
-    });
+          this.beFetcher.getAllDevices().subscribe(devices => devices.forEach( device =>{
+              this.supportedDevices.push({ name: "Device: " + device.name, id: device.id, type: 3 });
+
+    }   ));
     this.reloadMetadata();
   }
 
@@ -58,6 +62,9 @@ export class MetadataComponent implements OnInit {
         if (selectedDevice.type === 2) {
           this.beFetcher.getSensorMetadatas(selectedDevice.id).subscribe(x => this.metadatas = x);
         }
+        if (selectedDevice.type === 3) {
+          this.beFetcher.getDeviceMetadata(selectedDevice.id).subscribe(x => this.metadatas = x);
+        }
       }
     }
   }
@@ -78,6 +85,9 @@ export class MetadataComponent implements OnInit {
       }
       if (device.type == 2) {
         this.beFetcher.postSensorMetadata({ name: selectedMetadata.name, metadataId: selectedMetadata.id, numericValue: Number(numericValue), stringValue: stringValue, minVal: Number(minVal), maxVal: Number(maxVal), unit: "", deviceId: device.id, typeValue: 0 })
+      }
+      if (device.type == 3) {
+        this.beFetcher.postDeviceMetadata({ name: selectedMetadata.name, metadataId: selectedMetadata.id, numericValue: Number(numericValue), stringValue: stringValue, minVal: Number(minVal), maxVal: Number(maxVal), unit: "", deviceId: device.id, typeValue: 0 })
       }
     }
     setTimeout(() => { this.selectDevice() }, 1000)

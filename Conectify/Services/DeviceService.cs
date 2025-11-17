@@ -75,7 +75,7 @@ public class DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceS
     public override async Task<IEnumerable<ApiDevice>> GetAllDevices(CancellationToken ct = default)
     {
         var devices = await base.GetAllDevices(ct);
-        var currentTime = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(1)).ToUnixTimeMilliseconds();
+        var currentTime = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(2)).ToUnixTimeMilliseconds();
         foreach (var device in devices)
         {
             if (!websocketCache.IsActiveSocket(device.Id))

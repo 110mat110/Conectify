@@ -6,10 +6,10 @@ import { environment } from 'src/environments/environment';
 })
 export class AdressesService {
 
-  private serverURL: string = environment.serverUrl + "/api/"
-  private automatizationURL: string = environment.automatizationURL + "/api/"
-  private historyURL: string = environment.historyUrl + "/api/"
-  private dashboardURL: string = environment.dashboardUrl + "/api/"
+  private serverURL: string = this.replaceServerHost(environment.serverUrl + "/api/")
+  private automatizationURL: string = this.replaceServerHost(environment.automatizationURL + "/api/")
+  private historyURL: string = this.replaceServerHost(environment.historyUrl + "/api/")
+  private dashboardURL: string = this.replaceServerHost(environment.dashboardUrl + "/api/")
 
   constructor() { }
 
@@ -27,6 +27,10 @@ export class AdressesService {
 
   postSensorMetadata():string{
     return this.serverURL + "sensors/metadata";
+  }
+
+    postDeviceMetadata():string{
+    return this.serverURL + "device/metadata";
   }
 
   postActuatorMetadata():string{
@@ -175,4 +179,14 @@ export class AdressesService {
   rule(ruleId: string){
     return this.automatizationURL + "rule/" + ruleId;
   }
+
+  replaceServerHost(url: string): string {
+  try {
+    const currentHost = "server.home"//window.location.hostname;
+    return url.replace(environment.serverHome, currentHost);
+  } catch {
+    return url;
+  }
+}
+
 }

@@ -38,6 +38,7 @@ export class OutputCreatorService {
       ipAdress: "",
       name: "Angular@" + usernName,
       state: 0,
+      metadata: []
     }
   }
 

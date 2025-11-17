@@ -11,20 +11,20 @@ import { DashboardParams } from 'src/models/Dashboard/DashboardParams';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { color } from 'echarts';
+import { SensorData } from 'src/models/SensorData';
 
 @Component({
   selector: 'app-sensor-cube',
   templateUrl: './sensor-cube.component.html',
   styleUrls: ['./sensor-cube.component.css']
 })
+
 export class SensorCubeComponent implements OnInit, OnChanges {
 
-  @Input() sensorInput?: { id: string, visible: boolean };
+  @Input() sensorInput?: { id: string[], visible: boolean };
   @Input() params?: DashboardParams;
-  public sensor?: Sensor;
+  public sensors: SensorData[] = [];
   public device?: Device;
-  public latestVal?: BaseInputType;
-  public metadatas: Metadata[] = [];
   public valsReady: boolean = false;
   public showName?: string = undefined;
   public accentColor: string = "#2a2a2a";
@@ -39,10 +39,11 @@ export class SensorCubeComponent implements OnInit, OnChanges {
 
   HandleIncomingValue(msg: any): void {
     var id = msg.sourceId;
-    if (id && this.sensor && id == this.sensor.id) {
-      this.latestVal = msg;
+    const sensor = this.sensors?.find(s => s.id === msg.sourceId);
+    if (sensor) {
+      sensor.latestVal = msg;
       this.getAccentColor();
-      this.addData(this.latestVal);
+      this.addData(msg);
     }
   }
 
@@ -58,74 +59,99 @@ export class SensorCubeComponent implements OnInit, OnChanges {
     });
 
     if (this.sensorInput) {
-      this.be.getSensorDetail(this.sensorInput.id).subscribe(x => {
-        this.sensor = x
+      this.sensorInput.id.forEach(sensorId => {
+        this.be.getSensorDetail(sensorId).subscribe(x => {
+          var currentSensor: SensorData = { id: x.id, sensor: x, metadatas: [] as Metadata[] }
 
-        if (this.sensor) {
 
-          this.be.getDevice(this.sensor.sourceDeviceId).subscribe(x => this.device = x);
-          this.be.getSensorMetadatas(this.sensor.id).subscribe(x => {
-            this.metadatas = x;
-            this.HandleMetadata();
+          if (currentSensor) {
+            this.sensors.push(currentSensor);
+            if (!this.device)
+              this.be.getDevice(x.sourceDeviceId).subscribe(x => {
+            this.device = x;
+            if(!this.isSoloSensor()){
+              this.showName = this.device.name;
+            }
+          
           });
-          this.be.getSensorValues(this.sensor.id).subscribe(
-            values => {
-              this.valsReady = values.length > 0;
-              if (this.valsReady) {
-                let previousTick = new Date().getTime() - 86400000;
-                let previousValue = values[0].numericValue;
-                values.forEach(value => {
-                  for (let i = previousTick; i < value.timeCreated; i = i + 30000) {
-                    this.mapedValues.push([i, previousValue]);
-                  }
-                  previousValue = value.numericValue;
-                  previousTick = value.timeCreated;
-                });
-                let lastValue = values[values.length-1].numericValue;
-                this.mapedValues.push([new Date().getTime(), lastValue])
-              }
+
+            this.be.getSensorMetadatas(x.id).subscribe(x => {
+              currentSensor.metadatas = x;
+              this.HandleMetadata();
             });
-          this.chartOption = {
-            xAxis: {
-              type: 'category',
-              show: false
-            },
-            yAxis: {
-              type: 'value',
-              show: false
-            },
-            series: [{
-              name: this.sensor?.name,
-              data: this.mapedValues.map(x => new Date(x[0]).toLocaleDateString()),
-              type: 'line',
-              symbolKeepAspect: false,
-            }]
+            this.be.getLatestSensorValue(currentSensor.id).subscribe(x => {
+              currentSensor.latestVal = x;
+              this.getAccentColor();
+              if (this.isSoloSensor())
+                this.addData(currentSensor.latestVal);
+            });
+
+            if (this.isSoloSensor()) {
+              this.GenerateChart(x);
+            }
           }
-          this.be.getLatestSensorValue(this.sensor.id).subscribe(x => {
-            this.latestVal = x;
-            this.getAccentColor();
-            this.addData(this.latestVal);
-          });
-        }
+        });
       });
     }
   }
 
+  private isSoloSensor() {
+    return this.sensorInput?.id.length == 1;
+  }
+
+  private GenerateChart(x: Sensor) {
+    this.be.getSensorValues(x.id).subscribe(
+      values => {
+        this.valsReady = values.length > 0;
+        if (this.valsReady) {
+          let previousTick = new Date().getTime() - 86400000;
+          let previousValue = values[0].numericValue;
+          values.forEach(value => {
+            for (let i = previousTick; i < value.timeCreated; i = i + 30000) {
+              this.mapedValues.push([i, previousValue]);
+            }
+            previousValue = value.numericValue;
+            previousTick = value.timeCreated;
+          });
+          let lastValue = values[values.length - 1].numericValue;
+          this.mapedValues.push([new Date().getTime(), lastValue]);
+        }
+      });
+    this.chartOption = {
+      xAxis: {
+        type: 'category',
+        show: false
+      },
+      yAxis: {
+        type: 'value',
+        show: false
+      },
+      series: [{
+        name: this.sensors[0]?.sensor.name,
+        data: this.mapedValues.map(x => new Date(x[0]).toLocaleDateString()),
+        type: 'line',
+        symbolKeepAspect: false,
+      }]
+    };
+  }
+
   private HandleMetadata() {
-    var visibilityMetadata = this.metadatas.find(x => x.name === "Visible");
-    if (visibilityMetadata && this.sensorInput) {
-      this.sensorInput.visible = visibilityMetadata.numericValue > 0;
-    }
-    var nameMetadata = this.metadatas.find(x => x.name === "Name");
-    if (nameMetadata) {
-      this.showName = nameMetadata.stringValue;
+    if (this.isSoloSensor()) {
+      var visibilityMetadata = this.sensors[0].metadatas.find(x => x.name === "Visible");
+      if (visibilityMetadata && this.sensorInput) {
+        this.sensorInput.visible = visibilityMetadata.numericValue > 0;
+      }
+      var nameMetadata = this.sensors[0].metadatas.find(x => x.name === "Name");
+      if (nameMetadata) {
+        this.showName = nameMetadata.stringValue;
+      }
     }
   }
 
   private getAccentColor() {
-    if (this.latestVal?.numericValue) {
+    if (this.isSoloSensor() && this.sensors[0].latestVal?.numericValue) {
 
-      var metadata = this.metadatas.find(x => x.maxVal >= this.latestVal!.numericValue && x.minVal < this.latestVal!.numericValue);
+      var metadata = this.sensors[0].metadatas.find(x => x.maxVal >= this.sensors[0].latestVal!.numericValue && x.minVal < this.sensors[0].latestVal!.numericValue);
       if (metadata) {
         this.accentColor = metadata.stringValue;
         return;
@@ -149,20 +175,21 @@ export class SensorCubeComponent implements OnInit, OnChanges {
     let newData = this.mapedValues;
     newData.push([newVal.timeCreated, newVal.numericValue]);
 
-    let thresholdPieces = this.metadatas
-    .filter(m => m.name === "Threshold") // Filter metadata where type is "Threshold"
-    .map(m => ({
-      gt: m.minVal,
-      lte: m.maxVal,
-      color: m.stringValue
-    }));
-    if(thresholdPieces.length == 0){
-      thresholdPieces.push({gt: -10000, lte: -9000, color: this.defaultColor })
+    if(this.isSoloSensor()){
+    let thresholdPieces = this.sensors[0].metadatas
+      .filter(m => m.name === "Threshold") // Filter metadata where type is "Threshold"
+      .map(m => ({
+        gt: m.minVal,
+        lte: m.maxVal,
+        color: m.stringValue
+      }));
+    if (thresholdPieces.length == 0) {
+      thresholdPieces.push({ gt: -10000, lte: -9000, color: this.defaultColor })
     }
 
     this.mergeOptions = {
       series: [{
-        name: this.sensor?.name,
+        name: this.sensors[0].sensor.name,
         data: newData,
         type: 'line',
         symbolKeepAspect: false,
@@ -176,22 +203,20 @@ export class SensorCubeComponent implements OnInit, OnChanges {
       }
     }
   }
+  }
 
   openOverlay() {
+    if(this.isSoloSensor()){
     const dialogRef = this.dialog.open(SensorDetailComponent, {
       width: '70%',
       height: '80%',
-      data: { sensor: this.sensor, metadata: this.metadatas },
+      data: { sensor: this.sensors[0], metadata: this.sensors[0].metadatas },
       panelClass: "sensor-detail-panel"
     });
   }
+  }
 
   SourceClick() {
-    /* The line `this.router.navigate(['/device'])` is navigating to the '/device' route in the
-    application. It is typically used to redirect the user to a specific page or component within
-    the application when a certain action is triggered, such as a button click or a specific event.
-    In this case, it seems like it is intended to navigate to the 'device' route when the
-    `SourceClick()` method is called in the `SensorCubeComponent` component. */
-    this.router.navigate(['/device/' + this.sensor?.sourceDeviceId])
+    this.router.navigate(['/device/' + this.device?.id])
   }
 }

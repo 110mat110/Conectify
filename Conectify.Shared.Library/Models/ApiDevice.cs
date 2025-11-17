@@ -1,6 +1,7 @@
 ﻿namespace Conectify.Shared.Library.Models;
 
 using System;
+using System.Collections.Generic;
 using Conectify.Shared.Library.Interfaces;
 
 public enum ApiDeviceState
@@ -18,4 +19,5 @@ public record ApiDevice : IApiModel
     public string MacAdress { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public ApiDeviceState State { get; set; } = ApiDeviceState.Offline;
+    public virtual List<ApiMetadata> Metadata { get; set; } = [];
 }

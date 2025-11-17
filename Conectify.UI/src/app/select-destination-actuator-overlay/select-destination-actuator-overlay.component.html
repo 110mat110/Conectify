@@ -1,16 +1,24 @@
-<div *ngIf="actuators" class="overlayDiv"  style="width: 100%;">
-    <div #theContainer style="width: 100%;">
-  <mat-grid-list cols="{{columnNum}}" rowHeight="100px" gutterSize="6px" style="width: 100%;">
-      <mat-grid-tile *ngFor="let actuator of actuators" style="background-color: {{actuator.color}};">
+<div *ngIf="actuators" class="overlayDiv" style="width: 100%;">
+  <div #theContainer style="width: 100%;">
+    <mat-grid-list cols="{{columnNum}}" rowHeight="100px" gutterSize="6px" style="width: 100%;">
+      <mat-grid-tile *ngFor="let actuator of actuators" [style.background-color]="actuator.color">
         <div (click)="select(actuator)" class="cube">
-            {{actuator.actuator.name}}
+          <div class="actuator-name">{{actuator.displayName}}</div>
+          <mat-icon *ngIf="actuator.selected" class="selected-icon">check_circle</mat-icon>
         </div>
       </mat-grid-tile>
     </mat-grid-list>
   </div>
-</div>
 
-<mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close>Cancel</button>
-  <button mat-button *ngIf="selectedActuator" [mat-dialog-close]="selectedActuator" cdkFocusInitial>Select</button>
-</mat-dialog-actions>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-button *ngIf="selectedActuators.length > 0" (click)="clearSelection()" class="clear-button">
+      Clear Selection
+    </button>
+    <button mat-button *ngIf="selectedActuators.length > 0"
+      [mat-dialog-close]="multiselect ? selectedActuators : selectedActuators[0]" cdkFocusInitial>
+      Select<span *ngIf="multiselect && selectedActuators.length > 1"> ({{selectedActuators.length}})</span>
+    </button>
+  </mat-dialog-actions>
+</div>

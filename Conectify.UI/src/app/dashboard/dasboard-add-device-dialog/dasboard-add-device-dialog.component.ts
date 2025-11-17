@@ -31,7 +31,7 @@ export class DasboardAddDeviceDialogComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      this.thisDialogRef.close({sensor:result});
+      this.thisDialogRef.close({sensors:result});
     });
   }
 

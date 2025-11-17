@@ -13,6 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Logging.AddRemoteLogging();
 builder.Services.UseConectifyWebsocket<Configuration, DeviceData>();
 builder.Services.AddSingleton<IMQTTSender, MQTTSender>();
+builder.Services.AddSingleton<MqttService>();
 builder.Services.AddTransient<IValueService, ValueService>();
 builder.Services.AddSwaggerGen();
 
@@ -22,9 +23,12 @@ await app.Services.ConnectToConectifyServer();
 app.Services.GetRequiredService<IServicesWebsocketClient>().OnIncomingEvent += OnEvent;
 async void OnEvent(Conectify.Database.Models.Values.Event evnt)
 {
-    var shellyService = app.Services.GetRequiredService<IMQTTSender>();
-    await shellyService.SendValueToBroker(evnt, CancellationToken.None);
+    //var shellyService = app.Services.GetRequiredService<IMQTTSender>();
+    //await shellyService.SendValueToBroker(evnt, CancellationToken.None);
 }
+
+var mqttSevice = app.Services.GetService<MqttService>();
+mqttSevice.StartAsync(default);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

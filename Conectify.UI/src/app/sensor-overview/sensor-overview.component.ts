@@ -10,7 +10,7 @@ import { debounceTime } from 'rxjs/operators';
   styleUrls: ['./sensor-overview.component.css']
 })
 export class SensorOverviewComponent implements OnInit {
-  public sensors: {id: string, visible: boolean}[] = [];
+  public sensors: {id: string[], visible: boolean}[] = [];
   columnNum: number = 4;
   tileSize: number = 400;
   @ViewChild('theContainer') theContainer: any;
@@ -26,8 +26,17 @@ export class SensorOverviewComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.be.getAllDevices().subscribe(x => {
+      let combos = x.filter(x => x.metadata?.some(md => md.name === "combo" && md.numericValue === 1));
+      combos.forEach(device => {
+        this.be.getAllSensorsForDevice(device.id).subscribe(sensor => {
+            this.sensors.push({id: sensor.map(sensor => sensor.id), visible: true});
+        });
+      });
+    })
+
     this.be.getActiveSensors().subscribe(x => {
-      x.forEach(s => this.sensors.push({id: s, visible: true}));
+      x.forEach(s => this.sensors.push({id: [s], visible: true}));
       this.calculateCols();
     }, (err) => {
       this.messanger.addMessage("Error!");

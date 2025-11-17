@@ -19,7 +19,7 @@ export class DashboardcontentComponent implements OnInit {
   @Input() dashboard: DashboardApi = null!;
   sensors: {
     apiSensor: DashboardDeviceApi;
-    cube: { id: string; visible: boolean; position: { x: number; y: number } };
+    cube: { id: string[]; visible: boolean; position: { x: number; y: number } };
   }[] = [];
   actuators: {
     apiActuator: DashboardDeviceApi;
@@ -27,7 +27,7 @@ export class DashboardcontentComponent implements OnInit {
   }[] = [];
   params: DashboardParams = { editable: false };
   sensorCursor: string = 'pointer';
-  constructor(private befetcher: BEFetcherService, public dialog: MatDialog) {}
+  constructor(private befetcher: BEFetcherService, public dialog: MatDialog) { }
 
   ngOnInit(): void {
     if (this.dashboard.dashboardDevices) {
@@ -36,7 +36,7 @@ export class DashboardcontentComponent implements OnInit {
           this.sensors.push({
             apiSensor: item,
             cube: {
-              id: item.deviceId,
+              id: [item.deviceId],
               visible: true,
               position: { x: item.posX, y: item.posY },
             },
@@ -59,17 +59,17 @@ export class DashboardcontentComponent implements OnInit {
     this.befetcher.removeDashboardDevice(this.dashboard.id, id);
 
     let index = this.sensors.findIndex(d => d.apiSensor.id === id); //find index in your array
-        if (index > -1) {
-          this.sensors.splice(index, 1);//remove element from array
-          return;
-        }
+    if (index > -1) {
+      this.sensors.splice(index, 1);//remove element from array
+      return;
+    }
 
     index = this.actuators.findIndex(d => d.apiActuator.id === id); //find index in your array
     if (index > -1) {
       this.actuators.splice(index, 1);//remove element from array
       return;
     }
-}
+  }
 
   addDevice() {
     const dialogRef = this.dialog.open(DasboardAddDeviceDialogComponent, {
@@ -79,60 +79,66 @@ export class DashboardcontentComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      var actuator = result.actuator as Actuator;
-      if (actuator) {
-        this.befetcher
-        .addDashboardDevice(this.dashboard.id, {
-          sourceType: 'actuator',
-          deviceId: actuator.id,
-          posX: 100,
-          posY: 100,
-        })
-        .subscribe((id) => {
-          var device = {
-            id: id,
-            sourceType: 'actuator',
-            deviceId: actuator.id,
-            posX: 100,
-            posY: 100,
-          };
-          this.actuators.push({
-            apiActuator: device,
-            cube: {
-              id: actuator.id,
-              visible: true,
-              position: { x: device.posX, y: device.posY },
-            },
-          });
-        });
+      var actuators = result.actuator as Actuator[];
+      if (actuators) {
+        actuators.forEach(actuator => {
+          this.befetcher
+            .addDashboardDevice(this.dashboard.id, {
+              sourceType: 'actuator',
+              deviceId: actuator.id,
+              posX: 100,
+              posY: 100,
+            })
+            .subscribe((id) => {
+              var device = {
+                id: id,
+                sourceType: 'actuator',
+                deviceId: actuator.id,
+                posX: 100,
+                posY: 100,
+              };
+              this.actuators.push({
+                apiActuator: device,
+                cube: {
+                  id: actuator.id,
+                  visible: true,
+                  position: { x: device.posX, y: device.posY },
+                },
+              });
+            });
+        }
+        );
       }
+      var sensors = result.sensors as Sensor[];
+      if (sensors) {
+        sensors.forEach(sensor => {
 
-      var sensor = result.sensor as Sensor;
-      if (sensor) {
-        this.befetcher
-          .addDashboardDevice(this.dashboard.id, {
-            sourceType: 'sensor',
-            deviceId: sensor.id,
-            posX: 100,
-            posY: 100,
-          })
-          .subscribe((id) => {
-            var device = {
-              id: id,
+          this.befetcher
+            .addDashboardDevice(this.dashboard.id, {
               sourceType: 'sensor',
               deviceId: sensor.id,
               posX: 100,
               posY: 100,
-            };
-            this.sensors.push({
-              apiSensor: device,
-              cube: {
-                id: sensor.id,
-                visible: true,
-                position: { x: device.posX, y: device.posY },
-              },
+            })
+            .subscribe((id) => {
+              var device = {
+                id: id,
+                sourceType: 'sensor',
+                deviceId: sensor.id,
+                posX: 100,
+                posY: 100,
+              };
+              this.sensors.push({
+                apiSensor: device,
+                cube: {
+                  id: [sensor.id],
+                  visible: true,
+                  position: { x: device.posX, y: device.posY },
+                },
+              });
             });
-          });
+
+        });
       }
       this.setCursor();
     });
@@ -151,23 +157,23 @@ export class DashboardcontentComponent implements OnInit {
     const transform = event.source.element.nativeElement.style.transform;
     const regex = /translate3d\((-?\d+)px, (-?\d+)px, 0px\)/;
     const matches = transform.match(regex);
-    
+
     if (matches) {
       const deltaX = parseInt(matches[1], 10);
       const deltaY = parseInt(matches[2], 10);
-      
+
       // Add these deltas to the original position
       const newX = rule.posX + deltaX;
       const newY = rule.posY + deltaY;
-      
+
       // Update the model
       let apiModel: EditDashboardDeviceApi = { id: rule.id, posX: newX, posY: newY };
       rule.posX = newX;
       rule.posY = newY;
-      
+
       // Reset the drag element's position to avoid double-counting
       event.source.reset();
-      
+
       this.befetcher.editDasboardDevice(this.dashboard.id, apiModel);
     }
   }
