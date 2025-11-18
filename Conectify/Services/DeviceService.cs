@@ -75,30 +75,34 @@ public class DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceS
     public override async Task<IEnumerable<ApiDevice>> GetAllDevices(CancellationToken ct = default)
     {
         var devices = await base.GetAllDevices(ct);
-        var currentTime = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(2)).ToUnixTimeMilliseconds();
+        var currentTime = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(1)).ToUnixTimeMilliseconds();
+        
+        var allCommands = await database.Events.Where(e => e.Type == "Command" && e.Name == "activitycheck" && e.TimeCreated > currentTime).ToListAsync();
+        List<IEnumerable<Database.Models.Values.Event>>? allResponses = await (from cmd in database.Events
+        .Where(e => e.Type == Constants.Events.Command && e.Name == Constants.Commands.ActivityCheck && e.TimeCreated > currentTime)
+                              join resp in database.Events
+                                  .Where(e => e.Name == Constants.Commands.Active)
+                                  on cmd.Id equals resp.SourceId into responses
+                              select 
+                                  responses
+                            ).ToListAsync(ct);
+
+
+        var activeDevices = await (from cmd in database.Events
+        .Where(e => e.Type == Constants.Events.Command && e.Name == Constants.Commands.ActivityCheck && e.TimeCreated > currentTime)
+                            join resp in database.Events
+                                .Where(e => e.Name ==Constants.Commands.Active)
+                                on cmd.Id equals resp.SourceId into responses
+                            select 
+                                cmd.DestinationId
+                            ).Distinct().ToListAsync(ct);
         foreach (var device in devices)
         {
-            if (!websocketCache.IsActiveSocket(device.Id))
-            {
-                device.State = ApiDeviceState.Offline;
-            }
-            else
-            {
-                if (await database.Events.AsNoTracking().AnyAsync(
-                    x => x.Name == Constants.Commands.Active
-                    && x.Type == Constants.Events.CommandResponse
-                    && x.SourceId == device.Id
-                    && x.TimeCreated > currentTime, cancellationToken: ct))
-                {
-                    device.State = ApiDeviceState.Online;
-                }
-                else
-                {
-                    device.State = ApiDeviceState.NotAnswering;
-                }
-            }
+            device.State = !websocketCache.IsActiveSocket(device.Id)
+                ? ApiDeviceState.Offline
+                : activeDevices.Contains(device.Id) ? ApiDeviceState.Online : ApiDeviceState.NotAnswering;
         }
 
-        return devices;
+        return devices.OrderByDescending(x => x.State);
     }
 }
