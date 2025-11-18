@@ -1,7 +1,7 @@
 import { Component, HostListener, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
-import { fromEvent } from 'rxjs';
+import { fromEvent, forkJoin } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
 @Component({
@@ -15,8 +15,9 @@ export class SensorOverviewComponent implements OnInit {
   tileSize: number = 400;
   @ViewChild('theContainer') theContainer: any;
 
-  constructor(private be: BEFetcherService, private messanger: MessagesService ) { 
+  constructor(private be: BEFetcherService, private messanger: MessagesService) { 
   }
+
   ngAfterViewInit(): void {
     this.calculateCols();
   
@@ -26,23 +27,44 @@ export class SensorOverviewComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.be.getAllDevices().subscribe(x => {
-      let combos = x.filter(x => x.metadata?.some(md => md.name === "combo" && md.numericValue === 1));
-      combos.forEach(device => {
-        this.be.getAllSensorsForDevice(device.id).subscribe(sensor => {
-            this.sensors.push({id: sensor.map(sensor => sensor.id), visible: true});
-        });
-      });
-    })
+    // Use forkJoin to batch all API calls and load data in parallel
+    forkJoin({
+      devices: this.be.getAllDevices(),
+      activeSensors: this.be.getActiveSensors()
+    }).subscribe({
+      next: ({ devices, activeSensors }) => {
+        // Process combo devices
+        const combos = devices.filter(x => x.metadata?.some(md => md.name === "combo" && md.numericValue === 1));
+        
+        // Batch all sensor requests for combo devices
+        const comboSensorRequests = combos.map(device => 
+          this.be.getAllSensorsForDevice(device.id)
+        );
 
-    this.be.getActiveSensors().subscribe(x => {
-      x.forEach(s => this.sensors.push({id: [s], visible: true}));
-      this.calculateCols();
-    }, (err) => {
-      this.messanger.addMessage("Error!");
-      this.messanger.addMessage(JSON.stringify(err));
-  });
+        if (comboSensorRequests.length > 0) {
+          forkJoin(comboSensorRequests).subscribe(sensorArrays => {
+            sensorArrays.forEach(sensors => {
+              this.sensors.push({id: sensors.map(s => s.id), visible: true});
+            });
+            
+            // Add active sensors
+            activeSensors.forEach(s => this.sensors.push({id: [s], visible: true}));
+            
+            this.calculateCols();
+          });
+        } else {
+          // No combo devices, just add active sensors
+          activeSensors.forEach(s => this.sensors.push({id: [s], visible: true}));
+          this.calculateCols();
+        }
+      },
+      error: (err) => {
+        this.messanger.addMessage("Error!");
+        this.messanger.addMessage(JSON.stringify(err));
+      }
+    });
   }
+
   calculateCols(){
     let width = this.theContainer.nativeElement.offsetWidth;
     this.columnNum = Math.trunc(width/this.tileSize);

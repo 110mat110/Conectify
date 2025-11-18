@@ -12,7 +12,7 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     overflow: hidden;
     display: flex;
-    flex-direction: column;
+    flex-direction: all;
   }
   
   .cube:hover {
@@ -109,3 +109,61 @@
     margin: 10px 0;
   }
   
+.cube {
+  background-color: #121212;
+  width: 90%;
+  height: 210px;
+  min-height: 200px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;       /* stack title + table */
+}
+
+.cube-title {
+  color: #ffffff;
+  font-size: 16px;
+  margin-bottom: 12px;          /* space below the title */
+}
+
+.sensor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;                      /* take remaining vertical space */
+  justify-content: center;       /* vertically center the table inside cube */
+  margin: 10px;
+}
+
+.sensor-row {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  padding: 4px 0;
+  height: 17px;
+  gap: 8px;
+  border-bottom: 1px solid #1e1e1e;
+}
+
+.sensor-row:last-child {
+  border-bottom: none;
+}
+
+.sensor-name {
+  color: #bdbdbd;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sensor-value {
+  color: #ffffff;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.unit {
+  opacity: 0.75;
+  margin-left: 2px;
+}

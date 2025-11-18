@@ -1,7 +1,6 @@
-<div *ngIf="sensors.length === 1" class="cube" (click)="onClick()" height style="border: 1px solid {{ accentColor }};" >
-
 <button *ngIf="device" class="source-button" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
 
+<div *ngIf="sensors.length === 1" class="cube" (click)="onClick()" height style="border: 1px solid {{ accentColor }};" >
 <table class="hiddenTable" >   
 <tr>
 <td style="background-color: transparent !important; vertical-align: centre;">
@@ -43,6 +42,19 @@
 </table>
 </div>
 
-<div *ngIf="sensors.length > 1">
-  <!-- new logic here -->
+<div *ngIf="sensors.length > 1" class="cube">
+  <div *ngIf="showName" class="cube-title">
+    <b>{{ showName }}</b>
+  </div>
+
+  <div class="sensor-list">
+    <div class="sensor-row" *ngFor="let s of sensors">
+      <div class="sensor-name">{{ s?.latestVal?.name }}</div>
+      <div class="sensor-value">
+        {{ s?.latestVal?.numericValue }} {{ s?.latestVal?.unit }}
+      </div>
+    </div>
+  </div>
 </div>
+
+
