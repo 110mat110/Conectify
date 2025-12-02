@@ -1,18 +1,23 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-#Depending on the operating system of the host machines(s) that will build or run the containers, the image specified in the FROM statement may need to be changed.
-#For more information, please see https://aka.ms/containercompat
-
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["Conectify.Services.MQTTTasker/Conectify.Services.MQTTTasker.csproj", "Conectify.Services.MQTTTasker/"]
-RUN dotnet restore "Conectify.Services.MQTTTasker/Conectify.Services.MQTTTasker.csproj"
+COPY ["Services/Conectify.Services.MQTTTasker/Conectify.Services.MQTTTasker.csproj", "Services/Conectify.Services.MQTTTasker/"]
+COPY ["Conectify.Shared.Library/Conectify.Shared.Library.csproj", "Conectify.Shared.Library/"]
+COPY ["Conectify.Shared.Maps/Conectify.Shared.Maps.csproj", "Conectify.Conectify.Shared.Maps/"]
+COPY ["Conectify.Shared.Services/Conectify.Shared.Services.csproj", "Conectify.Conectify.Shared.Services/"]
+COPY ["Services/Conectify.Services.Library/Conectify.Services.Library.csproj", "Conectify.Services.Library.Services/"]
+RUN dotnet restore "Services/Conectify.Services.MQTTTasker/Conectify.Services.MQTTTasker.csproj"
 COPY . .
-WORKDIR "/src/Conectify.Services.MQTTTasker"
+WORKDIR "/src/Services/Conectify.Services.MQTTTasker"
 RUN dotnet build "Conectify.Services.MQTTTasker.csproj" -c Release -o /app/build
 
 FROM build AS publish

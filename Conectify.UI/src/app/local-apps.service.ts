@@ -9,13 +9,25 @@ import { LocalApp } from '../models/local-app.model';
   providedIn: 'root'
 })
 export class LocalAppsService {
+private configUrl = '/assets/config.json';
+private data: LocalApp[] = [];
+constructor(private http: HttpClient) { 
+    this.loadConfig();   
+}
 
   getApps(): LocalApp[] {
-    let apps: LocalApp[] = JSON.parse(environment.localApps).services
-    apps.forEach(element => {
+    
+    this.data.forEach(element => {
         element.icon = "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/"+element.icon+".svg";
     });
 
-    return apps;
+    return this.data;
   }
+
+    loadConfig() {
+    this.http.get(this.configUrl).subscribe({
+      next: (data) => this.data = (data as any).services as LocalApp[],
+      error: (err) => console.error('Failed to load config', err)
+    });
+}
 }
