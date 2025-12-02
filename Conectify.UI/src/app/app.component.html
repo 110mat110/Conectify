@@ -6,25 +6,26 @@
   <div style="width: 20px;"></div>
   <div fxHide.lt-md>
   <span class="buttonBar" >
-
+    <button *ngIf="showDasboard" class="navbar-button" routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
     <button class="navbar-button" routerLink="/sensors" routerLinkActive="active">Sensors</button>
     <button class="navbar-button" routerLink="/actuators" routerLinkActive="active">Actuators</button>
     <button class="navbar-button" routerLink="/automatization" routerLinkActive="active">Automatization</button>
     <button class="navbar-button" routerLink="/metadata" routerLinkActive="active">Metadata</button>
-    <button *ngIf="showDasboard" class="navbar-button" routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
     <button class="navbar-button" routerLink="/device/-1" routerLinkActive="active">Devices</button>
+    <button class="navbar-button" routerLink="/apps" routerLinkActive="active">Apps</button>
   </span>
 </div>
   <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Menu" fxHide.gt-sm>
     <mat-icon>menu</mat-icon>
   </button>
   <mat-menu #menu="matMenu">
+    <button *ngIf="showDasboard" class="navbar-button" routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
     <button class="navbar-button" routerLink="/sensors" routerLinkActive="active">Sensors</button>
     <button class="navbar-button" routerLink="/actuators" routerLinkActive="active">Actuators</button>
     <button class="navbar-button" routerLink="/automatization" routerLinkActive="active">Automatization</button>
     <button class="navbar-button" routerLink="/metadata" routerLinkActive="active">Metadata</button>
-    <button *ngIf="showDasboard" class="navbar-button" routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
     <button class="navbar-button" routerLink="/device/-1" routerLinkActive="active">Devices</button>
+    <button class="navbar-button" routerLink="/apps" routerLinkActive="active">Apps</button>
   </mat-menu>
 
   <span class="example-spacer"></span>

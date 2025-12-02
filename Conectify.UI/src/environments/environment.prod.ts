@@ -5,5 +5,6 @@ export const environment = {
   historyUrl: "http://server.home:5020",
   dashboardUrl: "http://server.home:5022",
   websocketUrl: "ws://server.home:5000/api/websocket/",
-  serverHome: "server.home"
+  serverHome: "server.home",
+  localApps:""
 };

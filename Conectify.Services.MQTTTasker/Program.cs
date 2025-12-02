@@ -23,8 +23,6 @@ await app.Services.ConnectToConectifyServer();
 app.Services.GetRequiredService<IServicesWebsocketClient>().OnIncomingEvent += OnEvent;
 async void OnEvent(Conectify.Database.Models.Values.Event evnt)
 {
-    //var shellyService = app.Services.GetRequiredService<IMQTTSender>();
-    //await shellyService.SendValueToBroker(evnt, CancellationToken.None);
 }
 
 var mqttSevice = app.Services.GetService<MqttService>();

@@ -7,6 +7,9 @@ import { MessagesService } from '../messages.service';
 import { forkJoin } from 'rxjs';
 import { Metadata } from 'src/models/metadata';
 import { Device } from 'src/models/thing';
+import { Inject } from '@angular/core';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+
 
 interface ActuatorItem {
   actuator: Actuator;
@@ -33,6 +36,7 @@ export class SelectDestinationActuatorOverlayComponent implements OnInit {
   constructor(
     private be: BEFetcherService,
     private messanger: MessagesService,
+    @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 
   select(actuatorItem: ActuatorItem): void {
@@ -91,6 +95,10 @@ export class SelectDestinationActuatorOverlayComponent implements OnInit {
   }
 
   ngOnInit(): void {
+  if (this.data && this.data.multiselect !== undefined) {
+    this.multiselect = this.data.multiselect;
+  }
+
     forkJoin({
       actuators: this.be.getAllActuators(),
       devices: this.be.getAllDevices()

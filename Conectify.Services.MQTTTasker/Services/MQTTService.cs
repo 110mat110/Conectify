@@ -24,23 +24,23 @@ public class MqttService : BackgroundService
     private readonly Configuration configuration;
     private readonly IConnectorService connectorService;
     private readonly IServicesWebsocketClient websocketClient;
+    private readonly ILogger<MqttService> logger;
     private Dictionary<string, Guid> knownDevices = [];
 
-    public MqttService(Configuration configuration, IConnectorService connectorService, IServicesWebsocketClient websocketClient)
+    public MqttService(Configuration configuration, IConnectorService connectorService, IServicesWebsocketClient websocketClient, ILogger<MqttService> logger)
     {
         var factory = new MqttFactory();
         _client = factory.CreateMqttClient();
 
         _options = new MqttClientOptionsBuilder()
             .WithClientId("ZigbeeWebApi")
-            .WithTcpServer("localhost", 1883) // Your Mosquitto server
+            .WithTcpServer(configuration.Broker, 1883)
             .Build();
 
         _client.ConnectedAsync += async e =>
         {
-            Console.WriteLine("✅ Connected to MQTT broker");
             await _client.SubscribeAsync("zigbee2mqtt/#");
-            Console.WriteLine("📡 Subscribed to zigbee2mqtt/#");
+            logger.LogInformation("📡 Subscribed to zigbee2mqtt/#");
         };
 
         _ = _client.ConnectAsync(_options).Result;
@@ -56,7 +56,7 @@ public class MqttService : BackgroundService
             var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
 
 
-            Console.WriteLine($"[{topic}] {payload}");
+            logger.LogInformation($"[{topic}] {payload}");
 
             await DecompileMessageAsync(topic, payload);
         };
@@ -65,6 +65,7 @@ public class MqttService : BackgroundService
         this.configuration = configuration;
         this.connectorService = connectorService;
         this.websocketClient = websocketClient;
+        this.logger = logger;
     }
 
     private async Task DecompileMessageAsync(string topic, string payload)
@@ -175,7 +176,7 @@ public class MqttService : BackgroundService
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"MQTT connect error: {ex.Message}");
+                    logger.LogError($"MQTT connect error: {ex.Message}");
                     await Task.Delay(5000, stoppingToken);
                 }
             }

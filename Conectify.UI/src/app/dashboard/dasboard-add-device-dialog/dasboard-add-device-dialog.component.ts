@@ -27,7 +27,10 @@ export class DasboardAddDeviceDialogComponent implements OnInit {
     const dialogRef = this.dialog.open(SelectInputSensorOverlayComponent, {
       width: '50%',
       height: '100%',
-      restoreFocus: false
+      restoreFocus: false,
+                data: {
+      multiselect: true
+    }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -39,7 +42,10 @@ export class DasboardAddDeviceDialogComponent implements OnInit {
     const dialogRef = this.dialog.open(SelectDestinationActuatorOverlayComponent, {
       width: '50%',
       height: '100%',
-      restoreFocus: false
+      restoreFocus: false,
+          data: {
+      multiselect: true
+    }
     });
 
     dialogRef.afterClosed().subscribe(result => {

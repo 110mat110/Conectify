@@ -1,0 +1,16 @@
+<div class="local-apps">
+    <div *ngIf="apps.length === 0" class="empty">No local apps configured.</div>
+    <div class="grid">
+      <div class="card" *ngFor="let app of apps">
+        <a [href]="app.url" target="_blank" rel="noopener">
+          <img
+            [src]="app.icon || fallbackIcon"
+            [alt]="app.name"
+            class="icon"
+            loading="lazy"
+          />
+          <div class="name">{{ app.name }}</div>
+        </a>
+      </div>
+    </div>
+</div>

@@ -1,6 +1,7 @@
 import {
   Component,
   HostListener,
+  Inject,
   Input,
   OnInit,
   ViewChild,
@@ -12,6 +13,7 @@ import { AutValueInputComponent } from '../aut-inner-components/aut-value-input/
 import { forkJoin } from 'rxjs';
 import { Metadata } from 'src/models/metadata';
 import { Device } from 'src/models/thing';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 interface SensorItem {
   sensor: Sensor;
@@ -39,7 +41,9 @@ export class SelectInputSensorOverlayComponent implements OnInit {
 
   constructor(
     private be: BEFetcherService,
-    private messanger: MessagesService
+    private messanger: MessagesService,
+    @Inject(MAT_DIALOG_DATA) public data: any
+    
   ) {}
 
   select(sensorItem: SensorItem): void {
@@ -98,6 +102,10 @@ export class SelectInputSensorOverlayComponent implements OnInit {
   }
 
   ngOnInit(): void {
+  if (this.data && this.data.multiselect !== undefined) {
+    this.multiselect = this.data.multiselect;
+  }
+
     forkJoin({
       sensors: this.be.getAllSensors(),
       devices: this.be.getAllDevices()

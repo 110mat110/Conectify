@@ -7,6 +7,7 @@ import { SensorOverviewComponent } from './sensor-overview/sensor-overview.compo
 import { DashboardComponent } from './dashboard/dashboard/dashboard.component';
 import { LoadingComponent } from './dashboard/loading/loading.component';
 import { DeviceComponent } from './device/device.component';
+import { AppsOverviewComponent } from './apps-overview/apps-overview.component';
 
 const routes: Routes = [
   {path: 'sensors', component: SensorOverviewComponent},
@@ -16,7 +17,8 @@ const routes: Routes = [
   {path: 'dashboard', component: DashboardComponent},
   {path: 'loading', component: LoadingComponent},
   {path: 'device/:id', component: DeviceComponent},
-  { path: '', redirectTo: '/loading', pathMatch: 'full' },
+  {path: 'apps', component: AppsOverviewComponent},
+  { path: '', redirectTo: '/loading', pathMatch: 'full' }
 ];
 
 @NgModule({
