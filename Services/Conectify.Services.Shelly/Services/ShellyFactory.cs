@@ -16,7 +16,8 @@ public class ShellyFactory(IConnectorService connectorService, Configuration con
         { "S3SW-002P16EU", typeof(Shelly2PMG3) },
         { "SPSW-003XE16EU", typeof(Shelly3Pro) },
         { "SNPM-001PCEU16", typeof(ShellyPmG3) },
-        { "S3EM-003CXCEU63", typeof(Shelly3EM) }
+        { "S3EM-003CXCEU63", typeof(Shelly3EM) },
+        {"SPSW-001PE16EU", typeof(Shelly1PMPro) }
     };
     public async Task<IShelly?> GetShelly(string model, string id, string name)
     {
