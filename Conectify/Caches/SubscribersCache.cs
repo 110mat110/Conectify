@@ -59,19 +59,27 @@ public class SubscribersCache(IServiceProvider serviceProvider, IMapper mapper) 
         if (device is not null)
         {
             var sub = mapper.Map<Subscriber>(device);
-            if (subscribers.ContainsKey(deviceId))
+
+            if(sub is null)
             {
-                lock (locker) { subscribers[deviceId] = sub; }
+                return null;
             }
-            else
+
+            lock (locker)
             {
-                lock (locker) { subscribers.Add(deviceId, sub); }
-                var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
-                if (meterFactory is not null)
+                if (!subscribers.TryAdd(deviceId, sub))
                 {
-                    var meter = meterFactory.Create("CustomMeters");
-                    var counter = meter.CreateCounter<int>("subs_count");
-                    counter.Add(1);
+                    subscribers[deviceId] = sub;
+                }
+                else
+                {
+                    var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
+                    if (meterFactory is not null)
+                    {
+                        var meter = meterFactory.Create("CustomMeters");
+                        var counter = meter.CreateCounter<int>("subs_count");
+                        counter.Add(1);
+                    }
                 }
             }
             return subscribers[deviceId];
