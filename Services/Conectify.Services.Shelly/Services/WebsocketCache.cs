@@ -21,7 +21,7 @@ public class WebsocketCache(IServiceProvider serviceProvider)
         var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
         if (meterFactory is not null)
         {
-            var meter = meterFactory.Create("Traffic duration");
+            var meter = meterFactory.Create("CustomMeters");
             var counter = meter.CreateHistogram<double>("Shelly_inbound_reading_time_ms", "ms");
             counter.Record(duration.TotalMilliseconds);
         }

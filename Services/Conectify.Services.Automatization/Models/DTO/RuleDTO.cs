@@ -64,7 +64,7 @@ public class RuleDTO
         await Tracing.Trace(async () => await RuleBehaviour.Execute(this, trigger, ct), trigger.Id, $"Executing rule {RuleBehaviour.DisplayName()}");
         sw.Stop();
         if(meterFactory is null) return;
-        var meter = meterFactory.Create("Behaviour execution time by behaviour");
+        var meter = meterFactory.Create("CustomMeters");
         var allRulesHistogram = meter.CreateHistogram<double>(RuleBehaviour.GetId() + "_Behaviour_Processing_Time", "ms");
 
     }

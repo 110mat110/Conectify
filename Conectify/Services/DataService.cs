@@ -86,7 +86,7 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
         }, evnt.Id, "Processing and validating Event");
 
         sw.Stop();
-        var meter = meterFactory.Create("Validating and repairing");
+        var meter = meterFactory.Create("CustomMeters");
         var counter = meter.CreateHistogram<double>("validate_device", "ms");
         counter.Record(sw.Elapsed.TotalMilliseconds);
 
@@ -104,7 +104,7 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
         }, mapedEntity.Id, "Saving event to DB");
 
         sw.Stop();
-        var meter = meterFactory.Create("Saving to DB duration");
+        var meter = meterFactory.Create("CustomMeters");
         var counter = meter.CreateHistogram<double>("saving_new_to_db", "ms");
         counter.Record(sw.Elapsed.TotalMilliseconds);
     }

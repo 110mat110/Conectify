@@ -92,7 +92,7 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
             }
         }, evnt.Id, "Resending to subscribers");
         sw.Stop();
-        var meter = meterFactory.Create("PipelineService_ResendEventToSubscribers_Duration");
+        var meter = meterFactory.Create("CustomMeters");
         var histogram = meter.CreateHistogram<double>("PipelineService_ResendEventToSubscribers_Duration", "ms", "Duration of ResendEventToSubscribers in milliseconds");
         histogram.Record(sw.Elapsed.TotalMilliseconds);
     }

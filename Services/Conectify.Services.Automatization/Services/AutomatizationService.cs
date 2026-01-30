@@ -67,7 +67,7 @@ public class AutomatizationService(IAutomatizationCache automatizationCache,
         }, evnt.Id, "Rule processing");
 
         sw.Stop();
-        var meter = meterFactory.Create("Rule ProcessingDuration");
+        var meter = meterFactory.Create("CustomMeters");
         var allRulesHistogram = meter.CreateHistogram<double>("All_Rules_Processing_Time", "ms");
         allRulesHistogram.Record(sw.Elapsed.TotalMilliseconds);
         var specificRuleHistogram = meter.CreateHistogram<double>(name +"_Rule_Processing_Time", "ms");
