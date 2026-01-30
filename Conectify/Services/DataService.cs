@@ -4,6 +4,9 @@ using Conectify.Database;
 using Conectify.Shared.Library;
 using Conectify.Shared.Services.Data;
 using Database.Models.Values;
+using Google.Protobuf.WellKnownTypes;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 
 public interface IDataService
 {
@@ -11,7 +14,7 @@ public interface IDataService
     Task ProcessEntity(Event mapedEntity, Guid deviceId, CancellationToken ct = default);
 }
 
-public class DataService(ILogger<DataService> logger, ConectifyDb database, IPipelineService pipelineService, IDeviceService deviceService, ISensorService sensorService) : IDataService
+public class DataService(ILogger<DataService> logger, ConectifyDb database, IPipelineService pipelineService, IDeviceService deviceService, ISensorService sensorService, IMeterFactory meterFactory) : IDataService
 {
     public async Task InsertJsonModel(string rawJson, Guid deviceId, CancellationToken ct = default)
     {
@@ -66,6 +69,8 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
         {
             evnt.Id = Guid.NewGuid();
         }
+        var sw = Stopwatch.StartNew();
+
         await Tracing.Trace(async () =>
         {
             // repairs of unknown references
@@ -79,16 +84,28 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
                 await deviceService.TryAddUnknownDevice(evnt.SourceId, evnt.SourceId, ct);
             }
         }, evnt.Id, "Processing and validating Event");
+
+        sw.Stop();
+        var meter = meterFactory.Create("Validating and repairing");
+        var counter = meter.CreateHistogram<double>("validate_device", "ms");
+        counter.Record(sw.Elapsed.TotalMilliseconds);
+
         return true;
     }
 
     private async Task SaveToDatabase(Event mapedEntity)
     {
+        var sw = Stopwatch.StartNew();
         await Tracing.Trace(async () =>
         {
             await database.Events.AddAsync(mapedEntity);
             await database.SaveChangesAsync();
             logger.LogInformation("Saved to database");
         }, mapedEntity.Id, "Saving event to DB");
+
+        sw.Stop();
+        var meter = meterFactory.Create("Saving to DB duration");
+        var counter = meter.CreateHistogram<double>("saving_new_to_db", "ms");
+        counter.Record(sw.Elapsed.TotalMilliseconds);
     }
 }

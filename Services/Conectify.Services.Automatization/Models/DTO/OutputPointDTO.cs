@@ -1,4 +1,5 @@
 ﻿using Conectify.Services.Automatization.Services;
+using System.Diagnostics.Metrics;
 
 namespace Conectify.Services.Automatization.Models.DTO;
 
@@ -16,11 +17,11 @@ public class OutputPointDTO(Guid id, IServiceProvider serviceProvider)
         if (trigger && automatisationEvent != null)
         {
             var cache = serviceProvider.GetRequiredService<IAutomatizationCache>();
-
+            var metrics = serviceProvider.GetRequiredService<IMeterFactory>();
             var inputs = await cache.GetNextInputs(Id);
             foreach (var input in inputs)
             {
-                await input.SetEvent(automatisationEvent, ct);
+                await input.SetEvent(automatisationEvent, metrics, ct);
             }
         }
     }

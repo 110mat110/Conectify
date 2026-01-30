@@ -1,5 +1,6 @@
 ﻿namespace Conectify.Server.Services;
 
+using System.Diagnostics.Metrics;
 using System.Linq;
 using AutoMapper;
 using Conectify.Database;
@@ -22,7 +23,7 @@ public interface IPipelineService
 
 }
 
-public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscribersCache, IWebSocketService webSocketService, IMapper mapper, ILogger<PipelineService> logger) : IPipelineService
+public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscribersCache, IWebSocketService webSocketService, IMapper mapper, ILogger<PipelineService> logger, IMeterFactory meterFactory) : IPipelineService
 {
     public async Task SetPreference(Guid deviceId, IEnumerable<ApiPreference> apiPreferences, CancellationToken ct = default)
     {
@@ -72,6 +73,7 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
 
     public async Task ResendEventToSubscribers(Event evnt)
     {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         await Tracing.Trace(async () =>
         {
             var apiModel = mapper.Map<WebsocketEvent>(evnt);
@@ -89,6 +91,10 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
                 await webSocketService.SendToDeviceAsync(subscriber, apiModel);
             }
         }, evnt.Id, "Resending to subscribers");
+        sw.Stop();
+        var meter = meterFactory.Create("PipelineService_ResendEventToSubscribers_Duration");
+        var histogram = meter.CreateHistogram<double>("PipelineService_ResendEventToSubscribers_Duration", "ms", "Duration of ResendEventToSubscribers in milliseconds");
+        histogram.Record(sw.Elapsed.TotalMilliseconds);
     }
 
     private IEnumerable<Guid> GetTargetsForEvent(Event evnt)

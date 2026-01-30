@@ -3,6 +3,7 @@ using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Rules;
 using Conectify.Services.Automatization.Services;
 using Conectify.Shared.Library;
+using System.Diagnostics.Metrics;
 
 namespace Conectify.Services.Automatization.Models.DTO;
 
@@ -36,7 +37,7 @@ public class RuleDTO
         RuleBehaviour?.Clock(this, timeSpan);
     }
 
-    public async Task InsertEvent(Event evnt, CancellationToken ct)
+    public async Task InsertEvent(Event evnt, CancellationToken ct, IMeterFactory meterFactory)
     {
         var automationValue = new AutomatisationEvent()
         {
@@ -50,17 +51,22 @@ public class RuleDTO
             Unit = evnt.Unit,
         };
 
-        await OnTrigger(automationValue, ct);
+        await OnTrigger(automationValue, ct, meterFactory);
     }
 
-    public async Task OnTrigger(AutomatisationEvent trigger, CancellationToken ct)
+    public async Task OnTrigger(AutomatisationEvent trigger, CancellationToken ct, IMeterFactory meterFactory)
     {
         if(RuleBehaviour is null)
         {
             return;
         }
-
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         await Tracing.Trace(async () => await RuleBehaviour.Execute(this, trigger, ct), trigger.Id, $"Executing rule {RuleBehaviour.DisplayName()}");
+        sw.Stop();
+        if(meterFactory is null) return;
+        var meter = meterFactory.Create("Behaviour execution time by behaviour");
+        var allRulesHistogram = meter.CreateHistogram<double>(RuleBehaviour.GetId() + "_Behaviour_Processing_Time", "ms");
+
     }
     public async Task InitializeAsync(IServiceProvider serviceProvider, RuleDTO? oldDto)
     {

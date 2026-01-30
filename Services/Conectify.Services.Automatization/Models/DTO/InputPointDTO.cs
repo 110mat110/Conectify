@@ -1,5 +1,6 @@
 ﻿using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Services;
+using System.Diagnostics.Metrics;
 
 namespace Conectify.Services.Automatization.Models.DTO;
 
@@ -21,11 +22,11 @@ public class InputPointDTO
         return outputs.FirstOrDefault()?.Event;
     }
 
-    public async Task SetEvent(AutomatisationEvent automatisationEvent, CancellationToken ct)
+    public async Task SetEvent(AutomatisationEvent automatisationEvent, IMeterFactory meterFactory, CancellationToken ct)
     {
         if ((Rule.TriggerOnValue || Type == InputTypeEnum.Trigger))
         {
-            await Rule.OnTrigger(automatisationEvent, ct);
+            await Rule.OnTrigger(automatisationEvent, ct, meterFactory);
         }
     }
 }
