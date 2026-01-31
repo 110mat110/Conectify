@@ -48,4 +48,11 @@ public class WebsocketController(IWebSocketService webSocketService) : Controlle
         await webSocketService.SendToDeviceAsync(id, message);
         return Ok();
     }
+
+    [HttpPost("{id}/insert")]
+    public async Task<IActionResult> Insert(Guid id, string message)
+    {
+        await webSocketService.DirectInsert(id, message);
+        return Ok();
+    }
 }

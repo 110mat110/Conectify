@@ -12,6 +12,7 @@ public interface IWebSocketService
     Task<bool> TestConnectionAsync(string testMessage, WebSocket webSocket, CancellationToken ct = default);
     Task<bool> SendToDeviceAsync(Guid thingId, IWebsocketModel returnValue, CancellationToken cancelationToken = default);
     Task<bool> SendToDeviceAsync(Guid thingId, string rawString, CancellationToken cancelationToken = default);
+    Task<bool> DirectInsert(Guid deviceId, string message, CancellationToken ct = default);
 }
 
 public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCache cache, IServiceProvider serviceProvider, IDeviceService deviceService, IWebsocketCache websocketCache) : IWebSocketService
@@ -103,5 +104,13 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
 
         Console.WriteLine("Test connection closed!");
         return true;
+    }
+
+    public async Task<bool> DirectInsert(Guid deviceId, string message, CancellationToken ct = default)
+    {
+        var dataService = serviceProvider.GetRequiredService<IDataService>();
+        await dataService.InsertJsonModel(message, deviceId, ct);
+        return true;
+
     }
 }
