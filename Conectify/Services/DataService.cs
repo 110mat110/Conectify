@@ -47,8 +47,8 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
             {
                 await Tracing.Trace(async () =>
                 {
-                    await SaveToDatabase(e);
                     await pipelineService.ResendEventToSubscribers(e);
+                    await SaveToDatabase(e);
                 }, e.SourceId, "Processing Event");
             }
         }
