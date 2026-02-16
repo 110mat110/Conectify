@@ -1,14 +1,32 @@
 ﻿using Conectify.Services.Shelly.Models.Shelly;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
 
 namespace Conectify.Services.Shelly.Services;
 
-public class WebsocketCache(IServiceProvider serviceProvider)
+public class WebsocketCache
 {
     public Dictionary<string, ShellyDeviceCacheItem> Cache = [];
     public Dictionary<Guid, ShellyFequentValueCahceItem> FrequentValueCahce = [];
     public List<Tuple<DateTime,TimeSpan>> InboundDurations = [];
+
+    private readonly IMeterFactory? meterFactory;
+    private readonly Meter? meter;
+    private readonly Histogram<double>? inboundHistogram;
+    private readonly Histogram<double>? outboundHistogram;
+
+    public WebsocketCache(IServiceProvider serviceProvider)
+    {
+        // Resolve IMeterFactory once and create instruments once.
+        meterFactory = serviceProvider.GetService<IMeterFactory>();
+        if (meterFactory is not null)
+        {
+            meter = meterFactory.Create("CustomMeters");
+            inboundHistogram = meter.CreateHistogram<double>("Shelly_inbound_reading_time_ms", "ms");
+            outboundHistogram = meter.CreateHistogram<double>("Shelly_outband_reading_time_ms", "ms");
+        }
+    }
 
     public void ProcessInboundDuration(TimeSpan duration)
     {
@@ -16,15 +34,9 @@ public class WebsocketCache(IServiceProvider serviceProvider)
         InboundDurations.Where(x => x.Item1 < DateTime.UtcNow.AddMinutes(-1)).ToList().ForEach(x => InboundDurations.Remove(x));
 
         var average = TimeSpan.FromMilliseconds(InboundDurations.Sum(x => x.Item2.TotalMilliseconds) / InboundDurations.Count);
-        
-        var scope = serviceProvider.CreateScope();
-        var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
-        if (meterFactory is not null)
-        {
-            var meter = meterFactory.Create("CustomMeters");
-            var counter = meter.CreateHistogram<double>("Shelly_inbound_reading_time_ms", "ms");
-            counter.Record(duration.TotalMilliseconds);
-        }
+
+        // Use pre-created histogram instrument
+        inboundHistogram?.Record(duration.TotalMilliseconds);
     }
 
     public List<Tuple<DateTime, TimeSpan>> OutboundDurations = [];
@@ -36,14 +48,8 @@ public class WebsocketCache(IServiceProvider serviceProvider)
 
         var average = TimeSpan.FromMilliseconds(OutboundDurations.Sum(x => x.Item2.TotalMilliseconds) / OutboundDurations.Count);
 
-        var scope = serviceProvider.CreateScope();
-        var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
-        if (meterFactory is not null)
-        {
-            var meter = meterFactory.Create("CustomMeters");
-            var counter = meter.CreateHistogram<double>("Shelly_outband_reading_time_ms", "ms");
-            counter.Record(duration.TotalMilliseconds);
-        }
+        // Use pre-created histogram instrument
+        outboundHistogram?.Record(duration.TotalMilliseconds);
     }
 
     public float? ProcessFrequentValue(Guid deviceId, float? value, TimeSpan interval)

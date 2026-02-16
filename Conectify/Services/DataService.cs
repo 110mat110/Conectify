@@ -4,7 +4,6 @@ using Conectify.Database;
 using Conectify.Shared.Library;
 using Conectify.Shared.Services.Data;
 using Database.Models.Values;
-using Google.Protobuf.WellKnownTypes;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
@@ -48,7 +47,7 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
                 await Tracing.Trace(async () =>
                 {
                     await pipelineService.ResendEventToSubscribers(e);
-                    await SaveToDatabase(e);
+                    await SaveToDatabase(e, ct);
                 }, e.SourceId, "Processing Event");
             }
         }
@@ -73,7 +72,6 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
 
         await Tracing.Trace(async () =>
         {
-            // repairs of unknown references
             if (evnt.Type is Constants.Events.Value)
             {
                 await sensorService.TryAddUnknownDevice(evnt.SourceId, deviceId, ct);
@@ -93,13 +91,15 @@ public class DataService(ILogger<DataService> logger, ConectifyDb database, IPip
         return true;
     }
 
-    private async Task SaveToDatabase(Event mapedEntity)
+    private async Task SaveToDatabase(Event mapedEntity, CancellationToken ct)
     {
         var sw = Stopwatch.StartNew();
         await Tracing.Trace(async () =>
         {
-            await database.Events.AddAsync(mapedEntity);
-            await database.SaveChangesAsync();
+            await database.Events.AddAsync(mapedEntity, ct);
+            await database.SaveChangesAsync(ct);
+            database.ChangeTracker.Clear();
+
             logger.LogInformation("Saved to database");
         }, mapedEntity.Id, "Saving event to DB");
 

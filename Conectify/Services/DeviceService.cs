@@ -76,31 +76,27 @@ public class DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceS
     {
         var devices = await base.GetAllDevices(ct);
         var currentTime = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(1)).ToUnixTimeMilliseconds();
-        
-        var allCommands = await database.Events.Where(e => e.Type == "Command" && e.Name == "activitycheck" && e.TimeCreated > currentTime).ToListAsync();
-        List<IEnumerable<Database.Models.Values.Event>>? allResponses = await (from cmd in database.Events
-        .Where(e => e.Type == Constants.Events.Command && e.Name == Constants.Commands.ActivityCheck && e.TimeCreated > currentTime)
-                              join resp in database.Events
-                                  .Where(e => e.Name == Constants.Commands.Active)
-                                  on cmd.Id equals resp.SourceId into responses
-                              select 
-                                  responses
-                            ).ToListAsync(ct);
 
+        var activeDeviceIds = await database.Events.AsNoTracking()
+            .Where(cmd => cmd.Type == Constants.Events.Command
+                && cmd.Name == Constants.Commands.ActivityCheck
+                && cmd.TimeCreated > currentTime)
+            .Join(database.Events.AsNoTracking().Where(resp => resp.Name == Constants.Commands.Active),
+                cmd => cmd.Id,
+                resp => resp.SourceId,
+                (cmd, _) => cmd.DestinationId)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .Distinct()
+            .ToListAsync(ct);
 
-        var activeDevices = await (from cmd in database.Events
-        .Where(e => e.Type == Constants.Events.Command && e.Name == Constants.Commands.ActivityCheck && e.TimeCreated > currentTime)
-                            join resp in database.Events
-                                .Where(e => e.Name ==Constants.Commands.Active)
-                                on cmd.Id equals resp.SourceId into responses
-                            select 
-                                cmd.DestinationId
-                            ).Distinct().ToListAsync(ct);
+        var activeDeviceSet = activeDeviceIds.ToHashSet();
+
         foreach (var device in devices)
         {
             device.State = !websocketCache.IsActiveSocket(device.Id)
                 ? ApiDeviceState.Offline
-                : activeDevices.Contains(device.Id) ? ApiDeviceState.Online : ApiDeviceState.NotAnswering;
+                : activeDeviceSet.Contains(device.Id) ? ApiDeviceState.Online : ApiDeviceState.NotAnswering;
         }
 
         return devices.OrderByDescending(x => x.State);

@@ -14,7 +14,6 @@
 
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-#include <EEPROM.h>
 #include <ArduinoWebsockets.h>
 #include "MainFunctions.h"
 #include <Arduino.h>
@@ -60,6 +59,7 @@ void RegisterSoftwareVersion();
 
 void StartupMandatoryRoutine(int psensorArrSize, int pactuatorArrSize, void (*SensorsDeclarations)())
 {
+
   delay(5000);
   // setCpuFrequencyMhz(80);
   WiFi.mode(WIFI_AP_STA);
@@ -81,7 +81,7 @@ void LoopMandatoryRoutines()
 
   if (GetGlobalVariables()->EEPROMWriteRequired())
   {
-    SaveToEEPRom(EEPROM, GetGlobalVariables()->baseDevice);
+    SaveBaseDevice(GetGlobalVariables()->baseDevice);
     RegisterAllEntities();
   }
 
@@ -123,8 +123,8 @@ void InitializeDevice(int psensorArrSize, int pactuatorArrSize, void (*SensorsDe
 
   (*SensorsDeclarations)();
 
-  LoadSensorsFromEEPROM(EEPROM, GetGlobalVariables()->sensorsArr);
-  LoadActuatorFromEEPROM(EEPROM, GetGlobalVariables()->actuatorsArr);
+  LoadSensors(GetGlobalVariables()->sensorsArr);
+  LoadActuators(GetGlobalVariables()->actuatorsArr);
 }
 
 bool InitializeNetwork()
@@ -316,24 +316,12 @@ void onEventsCallback(WebsocketsEvent event, String data) {}
 
 void CreateBaseDevice()
 {
-  EEPROM.begin(512);
-  if (EEPROM.read(0) == 0xFF)
-  {
-    GetGlobalVariables()->initialized = false;
-    DebugMessage("FreshEEPROM, not initialized!");
-    EEPROM.end();
-  }
-  else
-  {
-    EEPROM.end();
-    ReadFromEEPRom(EEPROM, GetGlobalVariables()->baseDevice);
+    ReadBaseDevice(GetGlobalVariables()->baseDevice);
     if (GetGlobalVariables()->baseDevice.WiFiTimer > 10)
     {
       GetGlobalVariables()->SetWiFiTimerInSeconds(GetGlobalVariables()->baseDevice.WiFiTimer);
     }
     GetGlobalVariables()->SetSensoricTimerInSeconds(GetGlobalVariables()->baseDevice.SensorTimer);
-    GetGlobalVariables()->initialized = true;
-  }
 }
 
 void AskServerForTime()
@@ -409,11 +397,11 @@ void RegisterAllEntities()
   if ((IsWiFi()))
   {
     RegisterBaseDevice(GetGlobalVariables()->baseDevice);
-    SaveToEEPRom(EEPROM, GetGlobalVariables()->baseDevice);
+    SaveBaseDevice(GetGlobalVariables()->baseDevice);
     RegisterSensors();
-    SaveSensorIDsToEEPROM(EEPROM, GetGlobalVariables()->sensorsArr, GetGlobalVariables()->sensorsArrSize);
+    SaveSensorIDs(GetGlobalVariables()->sensorsArr, GetGlobalVariables()->sensorsArrSize);
     RegisterActuator();
-    SaveActuatorIDsToEEPROM(EEPROM, GetGlobalVariables()->actuatorsArr, GetGlobalVariables()->actuatorArrSize);
+    SaveActuatorIDs(GetGlobalVariables()->actuatorsArr, GetGlobalVariables()->actuatorArrSize);
     RegisterSoftwareVersion();
   }
   else

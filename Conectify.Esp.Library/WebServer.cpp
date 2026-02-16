@@ -5,7 +5,6 @@
 #include "DebugMessageLib.h"
 #include "EEPRomHandler.h"
 #include "MainFunctions.h"
-#include "EEPROM.h"
 #include "CommandHandler.h"
 
 AsyncWebServer server(80);
@@ -118,7 +117,7 @@ void StartWebServer()
     {
       HandleCommand("",CommandWifiPassword, 0, request->getParam(CommandWifiPassword, true)->value());
     }
-    SaveToEEPRom(EEPROM, GetGlobalVariables()->baseDevice);
+    SaveBaseDevice( GetGlobalVariables()->baseDevice);
     HandleCommand("",CommandReconectWifi, 120, "");
     request->redirect("/"); });
 

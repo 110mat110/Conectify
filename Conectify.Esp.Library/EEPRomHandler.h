@@ -5,13 +5,13 @@
 #include "EEPROM.h"
 #include "BaseDevice.h"
 #include "Sensors.h"
-void SaveToEEPRom(EEPROMClass eeprom, BaseDevice baseDevice);
-void ReadFromEEPRom(EEPROMClass eeprom, BaseDevice &baseDevice);
+void SaveBaseDevice(const BaseDevice &baseDevice);
+void ReadBaseDevice(BaseDevice &device);
 
-void SaveSensorIDsToEEPROM(EEPROMClass eeprom, Sensor* sensorArray, byte sensorArraySize);
-void SaveActuatorIDsToEEPROM(EEPROMClass eeprom, Actuator* actuatorArray, byte actuatorArraySize);
-void LoadSensorsFromEEPROM(EEPROMClass eeprom, Sensor* sensorArray);
-void LoadActuatorFromEEPROM(EEPROMClass eeprom, Actuator* actuatorArray);
+void SaveSensorIDs(Sensor* sensorArray, byte sensorArraySize);
+void SaveActuatorIDs(Actuator* actuatorArray, byte actuatorArraySize);
+void LoadSensors(Sensor* sensorArray);
+void LoadActuators(Actuator* actuatorArray);
 
-void ClearEEPROM(EEPROMClass eeprom);
+void ClearStorage();
 #endif

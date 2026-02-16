@@ -6,7 +6,6 @@
 #else
 #error Architecture unrecognized by this code.
 #endif
-#include <EEPROM.h>
 #include "CommandHandler.h"
 #include "ConstantsDeclarations.h"
 #include <Arduino.h>
@@ -35,7 +34,7 @@ void HandleCommand(String commandId, String commandText, float commandValue, Str
   if(commandText == CommandDebugMessage) GetGlobalVariables()->baseDevice.debugMessage = commandValue==1;
   if(commandText == CommandClearEEPRom) {
     DebugMessage("Clearing eeprom");
-    ClearEEPROM(EEPROM);
+    ClearStorage();
     ESP.restart();
   }
   if(commandText == CommandTriggerSensor) GetGlobalVariables()->SensoricTimer.SetForceTrigger();
@@ -46,7 +45,7 @@ void HandleCommand(String commandId, String commandText, float commandValue, Str
   if(commandText == CommandSaveToEEPRom) GetGlobalVariables()->EEPROMWrteReq = true;
   if(commandText == CommandReboot) ESP.restart();
   if(commandText == CommandSaveDevice){
-        SaveToEEPRom(EEPROM, GetGlobalVariables()->baseDevice);
+        SaveBaseDevice(GetGlobalVariables()->baseDevice);
         RegisterBaseDevice(GetGlobalVariables()->baseDevice);
 
   }

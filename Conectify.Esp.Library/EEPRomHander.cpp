@@ -1,107 +1,131 @@
 #include <Arduino.h>
-#include "EEPROM.h"
+#include <Preferences.h>
 #include "BaseDevice.h"
 #include "DebugMessageLib.h"
-#include "EEPRomHandler.h"
 #include "Sensors.h"
 #include "GlobalVariables.h"
 
-void SaveToEEPRom(EEPROMClass eeprom, BaseDevice baseDevice){
-    eeprom.begin(512);
-    eeprom.put((sizeof(byte)*3),baseDevice);
-    eeprom.commit();
-    eeprom.end();
+Preferences prefs;
+const char* NAMESPACE = "device";  // namespace for all saved data
+
+// ---------- BaseDevice ----------
+void SaveBaseDevice(const BaseDevice &baseDevice) {
+    prefs.begin(NAMESPACE, false);
+
+    prefs.putBytes("baseDevice", &baseDevice, sizeof(BaseDevice));
+
+    prefs.end();
 }
 
-void SaveSensorIDsToEEPROM(EEPROMClass eeprom, Sensor* sensorArray, byte sensorArraySize){
-    eeprom.begin(512);
-    int pos = (sizeof(byte) *3)+sizeof(BaseDevice);
-    eeprom.put(0,sensorArraySize);
+void ReadBaseDevice(BaseDevice &device) {
+    prefs.begin(NAMESPACE, true);
 
-    for(int i=0; i<sensorArraySize; i++)
-        eeprom.put(pos + i*IdStringLength, sensorArray[i].id);
-    eeprom.commit();
-    eeprom.end();
-}
-
-void SaveActuatorIDsToEEPROM(EEPROMClass eeprom, Actuator* actuatorArray, byte actuatorArraySize){
-    eeprom.begin(512);
-    eeprom.put(sizeof(byte),actuatorArraySize);
-    byte noOfSensors = 0;
-    eeprom.get(0,noOfSensors);
-    int pos = (sizeof(byte) *3)+sizeof(BaseDevice) + noOfSensors*IdStringLength;
-
-    for(int i=0; i<actuatorArraySize; i++)
-        eeprom.put(pos + i*IdStringLength, actuatorArray[i].id);
-
-    eeprom.commit();
-    eeprom.end();
-}
-void LoadSensorsFromEEPROM(EEPROMClass eeprom, Sensor* sensorArray){
-    DebugMessage("Reading sensors from eeprom");
-
-    eeprom.begin(512);
-    byte sizeOfArray = 0;
-    eeprom.get(0,sizeOfArray);
-    if(sizeOfArray == 0xFF) {
-        DebugMessage("No sensors are saved!");   
+    size_t size = prefs.getBytesLength("baseDevice");
+    if (size != sizeof(BaseDevice)) {
+        DebugMessage("No BaseDevice saved or size mismatch!");
+        GetGlobalVariables()->initialized = false;
+        prefs.end();
         return;
     }
-    int pos = (sizeof(byte)*3) + sizeof(BaseDevice);
-    for (int i = 0; i < sizeOfArray; i++)
-    {
-        eeprom.get(pos + i*IdStringLength,sensorArray[i].id);
-        DebugMessage("Sensor ["+String(i)+"] ID: " + String(sensorArray[i].id));
-        sensorArray[i].isInitialized = true;
-    }
-    eeprom.end();
-}
 
-void LoadActuatorFromEEPROM(EEPROMClass eeprom, Actuator* actuatorArray){
-    DebugMessage("Reading actuators from eeprom");
+    prefs.getBytes("baseDevice", &device, sizeof(BaseDevice));
 
-    eeprom.begin(512);
-
-    byte noOfSensors = 0;
-    eeprom.get(0,noOfSensors);
-    int pos = (sizeof(byte) *3)+sizeof(BaseDevice) + noOfSensors*IdStringLength;
-
-    byte sizeOfArray = 0;
-    eeprom.get(sizeof(byte),sizeOfArray);
-    if(sizeOfArray == 0xFF) {
-        DebugMessage("No actuators are saved!");
-        return;
-    }
-    for (int i = 0; i < sizeOfArray; i++)
-    {
-
-        eeprom.get(pos + i*IdStringLength,actuatorArray[i].id);
-        DebugMessage("Actuator ["+String(i)+"] ID: " + String(actuatorArray[i].id));
-        actuatorArray[i].isInitialized = true;
-    }
-    eeprom.end();
-}
-
-void ClearEEPROM(EEPROMClass eeprom){
-    eeprom.begin(512);
-    eeprom.write(0,(byte)0xFF);
-    eeprom.write(sizeof(byte),(byte)0xFF);
-    eeprom.commit();
-    eeprom.end();
-}
-
-void ReadFromEEPRom(EEPROMClass eeprom, BaseDevice &device){
-    DebugMessage("--------READING FROM EEPROM-------");
-    eeprom.begin(512);
-    eeprom.get((sizeof(byte)*3), device);
-    DebugMessage("SIZE: " + String(sizeof(BaseDevice)));
+    DebugMessage("--------READING FROM Preferences-------");
     DebugMessage(device.id);
     DebugMessage(device.ssid);
     DebugMessage(device.password);
     DebugMessage(device.serverUrl);
     DebugMessage(String(device.SensorTimer));
     DebugMessage(String(device.WiFiTimer));
-    DebugMessage(String(device.Name));
-    DebugMessage("--------END EEPROM READING------------");
-    eeprom.end();
+    DebugMessage(device.Name);
+    DebugMessage("--------END Preferences READING------------");
+
+    prefs.end();
+    GetGlobalVariables()->initialized = true;
+}
+
+
+// ---------- Sensors ----------
+void SaveSensorIDs(Sensor* sensorArray, byte sensorArraySize) {
+    prefs.begin(NAMESPACE, false);
+
+    prefs.putUInt("sensorCount", sensorArraySize);
+
+    for (int i = 0; i < sensorArraySize; i++) {
+        char key[12];
+        snprintf(key, sizeof(key), "sensor%d", i);
+        prefs.putString(key, sensorArray[i].id);
+    }
+
+    prefs.end();
+}
+
+void LoadSensors(Sensor* sensorArray) {
+    prefs.begin(NAMESPACE, true);
+
+    int size = prefs.getUInt("sensorCount", 0);
+    if (size == 0) {
+        DebugMessage("No sensors are saved!");
+        prefs.end();
+        return;
+    }
+
+    for (int i = 0; i < size; i++) {
+        char key[12];
+        snprintf(key, sizeof(key), "sensor%d", i);
+        String id = prefs.getString(key, "");
+        strncpy(sensorArray[i].id, id.c_str(), IdStringLength);
+        sensorArray[i].isInitialized = true;
+
+        DebugMessage("Sensor [" + String(i) + "] ID: " + String(sensorArray[i].id));
+    }
+
+    prefs.end();
+}
+
+
+// ---------- Actuators ----------
+void SaveActuatorIDs(Actuator* actuatorArray, byte actuatorArraySize) {
+    prefs.begin(NAMESPACE, false);
+
+    prefs.putUInt("actuatorCount", actuatorArraySize);
+
+    for (int i = 0; i < actuatorArraySize; i++) {
+        char key[12];
+        snprintf(key, sizeof(key), "actuator%d", i);
+        prefs.putString(key, actuatorArray[i].id);
+    }
+
+    prefs.end();
+}
+
+void LoadActuators(Actuator* actuatorArray) {
+    prefs.begin(NAMESPACE, true);
+
+    int size = prefs.getUInt("actuatorCount", 0);
+    if (size == 0) {
+        DebugMessage("No actuators are saved!");
+        prefs.end();
+        return;
+    }
+
+    for (int i = 0; i < size; i++) {
+        char key[12];
+        snprintf(key, sizeof(key), "actuator%d", i);
+        String id = prefs.getString(key, "");
+        strncpy(actuatorArray[i].id, id.c_str(), IdStringLength);
+        actuatorArray[i].isInitialized = true;
+
+        DebugMessage("Actuator [" + String(i) + "] ID: " + String(actuatorArray[i].id));
+    }
+
+    prefs.end();
+}
+
+
+// ---------- Clear all saved data ----------
+void ClearStorage() {
+    prefs.begin(NAMESPACE, false);
+    prefs.clear();  // clears entire namespace
+    prefs.end();
 }
