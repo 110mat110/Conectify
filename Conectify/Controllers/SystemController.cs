@@ -17,6 +17,12 @@ public class SystemController(ConectifyDb database, IDataService dataService) : 
         return "Hello world";
     }
 
+    [HttpGet("Version")]
+    public string Version()
+    {
+        return "1.0";
+    }
+
     [HttpGet("Time")]
     public long GetTime()
     {
