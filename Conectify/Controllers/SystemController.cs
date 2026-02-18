@@ -20,7 +20,7 @@ public class SystemController(ConectifyDb database, IDataService dataService) : 
     [HttpGet("Version")]
     public string Version()
     {
-        return "1.0";
+        return "1.0.1";
     }
 
     [HttpGet("Time")]
