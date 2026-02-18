@@ -14,7 +14,7 @@ public class WebsocketCacheTest
         var serviceCollection = new ServiceCollection();
 
         // Add DI configurations if necessary 
-        serviceCollection.AddScoped<IMeterFactory, FakeMeterFactory>();
+        serviceCollection.AddScoped<System.Diagnostics.Metrics.IMeterFactory, FakeMeterFactory>();
 
         // Build ServiceProvider
         serviceProvider = serviceCollection.BuildServiceProvider();
@@ -111,17 +111,16 @@ public class WebsocketCacheTest
         Assert.Null(result);
     }
 
-    public class FakeMeterFactory : IMeterFactory
+    public class FakeMeterFactory : System.Diagnostics.Metrics.IMeterFactory
     {
         public Meter Create(MeterOptions options)
         {
-            return new Meter(options);
+            return new Meter(options.Name ?? "TestMeter");
         }
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
-            return;
+            // no-op
         }
     }
 }

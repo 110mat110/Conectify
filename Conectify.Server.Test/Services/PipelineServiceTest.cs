@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics.Metrics;
 using AutoMapper;
 using Conectify.Database;
 using Conectify.Database.Models;
@@ -41,7 +42,7 @@ public class PipelineServiceTest
     public async Task ItShallNotResendWhenNoSubs(Event input)
     {
         var websocketService = A.Fake<IWebSocketService>();
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), websocketService, mapper, A.Fake<ILogger<PipelineService>>());
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), websocketService, mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
 
         await service.ResendEventToSubscribers(input);
         A.CallTo(() => websocketService.SendToDeviceAsync(A<Guid>.Ignored, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();
@@ -50,7 +51,7 @@ public class PipelineServiceTest
     [Fact]
     public async Task ItShallNotFailWhenUnknownModel()
     {
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
 
         await service.ResendEventToSubscribers(new TestEvent());
     }
@@ -67,7 +68,7 @@ public class PipelineServiceTest
         var subCahce = A.Fake<ISubscribersCache>();
         var targetDeviceId = Guid.NewGuid();
         A.CallTo(() => subCahce.AllSubscribers()).Returns([new() { DeviceId = targetDeviceId, IsSubedToAll = true }]);
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCahce, websocketService, mapper, A.Fake<ILogger<PipelineService>>());
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCahce, websocketService, mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
 
         await service.ResendEventToSubscribers(input);
         A.CallTo(() => websocketService.SendToDeviceAsync(targetDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustHaveHappened();
@@ -91,7 +92,7 @@ public class PipelineServiceTest
                     IsSubedToAll = false,
                     Preferences = []
                 }]);
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCahce, websocketService, mapper, A.Fake<ILogger<PipelineService>>());
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCahce, websocketService, mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
 
         await service.ResendEventToSubscribers(input);
         A.CallTo(() => websocketService.SendToDeviceAsync(targetDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();
@@ -104,7 +105,7 @@ public class PipelineServiceTest
         db.Add(new Device() { Id = sourceDeviceId, IsKnown = false });
         db.SaveChanges();
 
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
 
         await service.SetPreference(sourceDeviceId, [new()]);
 
@@ -118,7 +119,7 @@ public class PipelineServiceTest
         db.Add(new Device() { Id = sourceDeviceId, IsKnown = true });
         db.SaveChanges();
         var sensorId = Guid.NewGuid();
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
 
         await service.SetPreference(sourceDeviceId, [new() { SubscibeeId = sensorId }]);
 
@@ -132,7 +133,7 @@ public class PipelineServiceTest
         db.Add(new Device() { Id = sourceDeviceId, IsKnown = true });
         db.SaveChanges();
         var subCache = A.Fake<ISubscribersCache>();
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
 
         await service.SetPreference(sourceDeviceId, [new()]);
         A.CallTo(() => subCache.UpdateSubscriber(sourceDeviceId, A<CancellationToken>.Ignored)).MustHaveHappened();
@@ -145,7 +146,7 @@ public class PipelineServiceTest
         db.Add(new Device() { Id = sourceDeviceId, IsKnown = false });
         db.SaveChanges();
 
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
 
         await service.SetSubscribeToAll(sourceDeviceId, true);
 
@@ -158,7 +159,7 @@ public class PipelineServiceTest
         db.Add(new Device() { Id = sourceDeviceId, IsKnown = true, SubscribeToAll = false });
         db.SaveChanges();
 
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
 
         await service.SetSubscribeToAll(sourceDeviceId, true);
 
@@ -171,7 +172,7 @@ public class PipelineServiceTest
         db.Add(new Device() { Id = sourceDeviceId, IsKnown = true, SubscribeToAll = true });
         db.SaveChanges();
 
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), A.Fake<ISubscribersCache>(), A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
 
         await service.SetSubscribeToAll(sourceDeviceId, false);
 
@@ -184,7 +185,7 @@ public class PipelineServiceTest
         db.Add(new Device() { Id = sourceDeviceId, IsKnown = true });
         db.SaveChanges();
         var subCache = A.Fake<ISubscribersCache>();
-        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>());
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, A.Fake<IWebSocketService>(), mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
 
         await service.SetSubscribeToAll(sourceDeviceId, true);
 
