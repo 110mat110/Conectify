@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using AutoMapper;
 using Conectify.Services.Automatization.Database;
 using Conectify.Services.Automatization.Mapper;
@@ -400,7 +400,8 @@ public class RuleServiceTests
             Id = Guid.NewGuid(),
             RuleType = new AndRuleBehaviour(default).GetId(),
             ParametersJson = Guid.NewGuid().ToString(),
-            OutputConnectors = [new() { Id = outputId }]
+            OutputConnectors = [new() { Id = outputId }
+            ]
         });
         await localDbContext.SaveChangesAsync();
 
@@ -416,6 +417,196 @@ public class RuleServiceTests
         Assert.False(automatizationCacheLocal.ConnectionExist(outputId, inputId));
 
         Assert.Null(localDbContext.Set<RuleConnector>().SingleOrDefault(x => x.SourceRuleId == outputId && x.TargetRuleId == inputId));
+    }
+
+    [Fact]
+    public async Task SetConnection_InvalidSourcePoint_ReturnsFalse()
+    {
+        var inputId = Guid.NewGuid();
+        var outputId = Guid.NewGuid();
+
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var result = await ruleService.SetConnection(outputId, inputId);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task RemoveConnection_NonExistentConnection_ReturnsFalse()
+    {
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var result = await ruleService.RemoveConnection(Guid.NewGuid(), Guid.NewGuid());
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task GetAllConnections_ReturnsAllConnections()
+    {
+        var inputId = Guid.NewGuid();
+        var outputId = Guid.NewGuid();
+
+        var contextOptions = new DbContextOptionsBuilder<AutomatizationDb>()
+            .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
+            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
+        var localDbContext = new AutomatizationDb(contextOptions);
+
+        await localDbContext.Set<RuleConnector>().AddAsync(new RuleConnector
+        {
+            SourceRuleId = outputId,
+            TargetRuleId = inputId
+        });
+        await localDbContext.SaveChangesAsync();
+
+        var localServices = new ServiceCollection();
+        localServices.AddTransient<IConnectorService>(services => connectorService);
+        localServices.AddScoped(services => new AutomatizationDb(contextOptions));
+        var localServiceProvider = localServices.BuildServiceProvider();
+
+        var ruleService = new RuleService(automatizationCache, mapper, localDbContext, connectorService, new FakeConfig(), localServiceProvider);
+        var connections = await ruleService.GetAllConnections();
+
+        Assert.NotEmpty(connections);
+    }
+
+    [Fact]
+    public async Task AddCustomInput_Success()
+    {
+        var config = new FakeConfig
+        {
+            Device = new ApiDevice { Id = Guid.NewGuid(), Name = "Test Device" }
+        };
+
+        var contextOptions = new DbContextOptionsBuilder<AutomatizationDb>()
+            .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
+            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
+        var localDbContext = new AutomatizationDb(contextOptions);
+
+        var localServices = new ServiceCollection();
+        localServices.AddTransient<IConnectorService>(services => connectorService);
+        localServices.AddScoped(services => new AutomatizationDb(contextOptions));
+        var localServiceProvider = localServices.BuildServiceProvider();
+        var automatizationCacheLocal = new AutomatizationCache(localServiceProvider, mapper, false);
+
+        var ruleService = new RuleService(automatizationCacheLocal, mapper, localDbContext, connectorService, config, localServiceProvider);
+
+        var result = await ruleService.AddCustomInput(new AddActuatorApiModel("TestActuator"));
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task Remove_ExistingRule_ReturnsTrue()
+    {
+        var ruleId = Guid.NewGuid();
+        await dbContext.Rules.AddAsync(new Models.Database.Rule()
+        {
+            Id = ruleId,
+            RuleType = new AndRuleBehaviour(default).GetId(),
+        });
+        await dbContext.SaveChangesAsync();
+
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var result = await ruleService.Remove(ruleId, default);
+
+        Assert.True(result);
+        Assert.Null(await dbContext.Rules.FindAsync(ruleId));
+    }
+
+    [Fact]
+    public async Task Remove_NonExistentRule_ReturnsFalse()
+    {
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var result = await ruleService.Remove(Guid.NewGuid(), default);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task GetRule_ExistingRule_ReturnsRule()
+    {
+        var ruleId = Guid.NewGuid();
+        await dbContext.Rules.AddAsync(new Models.Database.Rule()
+        {
+            Id = ruleId,
+            RuleType = new AndRuleBehaviour(default).GetId(),
+        });
+        await dbContext.SaveChangesAsync();
+
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var result = await ruleService.GetRule(ruleId);
+
+        Assert.NotNull(result);
+        Assert.Equal(ruleId, result.Id);
+    }
+
+    [Fact]
+    public async Task GetRule_NonExistentRule_ReturnsNull()
+    {
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var result = await ruleService.GetRule(Guid.NewGuid());
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task AddInput_NonExistentRule_ThrowsException()
+    {
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await ruleService.AddInput(new Models.ApiModels.AddInputApiModel
+            {
+                Index = 0,
+                InputType = Models.Database.InputTypeEnum.Trigger,
+                RuleId = Guid.NewGuid()
+            }));
+    }
+
+    [Fact]
+    public async Task AddOutput_NonExistentRule_ThrowsException()
+    {
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await ruleService.AddOutput(new Models.ApiModels.AddOutputApiModel
+            {
+                Index = 0,
+                RuleId = Guid.NewGuid()
+            }));
+    }
+
+    [Fact]
+    public async Task EditRule_UpdatesPositionAndParameters()
+    {
+        var ruleId = Guid.NewGuid();
+        await dbContext.Rules.AddAsync(new Models.Database.Rule()
+        {
+            Id = ruleId,
+            RuleType = new AndRuleBehaviour(default).GetId(),
+            ParametersJson = "{}",
+            X = 0,
+            Y = 0
+        });
+        await dbContext.SaveChangesAsync();
+
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var editResult = await ruleService.EditRule(ruleId, new EditRuleApiModel()
+        {
+            BehaviourId = new AndRuleBehaviour(default).GetId(),
+            Parameters = "{\"test\":\"value\"}",
+            Id = ruleId,
+            X = 100,
+            Y = 200
+        });
+
+        Assert.True(editResult);
+        var dbRule = await dbContext.Rules.FindAsync(ruleId);
+        Assert.NotNull(dbRule);
+        Assert.Equal(100, dbRule.X);
+        Assert.Equal(200, dbRule.Y);
     }
 
     private class FakeConfig : ConfigurationBase, IDeviceData
