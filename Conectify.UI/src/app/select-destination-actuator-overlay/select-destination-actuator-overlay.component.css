@@ -1,15 +1,15 @@
 .overlayDiv {
-  background-color: #000000;
+  background-color: var(--color-bg-primary);
   padding: 16px;
   min-height: 400px;
 }
 
 ::ng-deep .mat-mdc-dialog-surface {
-  background-color: #000000 !important;
+  background-color: var(--color-bg-primary) !important;
 }
 
 ::ng-deep .mat-mdc-dialog-container {
-  --mdc-dialog-container-color: #000000;
+  --mdc-dialog-container-color: var(--color-bg-primary);
 }
 
 .cube {
@@ -20,21 +20,21 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 8px;
+  transition: all 0.2s ease;
+  border-radius: var(--radius-sm);
   padding: 12px;
   border: 2px solid transparent;
 }
 
 .cube:hover {
   transform: scale(1.05);
-  border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border-color: var(--color-accent-border);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .actuator-name {
   text-align: center;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-weight: 500;
   font-size: 14px;
   line-height: 1.3;
@@ -46,7 +46,7 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 24px;
   width: 24px;
   height: 24px;
@@ -54,61 +54,43 @@
 }
 
 ::ng-deep mat-grid-tile {
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 ::ng-deep .mat-grid-tile-content {
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
-/* Dialog Actions Styling */
+/* Dialog Actions */
 ::ng-deep mat-dialog-actions {
-  background-color: #000000;
+  background-color: var(--color-bg-primary);
   padding: 16px 24px;
-  border-top: 1px solid #333333;
+  border-top: 1px solid var(--color-border);
 }
 
 ::ng-deep mat-dialog-actions button {
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 ::ng-deep mat-dialog-actions button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--color-bg-hover);
 }
 
 ::ng-deep mat-dialog-actions .clear-button {
   margin-right: 8px;
-  color: #ff6b6b;
+  color: var(--color-danger);
 }
 
 ::ng-deep mat-dialog-actions .clear-button:hover {
-  background-color: rgba(255, 107, 107, 0.1);
+  background-color: rgba(255, 0, 110, 0.1);
 }
 
-/* Scrollbar styling for dark theme */
-.overlayDiv::-webkit-scrollbar {
-  width: 8px;
-}
-
-.overlayDiv::-webkit-scrollbar-track {
-  background: #1a1a1a;
-}
-
-.overlayDiv::-webkit-scrollbar-thumb {
-  background: #444444;
-  border-radius: 4px;
-}
-
-.overlayDiv::-webkit-scrollbar-thumb:hover {
-  background: #555555;
-}
-
-/* Animation for selection */
+/* Selection animation */
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
@@ -123,5 +105,5 @@
 
 .cube[style*="green"] {
   animation: pulse 0.6s;
-  border-color: #4caf50;
+  border-color: var(--color-success);
 }

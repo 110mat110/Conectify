@@ -1,19 +1,20 @@
 .detailBackground {
-    width: 100% !important;
-    height: 97%;
-    border: solid 1px aliceblue;
-    border-radius: 5px;
-    background: black;
-    text-align: center;
-    padding: 0px;
-    margin: 0;
-  }
+  width: 100% !important;
+  height: 97%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  text-align: center;
+  padding: 16px;
+  margin: 0;
+  box-sizing: border-box;
+}
 
-  p{
-      color: aliceblue;
-  }
+p {
+  color: var(--color-text-primary);
+}
 
-.cube-chart{
-    width: 100%;
-    max-height: fit-content;
+.cube-chart {
+  width: 100%;
+  max-height: fit-content;
 }

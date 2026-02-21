@@ -1,5 +1,25 @@
-.dayButton{
-    background-color: transparent;
-    border: 1px solid darkgray;
-    border-radius: 5px;
+.dayButton {
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  padding: 4px 8px;
+  margin: 2px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.dayButton:hover {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-hover);
+}
+
+input[type="time"] {
+  background-color: var(--color-bg-input);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 12px;
 }

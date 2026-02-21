@@ -1,48 +1,28 @@
-<button *ngIf="device" class="source-button" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
+<div *ngIf="sensors.length === 1" class="cube" (click)="onClick()" style="border: 1px solid {{ accentColor }};">
+  <button *ngIf="device" class="source-button" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
 
-<div *ngIf="sensors.length === 1" class="cube" (click)="onClick()" height style="border: 1px solid {{ accentColor }};" >
-<table class="hiddenTable" >   
-<tr>
-<td style="background-color: transparent !important; vertical-align: centre;">
-    <div *ngIf="showName">
-        <b>{{showName}}</b>
-      </div>
-      <div *ngIf="!showName">
-        <b>{{sensors[0].sensor.name}} &#64; {{device?.name}}</b>
-      </div>
-    <div *ngIf="sensors[0].metadatas">
-        <app-metadata-icons [metadatas] = "sensors[0].metadatas"></app-metadata-icons>
-      </div>
-    <!-- <div><b>{{sensor.sourceThing.thingName}}</b></div> -->
-    <div *ngIf="sensors[0].latestVal">
-        {{sensors[0].latestVal.name}}
-        <div *ngIf="sensors[0].latestVal.numericValue >= 0">
-            <mat-form-field>
-                <mat-label>Numeric value</mat-label>
-                <input matInput disabled value="{{sensors[0].latestVal.numericValue}} {{sensors[0].latestVal.unit}}">
-            </mat-form-field>
-        </div>
-        <div *ngIf="sensors[0].latestVal.stringValue">
-            <mat-form-field>
-                <mat-label>String value</mat-label>
-                <input matInput disabled value="{{sensors[0].latestVal.stringValue}} {{sensors[0].latestVal.unit}}">
-            </mat-form-field>
-            
-        </div>
-    </div>
+  <div class="cube-header">
+    <b *ngIf="showName">{{showName}}</b>
+    <b *ngIf="!showName">{{sensors[0].sensor.name}} &#64; {{device?.name}}</b>
+  </div>
 
-</td>
-<br/>
-<br/>
-<td *ngIf="valsReady" width="100%" height="200px">
-<!-- <app-last-value [chartOption] = "chartOption"></app-last-value> [options]="chartOption" -->
-<div echarts [autoResize]="true" [options]="chartOption" [merge]="mergeOptions" class="cube-chart" style="height: 100%;"></div>
-</td>
-</tr>
-</table>
+  <div *ngIf="sensors[0].metadatas" class="cube-meta">
+    <app-metadata-icons [metadatas]="sensors[0].metadatas"></app-metadata-icons>
+  </div>
+
+  <div *ngIf="sensors[0].latestVal" class="cube-value">
+    <span *ngIf="sensors[0].latestVal.name" class="value-label">{{sensors[0].latestVal.name}}</span>
+    <span *ngIf="sensors[0].latestVal.numericValue >= 0" class="value-chip">{{sensors[0].latestVal.numericValue}} {{sensors[0].latestVal.unit}}</span>
+    <span *ngIf="sensors[0].latestVal.stringValue" class="value-chip">{{sensors[0].latestVal.stringValue}} {{sensors[0].latestVal.unit}}</span>
+  </div>
+
+  <div *ngIf="valsReady" class="cube-chart-container">
+    <div echarts [autoResize]="true" [options]="chartOption" [merge]="mergeOptions" class="cube-chart"></div>
+  </div>
 </div>
 
 <div *ngIf="sensors.length > 1" class="cube">
+  <button *ngIf="device" class="source-button" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
   <div *ngIf="showName" class="cube-title">
     <b>{{ showName }}</b>
   </div>

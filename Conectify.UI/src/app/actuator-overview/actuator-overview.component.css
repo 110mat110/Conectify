@@ -1,6 +1,7 @@
 mat-grid-list {
   margin: 0 auto;
   width: 100%;
+  padding: 8px;
 }
 
 mat-grid-tile {
@@ -8,11 +9,6 @@ mat-grid-tile {
   border-radius: 0 !important;
   border: none !important;
   overflow: visible !important;
-}
-
-.grid-layout-custom {
-  width: 100%;
-  height: auto;
 }
 
 app-actuator-cube {

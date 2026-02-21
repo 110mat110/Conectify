@@ -1,78 +1,70 @@
 .example-tree-invisible {
-    display: none;
-  }
-  
-  .example-tree ul,
-  .example-tree li {
-    margin-top: 0;
-    margin-bottom: 0;
-    list-style-type: none;
-  }
-  
- .sidenav-container{
-  height: 1000px;
- }
+  display: none;
+}
 
- mat-drawer-content{
-  background-color: black;
- }
+.example-tree ul,
+.example-tree li {
+  margin-top: 0;
+  margin-bottom: 0;
+  list-style-type: none;
+}
 
-  /*
-   * This padding sets alignment of the nested nodes.
-   */
-  .example-tree .mat-nested-tree-node div[role=group] {
-    padding-left: 40px;
-  }
-  
-  /*
-   * Padding for leaf nodes.
-   * Leaf nodes need to have padding so as to align with other non-leaf nodes
-   * under the same parent.
-   */
-  .example-tree div[role=group] > .mat-tree-node {
-    padding-left: 40px;
-  }
+.sidenav-container {
+  height: 100vh;
+}
 
-  .mat-drawer-container{
-    background-color: transparent;
-  }
+mat-drawer-content {
+  background-color: var(--color-bg-primary);
+  padding: 8px;
+}
 
-  .status-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 8px;
-  }
-  
-  .red-dot {
-    background-color: red;
-    color: red;
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 8px;
-  
-  }
-  
-  .yellow-dot {
-    background-color: yellow;
-    color: yellow;
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 8px;
-  
-  }
-  
-  .green-dot {
-    background-color: green;
-    color: green;
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 8px;  
-  }
+.example-tree .mat-nested-tree-node div[role=group] {
+  padding-left: 40px;
+}
+
+.example-tree div[role=group] > .mat-tree-node {
+  padding-left: 40px;
+}
+
+.mat-drawer-container {
+  background-color: transparent;
+}
+
+/* Status dots */
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.red-dot {
+  background-color: var(--color-danger);
+  color: var(--color-danger);
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.yellow-dot {
+  background-color: var(--color-warning);
+  color: var(--color-warning);
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.green-dot {
+  background-color: var(--color-success);
+  color: var(--color-success);
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}

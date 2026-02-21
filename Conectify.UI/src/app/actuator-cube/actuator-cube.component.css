@@ -1,210 +1,274 @@
+/* Actuator cube card - matches sensor-cube */
 .cube {
-    background-color: #121212;
-    height: 85%;
-    width: 90%;
-    min-height: 200px;
-    margin: 0;
-    padding: 16px !important;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border: 1px solid #2a2a2a;
-    position: relative;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    min-width: unset;
-  }
-  
-  .cube:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
-    border-color: #3a86ff;
-  }
-  
-  /* Form field styling */
-  .string-input {
-    width: 100%;
-  }
-  
-  mat-label {
-    color: #4cc9f0;
-  }
-  
-  .mat-form-field-ripple {
-    background-color: #3a86ff;
-  }
-  
-  /* Source button styling */
-  .SourceButton {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(58, 134, 255, 0.3);
-    color: #e0e0e0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s, border-color 0.2s;
-    z-index: 10;
-  }
-  
-  .SourceButton:hover {
-    background-color: rgba(58, 134, 255, 0.2);
-    border-color: #3a86ff;
-  }
-  
-  .SourceButton mat-icon {
-    font-size: 18px;
-  }
-  
-  /* Button styling */
-  .onButton, .offButton, .triggerButton, .basic-send {
-    color: #e0e0e0 !important;
-    text-align: center;
-    background-color: rgba(0, 0, 0, 0.2);
-    border: none !important;
-    border-radius: 8px !important;
-    height: 40px;
-    cursor: pointer;
-    margin-top: 12px;
-    margin-right: 10px;
-    transition: all 0.2s ease;
-    font-weight: 500;
-  }
-  
+  background-color: var(--color-bg-card);
+  height: 85%;
+  width: 90%;
+  min-height: 200px;
+  margin: 0;
+  padding: 16px !important;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  position: relative;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: unset;
+}
 
+.cube:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--color-border-hover);
+}
 
-  .onButton {
-    width: 45%;
-    border-bottom: solid 3px #38b000 !important;
-  }
-  
-  .offButton {
-    width: 45%;
-    border-bottom: solid 3px #ff006e !important;
-  }
-  
-  .triggerButton, .basic-send {
-    width: 100%;
-    border-bottom: solid 3px #3a86ff !important;
-  }
-  
-  /* Button hover states */
-  .onButton:hover {
-    background-color: rgba(56, 176, 0, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 2px 6px rgba(56, 176, 0, 0.2);
-  }
-  
-  .offButton:hover {
-    background-color: rgba(255, 0, 110, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 2px 6px rgba(255, 0, 110, 0.2);
-  }
-  
-  .triggerButton:hover, .basic-send:hover {
-    background-color: rgba(58, 134, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 2px 6px rgba(58, 134, 255, 0.2);
-  }
-  
-  /* Linear actuator/slider styling */
-  .linearActuator {
-    width: 90%;
-    height: 6px;
-    margin: 20px 0;
-    -webkit-appearance: none;
-    background: #2a2a2a;
-    border-radius: 3px;
-    outline: none;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-  }
-  
-  .linearActuator:hover {
-    opacity: 1;
-  }
-  
-  .linearActuator::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #3a86ff;
-    cursor: pointer;
-    box-shadow: 0 0 5px rgba(58, 134, 255, 0.5);
-  }
-  
-  .linearActuator::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #3a86ff;
-    cursor: pointer;
-    box-shadow: 0 0 5px rgba(58, 134, 255, 0.5);
-  }
-  
-  /* Input fields */
-  input[type="color"] {
-    -webkit-appearance: none;
-    border: none;
-    width: 60%;
-    height: 30px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-bottom: 10px;
-  }
-  
-  input[type="color"]::-webkit-color-swatch-wrapper {
-    padding: 0;
-    border-radius: 8px;
-  }
-  
-  input[type="color"]::-webkit-color-swatch {
-    border: none;
-    border-radius: 8px;
-  }
-  
-  /* Title styling */
+/* Header */
+.cube-header {
+  padding-right: 36px;
+  flex-shrink: 0;
+}
+
+.cube-meta {
+  flex-shrink: 0;
+}
+
+/* Value chip display */
+.cube-value {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex-shrink: 0;
+  margin: 4px 0;
+}
+
+.value-label {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  margin-right: 4px;
+  align-self: center;
+}
+
+.value-chip {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--color-accent-subtle);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius-md);
+  padding: 2px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-info);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* IO type container */
+.iotype-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.iotype-controls {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.iotype-controls mat-form-field {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.iotype-buttons {
+  flex-shrink: 0;
+  display: flex;
+}
+
+/* Form field styling */
+.string-input {
+  width: 100%;
+}
+
+mat-label {
+  color: var(--color-info);
+}
+
+.mat-form-field-ripple {
+  background-color: var(--color-accent);
+}
+
+/* Source button */
+.source-button {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--color-accent-border);
+  color: var(--color-text-secondary);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  z-index: 10;
+  cursor: pointer;
+}
+
+.source-button:hover {
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent);
+}
+
+.source-button mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Button styling */
+.onButton, .offButton, .triggerButton, .basic-send {
+  color: var(--color-text-primary) !important;
+  text-align: center;
+  background-color: var(--color-bg-elevated);
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  height: 38px;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-right: 8px;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+.onButton {
+  width: 45%;
+  border-bottom: solid 3px var(--color-success) !important;
+}
+
+.offButton {
+  width: 45%;
+  border-bottom: solid 3px var(--color-danger) !important;
+}
+
+.triggerButton, .basic-send {
+  width: 100%;
+  border-bottom: solid 3px var(--color-accent) !important;
+}
+
+/* Button hover states */
+.onButton:hover {
+  background-color: rgba(56, 176, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(56, 176, 0, 0.2);
+}
+
+.offButton:hover {
+  background-color: rgba(255, 0, 110, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(255, 0, 110, 0.2);
+}
+
+.triggerButton:hover, .basic-send:hover {
+  background-color: var(--color-accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(58, 134, 255, 0.2);
+}
+
+/* Slider styling */
+.linearActuator {
+  width: 90%;
+  height: 6px;
+  margin: 12px 0;
+  -webkit-appearance: none;
+  background: var(--color-border);
+  border-radius: 3px;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity var(--transition-fast);
+}
+
+.linearActuator:hover {
+  opacity: 1;
+}
+
+.linearActuator::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(58, 134, 255, 0.4);
+}
+
+.linearActuator::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(58, 134, 255, 0.4);
+}
+
+/* Color input */
+.color-input {
+  -webkit-appearance: none;
+  border-width: 6px;
+  border-style: solid;
+  padding: 0;
+  width: 60%;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: block;
+}
+
+.color-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: var(--radius-sm);
+}
+
+.color-input::-webkit-color-swatch {
+  border: none;
+  border-radius: var(--radius-sm);
+}
+
+/* Title */
+.cube b {
+  color: var(--color-text-primary);
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+/* Form fields */
+mat-form-field {
+  width: 100%;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
   .cube b {
-    color: #e0e0e0;
-    font-size: 16px;
-    margin-bottom: 12px;
-    display: inline-block;
-  }
-  
-  /* Styles for the current value display */
-  .current-value {
-    width: 100%;
-    margin-top: 8px;
-  }
-  
-  /* Make form fields fit better */
-  mat-form-field {
-    width: 100%;
-    margin-bottom: 8px;
     font-size: 14px;
   }
-  
-  /* For better fitting in the grid */
-  .current-value {
-    margin-bottom: 0;
+
+  mat-label {
+    font-size: 13px;
   }
-  
-  /* Responsive text adjustments */
-  @media (max-width: 768px) {
-    .cube b {
-      font-size: 14px;
-    }
-    
-    mat-label {
-      font-size: 13px;
-    }
-  }
-  
+}

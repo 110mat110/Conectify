@@ -33,7 +33,10 @@ export class AutValueInputComponent implements OnInit  {
     const dialogRef = this.dialog.open(SelectInputSensorOverlayComponent, {
       width: '50%',
       height: '100%',
-      restoreFocus: false
+      restoreFocus: false,
+                      data: {
+      multiselect: false
+    }
     });
 
     dialogRef.afterClosed().subscribe(result => {

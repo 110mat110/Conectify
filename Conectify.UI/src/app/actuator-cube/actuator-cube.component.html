@@ -1,79 +1,87 @@
 <div class="cube" (click)="cubeClick()">
-  <button *ngIf="device" class="SourceButton" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
+  <button *ngIf="device" class="source-button" (click)="SourceClick()"> <mat-icon>device_hub</mat-icon> </button>
 
-  <div *ngIf="actuator">
-    <div *ngIf="showName">
-      <b>{{showName}}</b>
-    </div>
-    <div *ngIf="!showName && device">
-      <b>{{actuator.name}} &#64; {{device.name}}</b>
-    </div>
-    <div *ngIf="!showName && !device">
-      <b>{{actuator.name}}</b>
-    </div>
+  <div *ngIf="actuator" class="cube-header">
+    <b *ngIf="showName">{{showName}}</b>
+    <b *ngIf="!showName && device">{{actuator.name}} &#64; {{device.name}}</b>
+    <b *ngIf="!showName && !device">{{actuator.name}}</b>
   </div>
-  <div *ngIf="metadatas">
+
+  <div *ngIf="metadatas" class="cube-meta">
     <app-metadata-icons [metadatas]="metadatas"></app-metadata-icons>
   </div>
-  <div *ngIf="latestVal && iotype != 3">
-    <br/>
-    <div *ngIf="latestVal != null && latestVal.numericValue >= 0" style="display: inline-block;">
-      <mat-form-field class="current-value">
-        <mat-label>Current {{latestVal.name}}</mat-label>
-        <input matInput disabled value="{{latestVal.numericValue}} {{latestVal.unit}}" #stringInput>
+
+  <div *ngIf="latestVal && iotype != 3" class="cube-value">
+    <span *ngIf="latestVal.name" class="value-label">{{latestVal.name}}</span>
+    <span *ngIf="latestVal.numericValue >= 0" class="value-chip">{{latestVal.numericValue}} {{latestVal.unit}}</span>
+    <span *ngIf="latestVal.stringValue" class="value-chip">{{latestVal.stringValue}}</span>
+  </div>
+
+  <!-- iotype -1: String + Numeric input with SEND -->
+  <div *ngIf="iotype===-1" class="iotype-container">
+    <div class="iotype-controls">
+      <mat-form-field class="string-input">
+        <mat-label>String value</mat-label>
+        <input matInput placeholder="String value" value={{stringvalue}} #stringInput>
+      </mat-form-field>
+      <mat-form-field class="string-input">
+        <mat-label>Numeric value</mat-label>
+        <input matInput type="number" placeholder="0" value={{numericvalue}} #numericInput>
       </mat-form-field>
     </div>
-    <div *ngIf="latestVal.stringValue" style="display: inline-block;">
-      <mat-form-field class="current-value">
-        <mat-label>Current {{latestVal.name}}</mat-label>
-        <input matInput disabled value="{{latestVal.stringValue}} {{latestVal.unit}}" #stringInput>
-      </mat-form-field>
+    <div class="iotype-buttons">
+      <button class="basic-send" (click)="send(stringInput.value, numericInput.value)">SEND</button>
     </div>
   </div>
-  <div *ngIf="iotype===-1">
-    <table>
-      <td>
-        <mat-form-field class="string-input">
-          <mat-label>String value</mat-label>
-          <input matInput placeholder="String value" value={{stringvalue}} #stringInput>
-        </mat-form-field>
-        <br />
-        <mat-form-field class="string-input">
-          <mat-label>Numeric value</mat-label>
-          <input matInput type="number" placeholder="0" value={{numericvalue}} #numericInput>
-        </mat-form-field>
-      </td>
-      <td>
-        <button class="basic-send" (click)="send(stringInput.value, numericInput.value)"> SEND</button>
-      </td>
-    </table>
-  </div>
 
-  <div *ngIf="iotype===0">
-    <input type="range" class="linearActuator" min={{minValue}} max={{maxValue}} value={{latestVal?.numericValue}} (input)="onSliderChange(linearActuator.value)" #linearActuator/>
-    <button class="onButton" (click)="onButtonClick()">ON</button>
-    <button class="offButton" (click)="offbuttonClick()">OFF</button>
-  </div>
-
-  <div *ngIf="iotype===1">
-    <button class="onButton" (click)="onButtonClick()">ON</button>
-    <button class="offButton" (click)="offbuttonClick()">OFF</button>
-  </div>
-
-  <div *ngIf="iotype===2">
-    <button class="triggerButton" (click)="triggerButtonClick()">CLICK</button>
-  </div>
-
-  <div *ngIf="iotype===3">
-      <input  style="width: 60%; border-width: 6px; padding: 0px;" [style.border-color]="latestVal?.stringValue" type="color" value="{{stringvalue}}" (input)="onColorChange(colorInput.value)" #colorInput/> <br/>
+  <!-- iotype 0: Slider + ON/OFF -->
+  <div *ngIf="iotype===0" class="iotype-container">
+    <div class="iotype-controls">
+      <input type="range" class="linearActuator" min={{minValue}} max={{maxValue}} value={{latestVal?.numericValue}} (input)="onSliderChange(linearActuator.value)" #linearActuator/>
+    </div>
+    <div class="iotype-buttons">
       <button class="onButton" (click)="onButtonClick()">ON</button>
       <button class="offButton" (click)="offbuttonClick()">OFF</button>
+    </div>
   </div>
 
-  <div *ngIf="iotype===4">
-    <input type="range" class="linearActuator" min={{minValue}} max={{maxValue}} value={{latestVal?.numericValue}} (input)="onSliderChange(linearActuator.value)" #linearActuator/>
-    <button class="onButton" (click)="onButtonClick()">ON</button>
-    <button class="offButton" (click)="offbuttonClick()">OFF</button>
-    <input type="range" class="linearActuator" min=2000 max=10000 (input)="onCCT(cctActuator.value)" #cctActuator/>
-</div>
+  <!-- iotype 1: ON/OFF only -->
+  <div *ngIf="iotype===1" class="iotype-container">
+    <div class="iotype-controls"></div>
+    <div class="iotype-buttons">
+      <button class="onButton" (click)="onButtonClick()">ON</button>
+      <button class="offButton" (click)="offbuttonClick()">OFF</button>
+    </div>
+  </div>
+
+  <!-- iotype 2: Trigger button -->
+  <div *ngIf="iotype===2" class="iotype-container">
+    <div class="iotype-controls"></div>
+    <div class="iotype-buttons">
+      <button class="triggerButton" (click)="triggerButtonClick()">CLICK</button>
+    </div>
+  </div>
+
+  <!-- iotype 3: Color picker + ON/OFF -->
+  <div *ngIf="iotype===3" class="iotype-container">
+    <div class="iotype-controls">
+      <input class="color-input" [style.border-color]="latestVal?.stringValue" type="color" value="{{stringvalue}}" (input)="onColorChange(colorInput.value)" #colorInput/>
+    </div>
+    <div class="iotype-buttons">
+      <button class="onButton" (click)="onButtonClick()">ON</button>
+      <button class="offButton" (click)="offbuttonClick()">OFF</button>
+    </div>
+  </div>
+
+  <!-- iotype 4: Dual slider + ON/OFF -->
+  <div *ngIf="iotype===4" class="iotype-container">
+    <div class="iotype-controls">
+      <input type="range" class="linearActuator" min={{minValue}} max={{maxValue}} value={{latestVal?.numericValue}} (input)="onSliderChange(linearActuator.value)" #linearActuator/>
+      <input type="range" class="linearActuator" min=2000 max=10000 (input)="onCCT(cctActuator.value)" #cctActuator/>
+    </div>
+    <div class="iotype-buttons">
+      <button class="onButton" (click)="onButtonClick()">ON</button>
+      <button class="offButton" (click)="offbuttonClick()">OFF</button>
+    </div>
+  </div>
 </div>

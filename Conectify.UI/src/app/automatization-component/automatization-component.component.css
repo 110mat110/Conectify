@@ -1,91 +1,106 @@
-.componentCube{
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    width: 150px;
-    height: 150px;
+/* Automation rule component */
+.componentCube {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 150px;
+  height: 150px;
 }
 
-.SourceButton{
-    position: absolute;
-    right: -20px;
-    top: 45%;
-    border-radius: 50%;
-    background-color: black;
-    border-color: gray;
-    color: aliceblue;
+/* Connection buttons */
+.SourceButton {
+  position: absolute;
+  right: -20px;
+  top: 45%;
+  border-radius: 50%;
+  background-color: var(--color-bg-primary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
 }
 
-.Dest{
-    position: absolute;
-    left: -20px;
-    top: 45%;
-    border-radius: 50%;
-    background-color: black;
-    border-color: gray;
-    color: aliceblue;
+.Dest {
+  position: absolute;
+  left: -20px;
+  top: 45%;
+  border-radius: 50%;
+  background-color: var(--color-bg-primary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
 }
 
-.Parameter{
-    position: absolute;
-    left: 50%;
-    top: -20px;
-    border-radius: 50%;
-    background-color: black;
-    border-color: gray;
-    color: aliceblue;
+.Parameter {
+  position: absolute;
+  left: 50%;
+  top: -20px;
+  border-radius: 50%;
+  background-color: var(--color-bg-primary);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
 }
 
-.output-button, .input-button{
-    min-width: 10px !important;
-    width: 10px;
-    height: 20px;
-    border-radius: 5px;
-    background-color: black;
+.output-button, .input-button {
+  min-width: 10px !important;
+  width: 10px;
+  height: 20px;
+  border-radius: 5px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-accent-border);
 }
 
 .left-buttons, .right-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 4px; /* Reduced gap for smaller space */
-  }
-  
-  .left-buttons {
-    position: absolute;
-    left: 4px; /* Align buttons close to the edge */
-    top: 8px; /* Add slight spacing from the top */
-  }
-  
-  .right-buttons {
-    position: absolute;
-    right: 4px;
-    top: 8px;
-  }
-  
-  .center-content {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    margin-left: 40px; 
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-  
-  .component-text {
-    font-size: 12px; /* Adjust text size for smaller container */
-    font-weight: bold;
-  }
-  
-  .bottom-buttons {
-    display: block;
-    justify-content: center;
-    gap: 4px; /* Smaller gap for the reduced width */
-    position: relative;
-    bottom: 4px;
-  }
-  
-  .saveButton {
-    padding: 4px 8px; /* Reduced padding for smaller buttons */
-    font-size: 10px; /* Adjust font size */
-    height: 30px;
-  }
+
+.left-buttons {
+  position: absolute;
+  left: 4px;
+  top: 8px;
+}
+
+.right-buttons {
+  position: absolute;
+  right: 4px;
+  top: 8px;
+}
+
+.center-content {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-left: 40px;
+}
+
+.component-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.bottom-buttons {
+  display: block;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+  bottom: 4px;
+}
+
+.saveButton {
+  padding: 4px 8px;
+  font-size: 10px;
+  height: 28px;
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.saveButton:hover {
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent);
+}

@@ -1,17 +1,17 @@
-  app-sensor-cube{
-    width:100%; 
-    flex: 1 1 auto;
-  }
-  .grid-layout-custom{
-    width: 50vw;
-    height: 50vh;
-  }
-  .example-list {
-    width: 100px;
-    border: solid 1px #ccc;
-    border-radius: 5px;
-    background: #fff;
-    text-align: center;
-    padding: 10px;
-    margin: 0;
-  }
+app-sensor-cube {
+  width: 100%;
+  flex: 1 1 auto;
+}
+
+mat-grid-list {
+  margin: 0 auto;
+  width: 100%;
+  padding: 8px;
+}
+
+mat-grid-tile {
+  background: transparent !important;
+  border-radius: 0 !important;
+  border: none !important;
+  overflow: visible !important;
+}
