@@ -30,7 +30,7 @@ public class AndRuleBehaviourTests
             new OutputPointDTO(Guid.NewGuid(), serviceProvider) { Event = new AutomatisationEvent { NumericValue = 1 } }
         ]));
         A.CallTo(() => cache.GetPreviousOutputs(input2.Id)).Returns(Task.FromResult<IEnumerable<OutputPointDTO>>([
-            new OutputPointDTO(Guid.NewGuid(), serviceProvider) { Event = new AutomatisationEvent { NumericValue = 2 } }
+            new OutputPointDTO(Guid.NewGuid(), serviceProvider) { Event = new AutomatisationEvent { NumericValue = 1 } }
         ]));
 
         var output = new OutputPointDTO(Guid.NewGuid(), serviceProvider);

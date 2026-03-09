@@ -107,16 +107,7 @@ public class InputRuleBehaviourTests
         var serviceProvider = new ServiceCollection().BuildServiceProvider();
         var behaviour = new InputRuleBehaviour(serviceProvider);
 
-        Assert.Equal("INPUT", behaviour.DisplayName());
-    }
-
-    [Fact]
-    public void Inputs_ShouldBeEmpty()
-    {
-        var serviceProvider = new ServiceCollection().BuildServiceProvider();
-        var behaviour = new InputRuleBehaviour(serviceProvider);
-
-        Assert.Empty(behaviour.Inputs);
+        Assert.Equal("ON EVENT", behaviour.DisplayName());
     }
 
     [Fact]

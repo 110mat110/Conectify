@@ -18,22 +18,36 @@ public class AndRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
     public async Task Execute(RuleDTO masterRule, AutomatisationEvent trigger, CancellationToken ct)
     {
         var inputs = masterRule.Inputs.Select(x => x.GetEvent(serviceProvider).Result);
+
         var outputValue = new AutomatisationEvent()
         {
             Name = "AndRuleResult",
-            NumericValue = !inputs.Any(x => x is not null && x.NumericValue == 0) ? 1 : 0,
-            StringValue = !inputs.Any(x => x is not null && x.NumericValue == 0) ? "true" : "false",
+            NumericValue = inputs.All(x => x is not null && x.NumericValue == 1) ? 1 : 0,
+            StringValue = inputs.All(x => x is not null && x.NumericValue == 1) ? "true" : "false",
             Unit = "",
             TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             SourceId = masterRule.Id
         };
+
+        if (!inputs.Any())
+        {
+            outputValue = new AutomatisationEvent()
+            {
+                Name = "AndRuleResult",
+                NumericValue =  0,
+                StringValue = "false",
+                Unit = "",
+                TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                SourceId = masterRule.Id
+            };
+        }
 
         await masterRule.SetAllOutputs(outputValue);
 
         return;
     }
 
-    public string DisplayName() => "AND Rule";
+    public string DisplayName() => "AND";
 
     public Guid GetId()
     {
@@ -67,6 +81,7 @@ public class AndRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
 
     public Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
+        rule.Name = "AND";
         rule.Description = "AND";
         return Task.CompletedTask;
     }

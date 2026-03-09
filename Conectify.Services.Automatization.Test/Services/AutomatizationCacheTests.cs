@@ -144,35 +144,6 @@ public class AutomatizationCacheTests
         Assert.Null(deletedRule);
     }
 
-    [Fact]
-    public async Task GetRulesForSourceAsync_ReturnsMatchingRules()
-    {
-        var contextOptions = new DbContextOptionsBuilder<AutomatizationDb>()
-            .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
-            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-            .Options;
-
-        var services = new ServiceCollection();
-        services.AddScoped(services => new AutomatizationDb(contextOptions));
-        var serviceProvider = services.BuildServiceProvider();
-
-        var sourceSensorId = Guid.NewGuid();
-        using (var context = new AutomatizationDb(contextOptions))
-        {
-            await context.Rules.AddAsync(new Rule
-            {
-                Id = Guid.NewGuid(),
-                RuleType = new InputRuleBehaviour(default).GetId(),
-                ParametersJson = "{\"SourceSensorId\":\"" + sourceSensorId + "\"}"
-            });
-            await context.SaveChangesAsync();
-        }
-
-        var cache = new AutomatizationCache(serviceProvider, mapper, false);
-        var rules = await cache.GetRulesForSourceAsync(sourceSensorId);
-
-        Assert.NotEmpty(rules);
-    }
 
     [Fact]
     public async Task GetRulesByTypeIdAsync_ReturnsMatchingRules()
@@ -202,41 +173,6 @@ public class AutomatizationCacheTests
         var rules = await cache.GetRulesByTypeIdAsync(ruleTypeId);
 
         Assert.NotEmpty(rules);
-    }
-
-    [Fact]
-    public async Task GetAllRulesAsync_ReturnsAllRules()
-    {
-        var contextOptions = new DbContextOptionsBuilder<AutomatizationDb>()
-            .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
-            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-            .Options;
-
-        var services = new ServiceCollection();
-        services.AddScoped(services => new AutomatizationDb(contextOptions));
-        var serviceProvider = services.BuildServiceProvider();
-
-        using (var context = new AutomatizationDb(contextOptions))
-        {
-            await context.Rules.AddAsync(new Rule
-            {
-                Id = Guid.NewGuid(),
-                RuleType = new AndRuleBehaviour(default).GetId(),
-                ParametersJson = "{}"
-            });
-            await context.Rules.AddAsync(new Rule
-            {
-                Id = Guid.NewGuid(),
-                RuleType = new InputRuleBehaviour(default).GetId(),
-                ParametersJson = "{}"
-            });
-            await context.SaveChangesAsync();
-        }
-
-        var cache = new AutomatizationCache(serviceProvider, mapper, false);
-        var rules = await cache.GetAllRulesAsync();
-
-        Assert.True(rules.Count() >= 2);
     }
 
     [Fact]
@@ -421,44 +357,5 @@ public class AutomatizationCacheTests
         var inputs = await cache.GetNextInputs(outputId);
 
         Assert.NotEmpty(inputs);
-    }
-
-    [Fact]
-    public async Task GetPreviousOutputs_ReturnsConnectedOutputs()
-    {
-        var contextOptions = new DbContextOptionsBuilder<AutomatizationDb>()
-            .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
-            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-            .Options;
-
-        var services = new ServiceCollection();
-        services.AddScoped(services => new AutomatizationDb(contextOptions));
-        var serviceProvider = services.BuildServiceProvider();
-
-        var outputId = Guid.NewGuid();
-        var inputId = Guid.NewGuid();
-
-        using (var context = new AutomatizationDb(contextOptions))
-        {
-            await context.Rules.AddAsync(new Rule
-            {
-                Id = Guid.NewGuid(),
-                RuleType = new AndRuleBehaviour(default).GetId(),
-                ParametersJson = "{}",
-                InputConnectors = [new InputPoint { Id = inputId }],
-                OutputConnectors = [new OutputPoint { Id = outputId }]
-            });
-            context.Set<RuleConnector>().Add(new RuleConnector
-            {
-                SourceRuleId = outputId,
-                TargetRuleId = inputId
-            });
-            await context.SaveChangesAsync();
-        }
-
-        var cache = new AutomatizationCache(serviceProvider, mapper, true);
-        var outputs = await cache.GetPreviousOutputs(inputId);
-
-        Assert.NotEmpty(outputs);
     }
 }

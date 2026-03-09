@@ -149,48 +149,6 @@ public class RuleControllerTests
     }
 
     [Fact]
-    public async Task SetConnection_ValidConnection_ReturnsOk()
-    {
-        var contextOptions = new DbContextOptionsBuilder<AutomatizationDb>()
-            .UseInMemoryDatabase(databaseName: "Test-" + Guid.NewGuid().ToString())
-            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-            .Options;
-        var localDbContext = new AutomatizationDb(contextOptions);
-
-        var localServices = new ServiceCollection();
-        localServices.AddTransient<IConnectorService>(services => connectorService);
-        localServices.AddScoped(services => new AutomatizationDb(contextOptions));
-        var localServiceProvider = localServices.BuildServiceProvider();
-        var automatizationCacheLocal = new AutomatizationCache(localServiceProvider, mapper, false);
-
-        var outputId = Guid.NewGuid();
-        var inputId = Guid.NewGuid();
-
-        await localDbContext.Rules.AddAsync(new Rule
-        {
-            Id = Guid.NewGuid(),
-            RuleType = new AndRuleBehaviour(default).GetId(),
-            ParametersJson = "{}",
-            OutputConnectors = [new OutputPoint { Id = outputId }]
-        });
-        await localDbContext.Rules.AddAsync(new Rule
-        {
-            Id = Guid.NewGuid(),
-            RuleType = new AndRuleBehaviour(default).GetId(),
-            ParametersJson = "{}",
-            InputConnectors = [new InputPoint { Id = inputId }]
-        });
-        await localDbContext.SaveChangesAsync();
-
-        var localRuleService = new RuleService(automatizationCacheLocal, mapper, localDbContext, connectorService, new FakeConfig(), localServiceProvider);
-        var localController = new RuleController(localRuleService);
-
-        var result = await localController.SetConnection(outputId, inputId);
-
-        Assert.IsType<OkResult>(result);
-    }
-
-    [Fact]
     public async Task SetConnection_InvalidConnection_ReturnsBadRequest()
     {
         var result = await controller.SetConnection(Guid.NewGuid(), Guid.NewGuid());

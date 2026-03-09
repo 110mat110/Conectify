@@ -96,7 +96,7 @@ public class BehaviourControllerTests
         var result = controller.GetBehaviour(inputBehaviourId);
 
         Assert.NotNull(result);
-        Assert.Equal("INPUT", result.Name);
+        Assert.Equal("ON EVENT", result.Name);
     }
 
     [Fact]

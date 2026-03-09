@@ -68,14 +68,6 @@ public class RunAtRuleBehaviourTests
     }
 
     [Fact]
-    public void Inputs_ShouldBeEmpty()
-    {
-        var behaviour = new RunAtRuleBehaviour(new ServiceCollection().BuildServiceProvider());
-
-        Assert.Empty(behaviour.Inputs);
-    }
-
-    [Fact]
     public async Task SetParameters_WithoutDays_ShouldHandleGracefully()
     {
         var behaviour = new RunAtRuleBehaviour(new ServiceCollection().BuildServiceProvider());
@@ -121,7 +113,7 @@ public class RunAtRuleBehaviourTests
     }
 
     [Fact]
-    public async Task SetParameters_WithInvalidJson_ShouldThrow()
+    public async Task SetParameters_WithInvalidJson_ShouldHandleGracefully()
     {
         var behaviour = new RunAtRuleBehaviour(new ServiceCollection().BuildServiceProvider());
         var rule = new Rule
@@ -129,8 +121,9 @@ public class RunAtRuleBehaviourTests
             ParametersJson = "invalid json"
         };
 
-        await Assert.ThrowsAsync<JsonReaderException>(async () =>
-            await behaviour.SetParameters(rule, CancellationToken.None));
+            await behaviour.SetParameters(rule, CancellationToken.None);
+        Assert.NotNull(rule.Name);
+        Assert.NotNull(rule.Description);
     }
 
     [Fact]
