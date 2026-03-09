@@ -182,7 +182,11 @@ export class AdressesService {
 
   replaceServerHost(url: string): string {
   try {
-    const currentHost = "server.home"//window.location.hostname;
+    const currentHost = window.location.hostname;
+    if(currentHost == "localhost")
+    {
+      return url;
+    }
     return url.replace(environment.serverHome, currentHost);
   } catch {
     return url;
