@@ -4,6 +4,7 @@ import { environment } from '../environments/environment';
 import { Observable, of } from 'rxjs';
 import { catchError, map, shareReplay } from 'rxjs/operators';
 import { LocalApp } from '../models/local-app.model';
+import { AdressesService } from './adresses.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,7 @@ constructor(private http: HttpClient) {
     
     this.data.forEach(element => {
         element.icon = "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/"+element.icon+".svg";
+        element.url = AdressesService.replaceServerHost(element.url);
     });
 
     return this.data;
@@ -26,7 +28,7 @@ constructor(private http: HttpClient) {
 
     loadConfig() {
     this.http.get(this.configUrl).subscribe({
-      next: (data) => this.data = (data as any).services as LocalApp[],
+      next: (data) => {this.data = (data as any).services as LocalApp[];},
       error: (err) => console.error('Failed to load config', err)
     });
 }

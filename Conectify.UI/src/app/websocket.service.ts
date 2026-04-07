@@ -4,6 +4,7 @@ import { AnonymousSubject } from 'rxjs/internal/Subject';
 import { map } from 'rxjs/operators';
 import { MessagesService } from "./messages.service";
 import { environment } from "src/environments/environment";
+import { AdressesService } from "./adresses.service";
 
 export interface Message {
   source: string;
@@ -79,6 +80,7 @@ export class WebsocketService {
 
   private connect(url: string): AnonymousSubject<MessageEvent> {
     if (!this.status || !this.subject) {
+      url = AdressesService.replaceServerHost(url);
       this.subject = this.create(url);
       console.log("Connected to: " + url);
       this.status = true;

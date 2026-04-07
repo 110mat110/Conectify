@@ -6,10 +6,10 @@ import { environment } from 'src/environments/environment';
 })
 export class AdressesService {
 
-  private serverURL: string = this.replaceServerHost(environment.serverUrl + "/api/")
-  private automatizationURL: string = this.replaceServerHost(environment.automatizationURL + "/api/")
-  private historyURL: string = this.replaceServerHost(environment.historyUrl + "/api/")
-  private dashboardURL: string = this.replaceServerHost(environment.dashboardUrl + "/api/")
+  private serverURL: string = AdressesService.replaceServerHost(environment.serverUrl + "/api/")
+  private automatizationURL: string = AdressesService.replaceServerHost(environment.automatizationURL + "/api/")
+  private historyURL: string = AdressesService.replaceServerHost(environment.historyUrl + "/api/")
+  private dashboardURL: string = AdressesService.replaceServerHost(environment.dashboardUrl + "/api/")
 
   constructor() { }
 
@@ -180,7 +180,7 @@ export class AdressesService {
     return this.automatizationURL + "rule/" + ruleId;
   }
 
-  replaceServerHost(url: string): string {
+  static replaceServerHost(url: string): string {
   try {
     const currentHost = window.location.hostname;
     if(currentHost == "localhost")
