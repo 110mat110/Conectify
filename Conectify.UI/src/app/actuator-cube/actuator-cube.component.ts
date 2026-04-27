@@ -54,28 +54,32 @@ export class ActuatorCubeComponent implements OnInit {
   }
 
   refreshActualStatus() {
-    if (this.actuatorId) {
-      this.be.getActuatorDetail(this.actuatorId.id).subscribe(x => {
-        this.actuator = x;
-        this.websocketService.receivedMessages.subscribe(msg => {
-          this.HandleIncomingValue(msg);
-        });
-        if(!this.latestVal) 
-        {
-          this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.setLatestVal(x, "latestSensorValue"))
-        };
-        this.be.getActuatorMetadatas(this.actuator.id).subscribe(x => {
-          this.metadatas = x;
-          this.processMetadata();
-        });
-        if (this.actuator.sourceDeviceId) {
-          this.be.getDevice(this.actuator.sourceDeviceId).subscribe(x => this.device = x);
-        }
+    if (!this.actuatorId) return;
+    const id = this.actuatorId.id;
+
+    // Metadata only needs the actuator ID — fire in parallel with detail
+    this.be.getActuatorMetadatas(id).subscribe(x => {
+      this.metadatas = x;
+      this.processMetadata();
+    });
+
+    this.be.getActuatorDetail(id).subscribe(x => {
+      this.actuator = x;
+      this.websocketService.receivedMessages.subscribe(msg => {
+        this.HandleIncomingValue(msg);
       });
-      if (this.latestVal){
-        this.stringvalue = this.latestVal?.stringValue;
-        this.numericvalue = this.latestVal?.numericValue;
+      // Latest value and device depend on data from the detail response
+      if (!this.latestVal) {
+        this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.setLatestVal(x, "latestSensorValue"));
       }
+      if (this.actuator.sourceDeviceId) {
+        this.be.getDevice(this.actuator.sourceDeviceId).subscribe(x => this.device = x);
+      }
+    });
+
+    if (this.latestVal) {
+      this.stringvalue = this.latestVal.stringValue;
+      this.numericvalue = this.latestVal.numericValue;
     }
   }
 

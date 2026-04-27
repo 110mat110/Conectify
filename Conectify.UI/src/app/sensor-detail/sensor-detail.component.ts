@@ -20,7 +20,7 @@ export class SensorDetailComponent implements OnInit {
   public latestValTime?: string;
   defaultColor: string = "#4fc3f7";
 
-  constructor(public messenger: MessagesService, private be: BEFetcherService, @Inject(MAT_DIALOG_DATA) public data: { sensor: Sensor, metadata: Metadata[] }) { }
+  constructor(public messenger: MessagesService, private be: BEFetcherService, @Inject(MAT_DIALOG_DATA) public data: { sensor: Sensor, metadata: Metadata[], latestVal?: BaseInputType }) { }
 
   ngOnInit(): void {
     if (this.data.sensor) {
@@ -39,16 +39,23 @@ export class SensorDetailComponent implements OnInit {
                 previousTick = value.timeCreated;
               }
             });
+            let now = new Date().getTime();
+            for (let i = previousTick; i <= now; i = i + 10000) {
+              this.mapedValues.push([new Date(i).toLocaleTimeString(), previousValue]);
+            }
             this.setOptions();
           }
         });
-      this.be.getLatestSensorValue(this.data.sensor.id).subscribe(
-        x => {
+      if (this.data.latestVal) {
+        this.latestVal = this.data.latestVal;
+        this.latestValTime = new Date(this.data.latestVal.timeCreated).toLocaleTimeString();
+      } else {
+        this.be.getLatestSensorValue(this.data.sensor.id).subscribe(x => {
           this.latestVal = x;
-          this.latestValTime = new Date(x.timeCreated).toLocaleTimeString()
+          this.latestValTime = new Date(x.timeCreated).toLocaleTimeString();
           this.setOptions();
-        }
-      )
+        });
+      }
     }
   }
 

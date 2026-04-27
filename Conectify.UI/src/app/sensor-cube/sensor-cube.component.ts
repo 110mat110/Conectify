@@ -89,36 +89,30 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
         });
       }
 
-      // Batch all metadata requests
-      const metadataRequests = this.sensors.map(sensor => 
-        this.be.getSensorMetadatas(sensor.id)
-      );
-
-      // Batch all latest value requests
-      const latestValueRequests = this.sensors.map(sensor => 
-        this.be.getLatestSensorValue(sensor.id)
-      );
-
-      // Execute metadata and latest values in parallel
-      forkJoin({
-        metadatas: forkJoin(metadataRequests),
-        latestValues: forkJoin(latestValueRequests)
-      }).subscribe(({ metadatas, latestValues }) => {
-        // Assign metadatas
-        this.sensors.forEach((sensor, i) => {
-          sensor.metadatas = metadatas[i];
-          sensor.latestVal = latestValues[i];
+      // Load metadata independently — drives visibility/name/chart thresholds
+      forkJoin(this.sensors.map(sensor => this.be.getSensorMetadatas(sensor.id)))
+        .subscribe(metadatas => {
+          this.sensors.forEach((sensor, i) => {
+            sensor.metadatas = metadatas[i];
+          });
+          this.HandleMetadata();
+          this.getAccentColor();
+          if (this.isSoloSensor()) {
+            this.GenerateChart(this.sensors[0].sensor);
+          }
         });
 
-        this.HandleMetadata();
-        this.getAccentColor();
-
-        // Generate chart only for solo sensors
-        if (this.isSoloSensor()) {
-          this.addData(this.sensors[0].latestVal);
-          this.GenerateChart(this.sensors[0].sensor);
-        }
-      });
+      // Load latest values independently — updates accent color and chart seed point
+      forkJoin(this.sensors.map(sensor => this.be.getLatestSensorValue(sensor.id)))
+        .subscribe(latestValues => {
+          this.sensors.forEach((sensor, i) => {
+            sensor.latestVal = latestValues[i];
+          });
+          this.getAccentColor();
+          if (this.isSoloSensor()) {
+            this.addData(this.sensors[0].latestVal);
+          }
+        });
     });
   }
 
@@ -151,8 +145,10 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
           previousTick = value.timeCreated;
         });
         
-        let lastValue = values[values.length - 1].numericValue;
-        this.mapedValues.push([new Date().getTime(), lastValue]);
+        let now = new Date().getTime();
+        for (let i = previousTick; i <= now; i = i + 30000) {
+          this.mapedValues.push([i, previousValue]);
+        }
         
         // Generate threshold pieces once
         this.updateChartWithThresholds();
@@ -260,7 +256,7 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
       const dialogRef = this.dialog.open(SensorDetailComponent, {
         width: '70%',
         height: '80%',
-        data: { sensor: this.sensors[0], metadata: this.sensors[0].metadatas },
+        data: { sensor: this.sensors[0], metadata: this.sensors[0].metadatas, latestVal: this.sensors[0].latestVal },
         panelClass: "sensor-detail-panel"
       });
     }

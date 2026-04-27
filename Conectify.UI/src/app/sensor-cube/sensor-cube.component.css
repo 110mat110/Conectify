@@ -2,8 +2,8 @@
 .cube {
   background-color: var(--color-bg-card);
   width: 90%;
-  height: 210px;
-  min-height: 200px;
+  height: auto;
+  min-height: 210px;
   margin: 0 auto;
   padding: 16px;
   border-radius: var(--radius-lg);
@@ -124,10 +124,10 @@
   max-width: 100%;
 }
 
-/* Chart container fills remaining space */
+/* Chart container always reserves fixed space at bottom */
 .cube-chart-container {
-  flex: 1;
-  min-height: 0;
+  flex-shrink: 0;
+  height: 80px;
 }
 
 .cube-chart {

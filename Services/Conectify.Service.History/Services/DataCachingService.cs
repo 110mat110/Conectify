@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Conectify.Database;
 using Conectify.Database.Models.Values;
 using Conectify.Service.History.Models;
@@ -69,7 +70,8 @@ public class DataCachingService : IDataCachingService
                 return;
             }
 
-            await ReloadCache(value.SourceId, value.Id, ct);
+            // keep populating cache using the existing boundary behavior (load full window)
+            await ReloadCache(value.SourceId, value.Id, loadLatest: false, ct);
 
             if (valueCache.ContainsKey(value.SourceId))
             {
@@ -91,7 +93,9 @@ public class DataCachingService : IDataCachingService
         }, value.Id, "Insert value");
     }
 
-    private async Task ReloadCache(Guid sensorId, Guid traceId, CancellationToken ct = default)
+    // loadLatest = true -> only load single latest item from DB (cheap)
+    // loadLatest = false -> load full 24h window into cache (current behaviour)
+    private async Task ReloadCache(Guid sensorId, Guid traceId, bool loadLatest = false, CancellationToken ct = default)
     {
         await Tracing.Trace(async () =>
         {
@@ -109,10 +113,59 @@ public class DataCachingService : IDataCachingService
             }
 
             var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(new TimeSpan(1, 0, 0, 0)).ToUnixTimeMilliseconds();
-            logger.LogInformation("Preloading cache from time {time}", yesterdayUnixTime);
+            logger.LogInformation("Preloading cache from time {time} (loadLatest={loadLatest})", yesterdayUnixTime, loadLatest);
             using var scope = this.serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
-            var values = await db.Set<Event>().Where(x => x.Type == Constants.Events.Value && x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime).ToListAsync(ct);
+
+            if (loadLatest)
+            {
+                // only fetch the most recent row for this sensor (fast)
+                var latest = await db.Set<Event>()
+                    .AsNoTracking()
+                    .Where(x => x.Type == Constants.Events.Value && x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime)
+                    .OrderByDescending(x => x.TimeCreated)
+                    .Select(x => new Event
+                    {
+                        Id = x.Id,
+                        SourceId = x.SourceId,
+                        Type = x.Type,
+                        Name = x.Name,
+                        NumericValue = x.NumericValue,
+                        StringValue = x.StringValue,
+                        Unit = x.Unit,
+                        TimeCreated = x.TimeCreated,
+                    })
+                    .FirstOrDefaultAsync(ct);
+
+                if (latest is null)
+                {
+                    return;
+                }
+
+                lock (locker)
+                {
+                    if (!valueCache.ContainsKey(sensorId))
+                    {
+                        valueCache.Add(sensorId, new CacheItem<Event>(latest));
+                    }
+                    else
+                    {
+                        valueCache[sensorId].Add(latest);
+                        valueCache[sensorId].Reorder(x => x.TimeCreated);
+                    }
+                }
+
+                // notify device cache about observation
+                deviceCachingService.ObserveSensorFromEvent(latest);
+                return;
+            }
+
+            // existing (full) preload: load entire 24h window
+            var values = await db.Set<Event>()
+                .AsNoTracking()
+                .Where(x => x.Type == Constants.Events.Value && x.SourceId == sensorId && x.TimeCreated > yesterdayUnixTime)
+                .OrderBy(x => x.TimeCreated)
+                .ToListAsync(ct);
 
             if (values.Count == 0)
             {
@@ -127,6 +180,9 @@ public class DataCachingService : IDataCachingService
                     valueCache[sensorId].Reorder(x => x.TimeCreated);
                 }
             }
+
+            // notify device cache about the last observed event
+            deviceCachingService.ObserveSensorFromEvent(values.Last());
         }, traceId, "Cache reload");
     }
 
@@ -134,20 +190,49 @@ public class DataCachingService : IDataCachingService
     {
         return await Tracing.Trace(async () =>
         {
-            await ReloadCache(sourceId, sourceId, ct);
-            return mapper.Map<IEnumerable<ApiEvent>>(valueCache[sourceId]);
+            // attempt to use cache first (fast)
+            if (valueCache.TryGetValue(sourceId, out CacheItem<Event>? cached))
+            {
+                return mapper.Map<IEnumerable<ApiEvent>>(cached);
+            }
+
+            // cache miss -> project DB rows directly to ApiEvent (no full entity materialization)
+            var yesterdayUnixTime = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromDays(1)).ToUnixTimeMilliseconds();
+            using var scope = this.serviceProvider.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
+
+            var projected = await db.Set<Event>()
+                .AsNoTracking()
+                .Where(x => x.Type == Constants.Events.Value && x.SourceId == sourceId && x.TimeCreated > yesterdayUnixTime)
+                .OrderBy(x => x.TimeCreated)
+                .ProjectTo<ApiEvent>(mapper.ConfigurationProvider)
+                .ToListAsync(ct);
+
+            return projected;
         }, sourceId, "Get data for last 24h");
     }
 
     public async Task<ApiEvent?> GetLatestValueAsync(Guid sourceId, CancellationToken ct = default)
     {
-        await ReloadCache(sourceId, sourceId, ct);
-
-        if (valueCache.TryGetValue(sourceId, out CacheItem<Event>? cacheitem))
+        return await Tracing.Trace(async () =>
         {
-            var value = cacheitem.OrderByDescending(x => x.TimeCreated).FirstOrDefault();
-            return mapper.Map<ApiEvent>(value);
-        }
-        return null;
+            // prefer in-memory cache for fastest access
+            if (valueCache.TryGetValue(sourceId, out CacheItem<Event>? cacheitem) && cacheitem.Any())
+            {
+                var value = cacheitem.OrderByDescending(x => x.TimeCreated).FirstOrDefault();
+                return mapper.Map<ApiEvent>(value);
+            }
+
+            // cache miss -> load only latest row via ReloadCache(loadLatest: true)
+            await ReloadCache(sourceId, sourceId, loadLatest: true, ct);
+
+            if (valueCache.TryGetValue(sourceId, out CacheItem<Event>? cacheAfter))
+            {
+                var value = cacheAfter.OrderByDescending(x => x.TimeCreated).FirstOrDefault();
+                return mapper.Map<ApiEvent>(value);
+            }
+
+            return null;
+        }, sourceId, "Get latest value");
     }
 }
