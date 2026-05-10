@@ -24,6 +24,7 @@ export class WebsocketService {
   private reconnectDelay = 2000;
   private reconnectTimer?: any;
   private manualClose = false;
+  private pendingMessages: any[] = [];
 
   constructor(private messageService: MessagesService, private zone: NgZone) {
         this.receivedMessages = new Observable<any>((s) => {
@@ -38,8 +39,17 @@ export class WebsocketService {
   }
 
   public SendMessage(message: any) {
-    if (!this.status) this.Connect();
-    this.messages?.next(message);
+    if (!this.status) {
+      this.pendingMessages.push(message);
+      this.Connect();
+    } else {
+      this.messages?.next(message);
+    }
+  }
+
+  private flushPendingMessages() {
+    const msgs = this.pendingMessages.splice(0);
+    msgs.forEach(msg => this.messages?.next(msg));
   }
 
   public SetId(id: string) {
@@ -129,7 +139,10 @@ export class WebsocketService {
 
     ws.onopen = () => {
       console.log("WebSocket open");
-      this.zone.run(() => this.status = true);
+      this.zone.run(() => {
+        this.status = true;
+        this.flushPendingMessages();
+      });
     };
 
     ws.onclose = () => {
