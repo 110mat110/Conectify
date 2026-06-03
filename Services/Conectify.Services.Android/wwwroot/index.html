@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conectify Widget Config</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0e0e0e;
+      color: #cccccc;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    h1 { color: #fff; font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+    h1 span { color: #4fc3f7; }
+    .subtitle { color: #555; font-size: 13px; margin-bottom: 28px; }
+
+    /* User bar */
+    .user-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+    .user-bar label { color: #9e9e9e; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+    .user-bar input {
+      flex: 1;
+      max-width: 320px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .user-bar input:focus { border-color: #4fc3f7; }
+
+    /* Buttons */
+    button {
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 7px;
+      color: #9e9e9e;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 8px 14px;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    button:hover { background: #2a2a2a; color: #fff; }
+    button.primary { background: rgba(79,195,247,.15); border-color: rgba(79,195,247,.4); color: #4fc3f7; }
+    button.primary:hover { background: rgba(79,195,247,.25); }
+    button.danger { color: #ef5350; border-color: #2a2a2a; }
+    button.danger:hover { background: rgba(239,83,80,.1); border-color: rgba(239,83,80,.4); }
+    button.sm { padding: 4px 8px; font-size: 12px; }
+    button:disabled { opacity: .35; cursor: default; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+    .tab {
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #666;
+      transition: all .15s;
+    }
+    .tab.active { background: rgba(79,195,247,.15); border-color: rgba(79,195,247,.4); color: #4fc3f7; }
+
+    /* Panel */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 700px) { .columns { grid-template-columns: 1fr; } }
+
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #242424;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .card-title {
+      color: #4fc3f7;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 12px;
+    }
+
+    /* Selected list */
+    .selected-list { display: flex; flex-direction: column; gap: 6px; min-height: 40px; }
+    .selected-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #242424;
+      border: 1px solid #2e2e2e;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .item-name { flex: 1; color: #ccc; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .badge-sensor { background: rgba(79,195,247,.15); color: #4fc3f7; }
+    .badge-actuator { background: rgba(102,187,106,.12); color: #66bb6a; }
+    .move-btns { display: flex; flex-direction: column; gap: 2px; }
+    .move-btns button { padding: 2px 6px; font-size: 11px; }
+    .empty-hint { color: #444; font-size: 12px; text-align: center; padding: 12px 0; }
+
+    /* Available chips */
+    .available-section { margin-top: 12px; }
+    .available-label { color: #9e9e9e; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      background: #242424;
+      border: 1px solid #2e2e2e;
+      border-radius: 6px;
+      color: #9e9e9e;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 4px 10px;
+      transition: all .15s;
+    }
+    .chip:hover { background: #2e2e2e; color: #fff; border-color: #3a3a3a; }
+    .chip.used { opacity: .3; pointer-events: none; }
+
+    /* Status */
+    .status { margin-top: 16px; font-size: 13px; min-height: 20px; }
+    .status.ok { color: #66bb6a; }
+    .status.err { color: #ef5350; }
+
+    .save-row { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+
+    hr { border: none; border-top: 1px solid #1e1e1e; margin: 20px 0; }
+  </style>
+</head>
+<body>
+
+<h1>Conectify <span>Widget</span> Config</h1>
+<p class="subtitle">Configure which sensors and actuators appear in each widget, and their order.</p>
+
+<div class="user-bar">
+  <label>User</label>
+  <input id="userInput" type="email" placeholder="user@example.com" />
+  <button class="primary" onclick="loadAll()">Load</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('large')">Large Widget</div>
+  <div class="tab" onclick="switchTab('small')">Small Widget</div>
+</div>
+
+<div id="panel-large" class="panel active">
+  <div class="columns">
+    <div class="card">
+      <div class="card-title">Selected — Large Widget</div>
+      <div class="selected-list" id="selected-large"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Available Sensors</div>
+      <div class="chips" id="chips-sensor-large"></div>
+      <div class="available-section">
+        <div class="available-label">Available Actuators</div>
+        <div class="chips" id="chips-actuator-large"></div>
+      </div>
+    </div>
+  </div>
+  <div class="save-row">
+    <button class="primary" onclick="saveConfig('large')">Save Large Widget</button>
+    <button class="danger" onclick="clearConfig('large')">Reset to Dashboard default</button>
+    <span class="status" id="status-large"></span>
+  </div>
+</div>
+
+<div id="panel-small" class="panel">
+  <div class="columns">
+    <div class="card">
+      <div class="card-title">Selected — Small Widget</div>
+      <div class="selected-list" id="selected-small"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Available Sensors</div>
+      <div class="chips" id="chips-sensor-small"></div>
+      <div class="available-section">
+        <div class="available-label">Available Actuators</div>
+        <div class="chips" id="chips-actuator-small"></div>
+      </div>
+    </div>
+  </div>
+  <div class="save-row">
+    <button class="primary" onclick="saveConfig('small')">Save Small Widget</button>
+    <button class="danger" onclick="clearConfig('small')">Reset to Dashboard default</button>
+    <span class="status" id="status-small"></span>
+  </div>
+</div>
+
+<script>
+  let available = { sensors: [], actuators: [] };
+  let selected = { large: [], small: [] };
+  let activeTab = 'large';
+
+  // ── Tabs ─────────────────────────────────────────────────────────────────
+
+  function switchTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['large','small'][i] === tab));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+  }
+
+  // ── Load ──────────────────────────────────────────────────────────────────
+
+  async function loadAll() {
+    const user = document.getElementById('userInput').value.trim();
+    if (!user) { alert('Enter a user email first.'); return; }
+
+    try {
+      const [avRes, largeRes, smallRes] = await Promise.all([
+        fetch('/api/androidconfig/available'),
+        fetch(`/api/androidconfig/${encodeURIComponent(user)}/large`),
+        fetch(`/api/androidconfig/${encodeURIComponent(user)}/small`),
+      ]);
+      available = await avRes.json();
+      const largeItems = await largeRes.json();
+      const smallItems = await smallRes.json();
+
+      selected.large = largeItems.map(i => ({ ...i, name: nameFor(i.deviceId, i.sourceType) }));
+      selected.small = smallItems.map(i => ({ ...i, name: nameFor(i.deviceId, i.sourceType) }));
+
+      renderAll();
+    } catch (e) {
+      alert('Failed to load: ' + e.message);
+    }
+  }
+
+  function nameFor(id, type) {
+    const list = type === 'sensor' ? available.sensors : available.actuators;
+    return list.find(x => x.id === id)?.name ?? id;
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  function renderAll() {
+    ['large', 'small'].forEach(renderTab);
+  }
+
+  function renderTab(tab) {
+    renderSelected(tab);
+    renderChips(tab, 'sensor');
+    renderChips(tab, 'actuator');
+  }
+
+  function renderSelected(tab) {
+    const el = document.getElementById('selected-' + tab);
+    const items = selected[tab];
+    if (items.length === 0) {
+      el.innerHTML = '<div class="empty-hint">No items selected. Add sensors or actuators from the right.</div>';
+      return;
+    }
+    el.innerHTML = items.map((item, idx) => `
+      <div class="selected-item">
+        <div class="move-btns">
+          <button class="sm" onclick="moveItem('${tab}', ${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>↑</button>
+          <button class="sm" onclick="moveItem('${tab}', ${idx}, 1)" ${idx === items.length - 1 ? 'disabled' : ''}>↓</button>
+        </div>
+        <span class="item-name">${escHtml(item.name)}</span>
+        <span class="item-badge badge-${item.sourceType}">${item.sourceType}</span>
+        <button class="sm danger" onclick="removeItem('${tab}', ${idx})">✕</button>
+      </div>`).join('');
+  }
+
+  function renderChips(tab, type) {
+    const el = document.getElementById(`chips-${type}-${tab}`);
+    const list = type === 'sensor' ? available.sensors : available.actuators;
+    const usedIds = new Set(selected[tab].filter(i => i.sourceType === type).map(i => i.deviceId));
+    el.innerHTML = list.map(d => `
+      <div class="chip ${usedIds.has(d.id) ? 'used' : ''}" onclick="addItem('${tab}','${d.id}','${type}','${escAttr(d.name)}')">
+        ${escHtml(d.name)}
+      </div>`).join('') || '<span style="color:#444;font-size:12px">None available</span>';
+  }
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+
+  function addItem(tab, id, type, name) {
+    if (selected[tab].some(i => i.deviceId === id && i.sourceType === type)) return;
+    selected[tab].push({ deviceId: id, sourceType: type, name });
+    renderTab(tab);
+  }
+
+  function removeItem(tab, idx) {
+    selected[tab].splice(idx, 1);
+    renderTab(tab);
+  }
+
+  function moveItem(tab, idx, dir) {
+    const arr = selected[tab];
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= arr.length) return;
+    [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+    renderTab(tab);
+  }
+
+  // ── Save / Clear ──────────────────────────────────────────────────────────
+
+  async function saveConfig(tab) {
+    const user = document.getElementById('userInput').value.trim();
+    const statusEl = document.getElementById('status-' + tab);
+    if (!user) { statusEl.textContent = 'Enter a user email first.'; statusEl.className = 'status err'; return; }
+
+    const body = selected[tab].map(i => ({ deviceId: i.deviceId, sourceType: i.sourceType }));
+    try {
+      const res = await fetch(`/api/androidconfig/${encodeURIComponent(user)}/${tab}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(res.statusText);
+      statusEl.textContent = `✓ Saved ${body.length} items`;
+      statusEl.className = 'status ok';
+    } catch (e) {
+      statusEl.textContent = '✗ ' + e.message;
+      statusEl.className = 'status err';
+    }
+  }
+
+  async function clearConfig(tab) {
+    if (!confirm(`Reset ${tab} widget to dashboard default?`)) return;
+    const user = document.getElementById('userInput').value.trim();
+    const statusEl = document.getElementById('status-' + tab);
+    try {
+      await fetch(`/api/androidconfig/${encodeURIComponent(user)}/${tab}`, { method: 'DELETE' });
+      selected[tab] = [];
+      renderTab(tab);
+      statusEl.textContent = '✓ Reset — will use dashboard order';
+      statusEl.className = 'status ok';
+    } catch (e) {
+      statusEl.textContent = '✗ ' + e.message;
+      statusEl.className = 'status err';
+    }
+  }
+
+  // ── Utils ─────────────────────────────────────────────────────────────────
+
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function escAttr(s) { return String(s).replace(/'/g,"\\'"); }
+</script>
+</body>
+</html>

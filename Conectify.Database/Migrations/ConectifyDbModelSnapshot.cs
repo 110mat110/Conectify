@@ -50,6 +50,37 @@ namespace Conectify.Database.Migrations
                     b.ToTable("Actuators");
                 });
 
+            modelBuilder.Entity("Conectify.Database.Models.AndroidWidgetItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserMail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("WidgetType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserMail", "WidgetType");
+
+                    b.ToTable("AndroidWidgetItems");
+                });
+
             modelBuilder.Entity("Conectify.Database.Models.Dashboard.Dashboard", b =>
                 {
                     b.Property<Guid>("Id")

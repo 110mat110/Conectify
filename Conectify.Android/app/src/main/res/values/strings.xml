@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Conectify</string>
+    <string name="widget_description">Conectify sensor widget</string>
+    <string name="small_widget_description">Conectify mini carousel widget</string>
+</resources>

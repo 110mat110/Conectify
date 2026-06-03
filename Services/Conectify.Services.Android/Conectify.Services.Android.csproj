@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>3189aa0e-0c86-47a1-8316-9e8bdfbc0ed5</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..</DockerfileContext>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Conectify.Database\Conectify.Database.csproj" />
+    <ProjectReference Include="..\..\Conectify.Shared.Library\Conectify.Shared.Library.csproj" />
+    <ProjectReference Include="..\..\Conectify.Shared.Services\Conectify.Shared.Services.csproj" />
+    <ProjectReference Include="..\Conectify.Services.Library\Conectify.Services.Library.csproj" />
+  </ItemGroup>
+
+</Project>

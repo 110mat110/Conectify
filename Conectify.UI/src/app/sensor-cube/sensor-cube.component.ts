@@ -34,6 +34,7 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
   chartOption: any = {};
   
   private wsSubscription?: Subscription;
+  private timeShiftInterval?: any;
   defaultColor: string = "#4fc3f7";
 
   constructor(
@@ -63,6 +64,8 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
     this.wsSubscription = this.websocketService.receivedMessages.subscribe(msg => {
       this.HandleIncomingValue(msg);
     });
+
+    this.timeShiftInterval = setInterval(() => this.shiftTime(), 60000);
 
     if (!this.sensorInput || !this.sensorInput.id.length) return;
 
@@ -120,6 +123,22 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
     if (this.wsSubscription) {
       this.wsSubscription.unsubscribe();
     }
+    if (this.timeShiftInterval) {
+      clearInterval(this.timeShiftInterval);
+    }
+  }
+
+  private shiftTime(): void {
+    if (!this.isSoloSensor() || this.mapedValues.length === 0) return;
+
+    const now = new Date().getTime();
+    const cutoff = now - 86400000;
+    const lastValue = this.mapedValues[this.mapedValues.length - 1][1];
+
+    this.mapedValues.push([now, lastValue]);
+    this.mapedValues = this.mapedValues.filter(p => p[0] >= cutoff);
+
+    this.updateChartWithThresholds();
   }
 
   private isSoloSensor() {
@@ -156,8 +175,9 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
     });
 
     this.chartOption = {
+      grid: { top: 0, right: 0, bottom: 0, left: 0, containLabel: false },
       xAxis: {
-        type: 'category',
+        type: 'time',
         show: false
       },
       yAxis: {
@@ -166,8 +186,9 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
       },
       series: [{
         name: this.sensors[0]?.sensor.name,
-        data: this.mapedValues.map(x => new Date(x[0]).toLocaleDateString()),
+        data: [],
         type: 'line',
+        symbol: 'none',
         symbolKeepAspect: false,
       }]
     };
@@ -189,10 +210,12 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     this.mergeOptions = {
+      grid: { top: 0, right: 0, bottom: 0, left: 0, containLabel: false },
       series: [{
         name: this.sensors[0].sensor.name,
         data: this.mapedValues,
         type: 'line',
+        symbol: 'none',
         symbolKeepAspect: false,
       }],
       visualMap: {

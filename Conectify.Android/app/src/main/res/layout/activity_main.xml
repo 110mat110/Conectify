@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0E0E0E">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Conectify"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Widget Settings"
+            android:textColor="#9E9E9E"
+            android:textSize="14sp"
+            android:layout_marginBottom="40dp" />
+
+        <!-- Server URL section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SERVER URL"
+            android:textColor="#4fc3f7"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/editServerUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="http://192.168.0.145:32768"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#555555"
+            android:textSize="15sp"
+            android:inputType="textUri"
+            android:background="@drawable/input_background"
+            android:padding="14dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Include protocol and port, e.g. http://192.168.1.100:5000"
+            android:textColor="#666666"
+            android:textSize="12sp"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Save button -->
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:textColor="#0E0E0E"
+            android:textStyle="bold"
+            android:backgroundTint="#4fc3f7"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Status -->
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#4fc3f7"
+            android:textSize="13sp"
+            android:layout_gravity="center_horizontal" />
+
+        <!-- User section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="USER (DASHBOARD ORDER)"
+            android:textColor="#4fc3f7"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/editUserMail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="user@example.com"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#555555"
+            android:textSize="15sp"
+            android:inputType="textEmailAddress"
+            android:background="@drawable/input_background"
+            android:padding="14dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sensors and actuators will be ordered by your dashboard layout"
+            android:textColor="#666666"
+            android:textSize="12sp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#1E1E1E"
+            android:layout_marginTop="40dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Info -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add the widget"
+            android:textColor="#9E9E9E"
+            android:textSize="13sp"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Long press on your home screen → Widgets → Conectify"
+            android:textColor="#555555"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+</ScrollView>

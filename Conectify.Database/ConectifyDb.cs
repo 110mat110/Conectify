@@ -44,6 +44,9 @@ public class ConectifyDb(DbContextOptions<ConectifyDb> options) : DbContext(opti
     public DbSet<SmartThing> SmartThings { get; set; }
     public DbSet<SmartThingsToken> SmartThingsTokens { get; set; }
 
+    //Android
+    public DbSet<AndroidWidgetItem> AndroidWidgetItems { get; set; }
+
     public async Task<T> AddOrUpdateAsync<T>(T entity, CancellationToken ct = default) where T : class, IEntity
     {
         if (await this.Set<T>().AnyAsync(d => d.Id == entity.Id, ct))
@@ -72,6 +75,15 @@ public class ConectifyDb(DbContextOptions<ConectifyDb> options) : DbContext(opti
             .HasOne(bc => bc.Subscriber)
             .WithMany(b => b.Preferences)
             .HasForeignKey(bc => bc.SubscriberId);
+
+        modelBuilder.Entity<AndroidWidgetItem>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.UserMail, x.WidgetType });
+            e.Property(x => x.UserMail).IsRequired();
+            e.Property(x => x.WidgetType).IsRequired();
+            e.Property(x => x.SourceType).IsRequired();
+        });
     }
 
 }
