@@ -3,7 +3,7 @@
   background-color: var(--color-bg-card);
   width: 90%;
   height: auto;
-  min-height: 210px;
+  min-height: 200px;
   margin: 0 auto;
   padding: 16px;
   border-radius: var(--radius-lg);
@@ -124,15 +124,16 @@
   max-width: 100%;
 }
 
-/* Chart container always reserves fixed space at bottom */
+/* Chart container fixed height, never overflows */
 .cube-chart-container {
-  flex-shrink: 0;
   height: 80px;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .cube-chart {
   width: 100%;
-  height: 100%;
+  height: 80px;
 }
 
 /* Multi-sensor list layout */

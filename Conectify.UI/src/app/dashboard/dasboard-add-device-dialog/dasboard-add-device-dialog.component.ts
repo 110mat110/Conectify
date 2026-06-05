@@ -7,6 +7,7 @@ import { SelectInputSensorOverlayComponent } from 'src/app/select-input-sensor-o
 import { DashboardApi } from 'src/models/Dashboard/DashboardApi';
 import { DashboardParams } from 'src/models/Dashboard/DashboardParams';
 import { Sensor } from 'src/models/sensor';
+import { EditDashboardApi } from 'src/models/Dashboard/addDashboardApi';
 
 @Component({
   selector: 'app-dasboard-add-device-dialog',
@@ -19,8 +20,17 @@ export class DasboardAddDeviceDialogComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  get isGrid(): boolean {
+    return this.data.dashboard.type === 1;
+  }
+
+  toggleType() {
+    this.data.dashboard.type = this.isGrid ? 0 : 1;
+    this.save();
+  }
+
   save(){
-    this.beFetcher.editDashboard(this.data.dashboard.id, {name: this.data.dashboard.name, background: this.data.dashboard.background})
+    this.beFetcher.editDashboard(this.data.dashboard.id, {name: this.data.dashboard.name, background: this.data.dashboard.background, type: this.data.dashboard.type})
   }
 
   sensor(){

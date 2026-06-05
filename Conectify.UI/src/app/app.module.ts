@@ -47,6 +47,7 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatDividerModule} from '@angular/material/divider'; 
 import {MatCardModule} from '@angular/material/card';
 import {MatMenuModule} from '@angular/material/menu';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import { LoadingComponent } from './dashboard/loading/loading.component';
 import { DeviceComponent } from './device/device.component'; 
 import { FlexLayoutModule } from "@angular/flex-layout";
@@ -117,6 +118,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
         MatCardModule,
         MatSidenavModule,
         MatMenuModule,
+        MatTooltipModule,
         ServiceWorkerModule.register('ngsw-worker.js', {
           enabled: !isDevMode(),
           // Register the ServiceWorker as soon as the application is stable

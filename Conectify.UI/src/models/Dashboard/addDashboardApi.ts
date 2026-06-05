@@ -7,4 +7,5 @@ export interface AddDashboardApi{
 export interface EditDashboardApi{
     name:string;
     background:string;
+    type:number;
 }

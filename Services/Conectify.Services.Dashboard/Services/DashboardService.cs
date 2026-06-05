@@ -67,6 +67,7 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
 
         dashboard.Background = editDashboardApi.Background;
         dashboard.Name = editDashboardApi.Name;
+        dashboard.Type = editDashboardApi.Type;
         conectifyDb.Update(dashboard);
         await conectifyDb.SaveChangesAsync(cancellationToken);
     }

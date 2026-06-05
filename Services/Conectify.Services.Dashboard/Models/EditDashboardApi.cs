@@ -1,3 +1,5 @@
-﻿namespace Conectify.Services.Dashboard.Models;
+using Conectify.Database.Models.Dashboard;
 
-public record EditDashboardApi(string Name, string Background);
+namespace Conectify.Services.Dashboard.Models;
+
+public record EditDashboardApi(string Name, string Background, DashboardType Type);

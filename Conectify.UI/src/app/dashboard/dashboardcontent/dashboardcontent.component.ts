@@ -4,11 +4,18 @@ import { BEFetcherService } from 'src/app/befetcher.service';
 import { DashboardApi } from 'src/models/Dashboard/DashboardApi';
 import { DasboardAddDeviceDialogComponent } from '../dasboard-add-device-dialog/dasboard-add-device-dialog.component';
 import { Sensor } from 'src/models/sensor';
-import { CdkDragEnd } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { DashboardParams } from 'src/models/Dashboard/DashboardParams';
 import { EditDashboardDeviceApi } from 'src/models/Dashboard/EditDashboardDeviceApi';
 import { DashboardDeviceApi } from 'src/models/Dashboard/DashboardDevice';
 import { Actuator } from 'src/models/actuator';
+
+interface GridItem {
+  dashboardDevice: DashboardDeviceApi;
+  sourceType: 'sensor' | 'actuator';
+  sensorCube: { id: string[]; visible: boolean; position: { x: number; y: number } } | null;
+  actuatorCube: { id: string; visible: boolean; position: { x: number; y: number } } | null;
+}
 
 @Component({
   selector: 'app-dashboardcontent',
@@ -25,9 +32,15 @@ export class DashboardcontentComponent implements OnInit {
     apiActuator: DashboardDeviceApi;
     cube: { id: string; visible: boolean; position: { x: number; y: number } };
   }[] = [];
+  gridItems: GridItem[] = [];
   params: DashboardParams = { editable: false };
   sensorCursor: string = 'pointer';
+
   constructor(private befetcher: BEFetcherService, public dialog: MatDialog) { }
+
+  get isGrid(): boolean {
+    return this.dashboard?.type === 1;
+  }
 
   ngOnInit(): void {
     if (this.dashboard.dashboardDevices) {
@@ -53,20 +66,41 @@ export class DashboardcontentComponent implements OnInit {
         }
       });
     }
+    this.rebuildGridItems();
+  }
+
+  private rebuildGridItems(): void {
+    const items: GridItem[] = [
+      ...this.sensors.map(s => ({
+        dashboardDevice: s.apiSensor,
+        sourceType: 'sensor' as const,
+        sensorCube: s.cube,
+        actuatorCube: null,
+      })),
+      ...this.actuators.map(a => ({
+        dashboardDevice: a.apiActuator,
+        sourceType: 'actuator' as const,
+        sensorCube: null,
+        actuatorCube: a.cube,
+      })),
+    ];
+    this.gridItems = items.sort((a, b) => a.dashboardDevice.posX - b.dashboardDevice.posX);
   }
 
   remove(id: string) {
     this.befetcher.removeDashboardDevice(this.dashboard.id, id);
 
-    let index = this.sensors.findIndex(d => d.apiSensor.id === id); //find index in your array
+    let index = this.sensors.findIndex(d => d.apiSensor.id === id);
     if (index > -1) {
-      this.sensors.splice(index, 1);//remove element from array
+      this.sensors.splice(index, 1);
+      this.rebuildGridItems();
       return;
     }
 
-    index = this.actuators.findIndex(d => d.apiActuator.id === id); //find index in your array
+    index = this.actuators.findIndex(d => d.apiActuator.id === id);
     if (index > -1) {
-      this.actuators.splice(index, 1);//remove element from array
+      this.actuators.splice(index, 1);
+      this.rebuildGridItems();
       return;
     }
   }
@@ -79,14 +113,17 @@ export class DashboardcontentComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
+      const nextOrder = this.gridItems.length;
+
       var actuators = result.actuator as Actuator[];
       if (actuators) {
-        actuators.forEach(actuator => {
+        actuators.forEach((actuator, i) => {
+          const posX = this.isGrid ? nextOrder + i : 100;
           this.befetcher
             .addDashboardDevice(this.dashboard.id, {
               sourceType: 'actuator',
               deviceId: actuator.id,
-              posX: 100,
+              posX,
               posY: 100,
             })
             .subscribe((id) => {
@@ -94,7 +131,7 @@ export class DashboardcontentComponent implements OnInit {
                 id: id,
                 sourceType: 'actuator',
                 deviceId: actuator.id,
-                posX: 100,
+                posX,
                 posY: 100,
               };
               this.actuators.push({
@@ -105,19 +142,19 @@ export class DashboardcontentComponent implements OnInit {
                   position: { x: device.posX, y: device.posY },
                 },
               });
+              this.rebuildGridItems();
             });
-        }
-        );
+        });
       }
       var sensors = result.sensors as Sensor[];
       if (sensors) {
-        sensors.forEach(sensor => {
-
+        sensors.forEach((sensor, i) => {
+          const posX = this.isGrid ? nextOrder + (actuators?.length ?? 0) + i : 100;
           this.befetcher
             .addDashboardDevice(this.dashboard.id, {
               sourceType: 'sensor',
               deviceId: sensor.id,
-              posX: 100,
+              posX,
               posY: 100,
             })
             .subscribe((id) => {
@@ -125,7 +162,7 @@ export class DashboardcontentComponent implements OnInit {
                 id: id,
                 sourceType: 'sensor',
                 deviceId: sensor.id,
-                posX: 100,
+                posX,
                 posY: 100,
               };
               this.sensors.push({
@@ -136,15 +173,14 @@ export class DashboardcontentComponent implements OnInit {
                   position: { x: device.posX, y: device.posY },
                 },
               });
+              this.rebuildGridItems();
             });
-
         });
       }
       this.setCursor();
     });
 
     dialogRef.backdropClick().subscribe((result) => this.setCursor());
-
     this.setCursor();
   }
 
@@ -153,7 +189,6 @@ export class DashboardcontentComponent implements OnInit {
   }
 
   dragEnd(event: CdkDragEnd, rule: DashboardDeviceApi) {
-    // Get the transform values directly from the MatrixTransform
     const transform = event.source.element.nativeElement.style.transform;
     const regex = /translate3d\((-?\d+)px, (-?\d+)px, 0px\)/;
     const matches = transform.match(regex);
@@ -162,19 +197,29 @@ export class DashboardcontentComponent implements OnInit {
       const deltaX = parseInt(matches[1], 10);
       const deltaY = parseInt(matches[2], 10);
 
-      // Add these deltas to the original position
       const newX = rule.posX + deltaX;
       const newY = rule.posY + deltaY;
 
-      // Update the model
       let apiModel: EditDashboardDeviceApi = { id: rule.id, posX: newX, posY: newY };
       rule.posX = newX;
       rule.posY = newY;
 
-      // Reset the drag element's position to avoid double-counting
       event.source.reset();
-
       this.befetcher.editDasboardDevice(this.dashboard.id, apiModel);
     }
+  }
+
+  dropGridItem(event: CdkDragDrop<GridItem[]>) {
+    moveItemInArray(this.gridItems, event.previousIndex, event.currentIndex);
+    this.gridItems.forEach((item, index) => {
+      if (item.dashboardDevice.posX !== index) {
+        item.dashboardDevice.posX = index;
+        this.befetcher.editDasboardDevice(this.dashboard.id, {
+          id: item.dashboardDevice.id,
+          posX: index,
+          posY: 0,
+        });
+      }
+    });
   }
 }

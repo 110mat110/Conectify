@@ -1,33 +1,56 @@
-<button style="position: relative; left: 80%; right: 20%; top: 5%" mat-icon-button aria-label="Add new dash"
-    (click)="addDevice()">
-    <mat-icon>menu</mat-icon>
-</button>
-<div style="height: 1000px; width: 1000px; position: relative;">
-    <!--  -->
-    <div *ngFor="let sensor of sensors" [style.left.px]="sensor.apiSensor.posX" [style.top.px]="sensor.apiSensor.posY" class="example-box"
-        cdkDragBoundary=".example-boundary" cdkDrag (cdkDragEnded)="dragEnd($event, sensor.apiSensor)"
-        style="cursor: {{sensorCursor}};" [cdkDragDisabled]="!params.editable">
-        <button class="remove-button" *ngIf="params.editable" mat-icon-button aria-label="Remove"
-            (click)="remove(sensor.apiSensor.id)">
-            <mat-icon>delete_forever</mat-icon>
-        </button>
-        <app-sensor-cube [sensorInput]="sensor.cube" [params]="params"></app-sensor-cube>
-    </div>
-
-    <div *ngFor="let actuator of actuators" 
-    [style.left.px]="actuator.apiActuator.posX" 
-    [style.top.px]="actuator.apiActuator.posY" 
-    class="example-box"
-    cdkDragBoundary=".example-boundary" 
-    cdkDrag 
-    (cdkDragEnded)="dragEnd($event, actuator.apiActuator)"
-    style="cursor: {{sensorCursor}};" 
-    [cdkDragDisabled]="!params.editable">
-        <button class="remove-button" *ngIf="params.editable" mat-icon-button aria-label="Remove"
-            (click)="remove(actuator.apiActuator.id)">
-            <mat-icon>delete_forever</mat-icon>
-        </button>
-        <app-actuator-cube [actuatorId]="actuator.cube" [params]="params"></app-actuator-cube>
-    </div>
-
+<div style="display: flex; justify-content: flex-end; padding: 8px;">
+    <button mat-icon-button aria-label="Add device" (click)="addDevice()">
+        <mat-icon>menu</mat-icon>
+    </button>
 </div>
+
+<!-- Basic layout: free absolute positioning -->
+<ng-container *ngIf="!isGrid">
+    <div style="height: 1000px; width: 1000px; position: relative;">
+        <div *ngFor="let sensor of sensors" [style.left.px]="sensor.apiSensor.posX" [style.top.px]="sensor.apiSensor.posY" class="example-box"
+            cdkDragBoundary=".example-boundary" cdkDrag (cdkDragEnded)="dragEnd($event, sensor.apiSensor)"
+            style="cursor: {{sensorCursor}};" [cdkDragDisabled]="!params.editable">
+            <button class="remove-button" *ngIf="params.editable" mat-icon-button aria-label="Remove"
+                (click)="remove(sensor.apiSensor.id)">
+                <mat-icon>delete_forever</mat-icon>
+            </button>
+            <app-sensor-cube [sensorInput]="sensor.cube" [params]="params"></app-sensor-cube>
+        </div>
+
+        <div *ngFor="let actuator of actuators"
+            [style.left.px]="actuator.apiActuator.posX"
+            [style.top.px]="actuator.apiActuator.posY"
+            class="example-box"
+            cdkDragBoundary=".example-boundary"
+            cdkDrag
+            (cdkDragEnded)="dragEnd($event, actuator.apiActuator)"
+            style="cursor: {{sensorCursor}};"
+            [cdkDragDisabled]="!params.editable">
+            <button class="remove-button" *ngIf="params.editable" mat-icon-button aria-label="Remove"
+                (click)="remove(actuator.apiActuator.id)">
+                <mat-icon>delete_forever</mat-icon>
+            </button>
+            <app-actuator-cube [actuatorId]="actuator.cube" [params]="params"></app-actuator-cube>
+        </div>
+    </div>
+</ng-container>
+
+<!-- Grid layout: responsive columns, order-based -->
+<ng-container *ngIf="isGrid">
+    <div class="grid-container"
+        cdkDropList
+        [cdkDropListDisabled]="!params.editable"
+        (cdkDropListDropped)="dropGridItem($event)">
+        <div *ngFor="let item of gridItems" class="grid-item" cdkDrag [cdkDragDisabled]="!params.editable">
+            <button class="remove-button" *ngIf="params.editable" mat-icon-button aria-label="Remove"
+                (click)="remove(item.dashboardDevice.id)">
+                <mat-icon>delete_forever</mat-icon>
+            </button>
+            <div *ngIf="params.editable" class="drag-handle" cdkDragHandle>
+                <mat-icon>drag_indicator</mat-icon>
+            </div>
+            <app-sensor-cube *ngIf="item.sourceType === 'sensor'" [sensorInput]="item.sensorCube!" [params]="params"></app-sensor-cube>
+            <app-actuator-cube *ngIf="item.sourceType === 'actuator'" [actuatorId]="item.actuatorCube!" [params]="params"></app-actuator-cube>
+        </div>
+    </div>
+</ng-container>

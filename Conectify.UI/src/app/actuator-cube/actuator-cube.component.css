@@ -1,7 +1,7 @@
 /* Actuator cube card - matches sensor-cube */
 .cube {
   background-color: var(--color-bg-card);
-  height: 85%;
+  height: auto;
   width: 90%;
   min-height: 200px;
   margin: 0;

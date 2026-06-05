@@ -7,6 +7,8 @@ public record DashboardApi
 
     public string Name { get; set; } = string.Empty;
 
+    public int Type { get; set; }
+
     public IEnumerable<DashboardDeviceApi> DashboardDevices { get; set; } = [];
 }
 
