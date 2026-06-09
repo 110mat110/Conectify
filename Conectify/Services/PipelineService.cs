@@ -110,52 +110,18 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
 
         if (evnt.DestinationId.HasValue)
         {
-            var target = allSubs.FirstOrDefault(x => x.AllDependantIds.Contains(evnt.DestinationId.Value));
 
-            if (target is not null)
+            var sourceDeviceId = await FindSourceDeviceId(evnt.DestinationId.Value);
+
+            if (sourceDeviceId.HasValue)
             {
-                logger.LogInformation("GetTargets: eventId={EventId} destinationId={DestinationId} found in subscriber cache — routing to deviceId={DeviceId}",
-                    evnt.Id, evnt.DestinationId.Value, target.DeviceId);
-            }
-            else
-            {
-                logger.LogInformation("GetTargets: eventId={EventId} destinationId={DestinationId} not in subscriber cache — looking up in DB",
-                    evnt.Id, evnt.DestinationId.Value);
-
-                var sourceDeviceId = await FindSourceDeviceId(evnt.DestinationId.Value);
-
-                if (sourceDeviceId.HasValue)
-                {
-                    logger.LogInformation("GetTargets: eventId={EventId} destinationId={DestinationId} resolved to sourceDeviceId={SourceDeviceId} — updating subscriber cache",
-                        evnt.Id, evnt.DestinationId.Value, sourceDeviceId.Value);
-                    target = await subscribersCache.UpdateSubscriber(sourceDeviceId.Value);
-
-                    if (target is null)
-                    {
-                        logger.LogWarning("GetTargets: eventId={EventId} destinationId={DestinationId} sourceDeviceId={SourceDeviceId} — UpdateSubscriber returned null (device not in DB?)",
-                            evnt.Id, evnt.DestinationId.Value, sourceDeviceId.Value);
-                    }
-                }
-                else
-                {
-                    logger.LogWarning("GetTargets: eventId={EventId} destinationId={DestinationId} — could not find owning device in DB (actuator/sensor/device not registered?)",
-                        evnt.Id, evnt.DestinationId.Value);
-                }
-            }
-
-            if (target is not null)
-            {
-                subs.Add(target.DeviceId);
-            }
-            else
-            {
-                logger.LogWarning("GetTargets: eventId={EventId} destinationId={DestinationId} — no target device found, message will NOT be delivered",
-                    evnt.Id, evnt.DestinationId.Value);
+                logger.LogInformation("Added destination {DeviceId}", sourceDeviceId.Value);
+                subs.Add(sourceDeviceId.Value);
             }
         }
 
         logger.LogInformation("GetTargets: eventId={EventId} final recipients={Recipients}",
-            evnt.Id, string.Join(", ", subs.Distinct()));
+            evnt.Id, string.Join(", ", subs));
 
         return subs;
     }
