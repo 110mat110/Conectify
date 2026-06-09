@@ -192,6 +192,83 @@ public class PipelineServiceTest
         A.CallTo(() => subCache.UpdateSubscriber(sourceDeviceId, A<CancellationToken>.Ignored)).MustHaveHappened();
     }
 
+    [Fact]
+    public async Task ItShallResendToDeviceWhenDestinationFoundInCache()
+    {
+        var websocketService = A.Fake<IWebSocketService>();
+        var subCache = A.Fake<ISubscribersCache>();
+        var targetDeviceId = Guid.NewGuid();
+        var actuatorId = Guid.NewGuid();
+        A.CallTo(() => subCache.AllSubscribers())
+            .Returns([new() { DeviceId = targetDeviceId, AllDependantIds = [actuatorId] }]);
+
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, websocketService, mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
+
+        await service.ResendEventToSubscribers(new Event { Id = Guid.NewGuid(), SourceId = sourceDeviceId, DestinationId = actuatorId });
+
+        A.CallTo(() => websocketService.SendToDeviceAsync(targetDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustHaveHappened();
+    }
+
+    [Fact]
+    public async Task ItShallLoadActuatorOwnerFromDbOnCacheMissAndResend()
+    {
+        var db = new ConectifyDb(dbContextoptions);
+        var targetDeviceId = Guid.NewGuid();
+        var actuatorId = Guid.NewGuid();
+        db.Add(new Actuator { Id = actuatorId, SourceDeviceId = targetDeviceId });
+        db.SaveChanges();
+
+        var websocketService = A.Fake<IWebSocketService>();
+        var subCache = A.Fake<ISubscribersCache>();
+        A.CallTo(() => subCache.AllSubscribers()).Returns([]);
+        A.CallTo(() => subCache.UpdateSubscriber(targetDeviceId, A<CancellationToken>.Ignored))
+            .Returns(new Subscriber { DeviceId = targetDeviceId, AllDependantIds = [actuatorId] });
+
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, websocketService, mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
+
+        await service.ResendEventToSubscribers(new Event { Id = Guid.NewGuid(), SourceId = sourceDeviceId, DestinationId = actuatorId });
+
+        A.CallTo(() => subCache.UpdateSubscriber(targetDeviceId, A<CancellationToken>.Ignored)).MustHaveHappened();
+        A.CallTo(() => websocketService.SendToDeviceAsync(targetDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustHaveHappened();
+    }
+
+    [Fact]
+    public async Task ItShallLoadSensorOwnerFromDbOnCacheMissAndResend()
+    {
+        var db = new ConectifyDb(dbContextoptions);
+        var targetDeviceId = Guid.NewGuid();
+        var sensorId = Guid.NewGuid();
+        db.Add(new Sensor { Id = sensorId, SourceDeviceId = targetDeviceId });
+        db.SaveChanges();
+
+        var websocketService = A.Fake<IWebSocketService>();
+        var subCache = A.Fake<ISubscribersCache>();
+        A.CallTo(() => subCache.AllSubscribers()).Returns([]);
+        A.CallTo(() => subCache.UpdateSubscriber(targetDeviceId, A<CancellationToken>.Ignored))
+            .Returns(new Subscriber { DeviceId = targetDeviceId, AllDependantIds = [sensorId] });
+
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, websocketService, mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
+
+        await service.ResendEventToSubscribers(new Event { Id = Guid.NewGuid(), SourceId = sourceDeviceId, DestinationId = sensorId });
+
+        A.CallTo(() => subCache.UpdateSubscriber(targetDeviceId, A<CancellationToken>.Ignored)).MustHaveHappened();
+        A.CallTo(() => websocketService.SendToDeviceAsync(targetDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustHaveHappened();
+    }
+
+    [Fact]
+    public async Task ItShallNotResendWhenDestinationNotFoundAnywhere()
+    {
+        var websocketService = A.Fake<IWebSocketService>();
+        var subCache = A.Fake<ISubscribersCache>();
+        A.CallTo(() => subCache.AllSubscribers()).Returns([]);
+
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, websocketService, mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
+
+        await service.ResendEventToSubscribers(new Event { Id = Guid.NewGuid(), SourceId = sourceDeviceId, DestinationId = Guid.NewGuid() });
+
+        A.CallTo(() => websocketService.SendToDeviceAsync(A<Guid>.Ignored, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustNotHaveHappened();
+    }
+
     public class ValueClassData : IEnumerable<object[]>
     {
         public IEnumerator<object[]> GetEnumerator()

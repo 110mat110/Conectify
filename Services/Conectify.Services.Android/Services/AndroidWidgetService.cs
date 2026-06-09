@@ -257,8 +257,8 @@ public class AndroidWidgetService(
         {
             Id = Guid.NewGuid(),
             SourceId = configuration.SensorId,
-            Type = Constants.Events.Value,
-            Name = actuator.Name,
+            Type = Constants.Events.Action,
+            Name = "Android widget",
             NumericValue = dto.NumericValue,
             StringValue = dto.StringValue ?? string.Empty,
             Unit = dto.Unit,

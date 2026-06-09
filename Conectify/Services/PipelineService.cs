@@ -83,7 +83,7 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
                 return;
             }
 
-            IEnumerable<Guid> targetingSubscribers = GetTargetsForEvent(evnt);
+            IEnumerable<Guid> targetingSubscribers = await GetTargetsForEvent(evnt);
 
             foreach (var subscriber in targetingSubscribers.Distinct())
             {
@@ -97,13 +97,22 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
         histogram.Record(sw.Elapsed.TotalMilliseconds);
     }
 
-    private IEnumerable<Guid> GetTargetsForEvent(Event evnt)
+    private async Task<IEnumerable<Guid>> GetTargetsForEvent(Event evnt)
     {
         var subs = GetAllSubscribers().Where(x => x.IsSubedToAll || x.Preferences.Any(x => x.EventType == Constants.Events.All || (x.EventType == evnt.Type && (x.SubscibeeId is null || x.SubscibeeId == evnt.SourceId)))).Select(x => x.DeviceId);
 
         if (evnt.DestinationId.HasValue)
         {
             var target = GetAllSubscribers().FirstOrDefault(x => x.AllDependantIds.Contains(evnt.DestinationId.Value));
+
+            if (target is null)
+            {
+                var sourceDeviceId = await FindSourceDeviceId(evnt.DestinationId.Value);
+                if (sourceDeviceId.HasValue)
+                {
+                    target = await subscribersCache.UpdateSubscriber(sourceDeviceId.Value);
+                }
+            }
 
             if (target is not null)
             {
@@ -112,7 +121,23 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
         }
 
         return subs;
+    }
 
+    private async Task<Guid?> FindSourceDeviceId(Guid destinationId)
+    {
+        var actuator = await conectifyDb.Set<Actuator>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == destinationId);
+        if (actuator is not null)
+            return actuator.SourceDeviceId;
+
+        var sensor = await conectifyDb.Set<Sensor>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == destinationId);
+        if (sensor is not null)
+            return sensor.SourceDeviceId;
+
+        var device = await conectifyDb.Set<Device>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == destinationId);
+        if (device is not null)
+            return device.Id;
+
+        return null;
     }
 
 }
