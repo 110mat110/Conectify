@@ -99,26 +99,63 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
 
     private async Task<IEnumerable<Guid>> GetTargetsForEvent(Event evnt)
     {
-        var subs = GetAllSubscribers().Where(x => x.IsSubedToAll || x.Preferences.Any(x => x.EventType == Constants.Events.All || (x.EventType == evnt.Type && (x.SubscibeeId is null || x.SubscibeeId == evnt.SourceId)))).Select(x => x.DeviceId);
+        var allSubs = GetAllSubscribers().ToList();
+        var subs = allSubs
+            .Where(x => x.IsSubedToAll || x.Preferences.Any(x => x.EventType == Constants.Events.All || (x.EventType == evnt.Type && (x.SubscibeeId is null || x.SubscibeeId == evnt.SourceId))))
+            .Select(x => x.DeviceId)
+            .ToList();
+
+        logger.LogDebug("GetTargets: eventId={EventId} type={Type} sourceId={SourceId} broadcastSubscribers={Count} totalCachedSubscribers={Total}",
+            evnt.Id, evnt.Type, evnt.SourceId, subs.Count, allSubs.Count);
 
         if (evnt.DestinationId.HasValue)
         {
-            var target = GetAllSubscribers().FirstOrDefault(x => x.AllDependantIds.Contains(evnt.DestinationId.Value));
+            var target = allSubs.FirstOrDefault(x => x.AllDependantIds.Contains(evnt.DestinationId.Value));
 
-            if (target is null)
+            if (target is not null)
             {
+                logger.LogInformation("GetTargets: eventId={EventId} destinationId={DestinationId} found in subscriber cache — routing to deviceId={DeviceId}",
+                    evnt.Id, evnt.DestinationId.Value, target.DeviceId);
+            }
+            else
+            {
+                logger.LogInformation("GetTargets: eventId={EventId} destinationId={DestinationId} not in subscriber cache — looking up in DB",
+                    evnt.Id, evnt.DestinationId.Value);
+
                 var sourceDeviceId = await FindSourceDeviceId(evnt.DestinationId.Value);
+
                 if (sourceDeviceId.HasValue)
                 {
+                    logger.LogInformation("GetTargets: eventId={EventId} destinationId={DestinationId} resolved to sourceDeviceId={SourceDeviceId} — updating subscriber cache",
+                        evnt.Id, evnt.DestinationId.Value, sourceDeviceId.Value);
                     target = await subscribersCache.UpdateSubscriber(sourceDeviceId.Value);
+
+                    if (target is null)
+                    {
+                        logger.LogWarning("GetTargets: eventId={EventId} destinationId={DestinationId} sourceDeviceId={SourceDeviceId} — UpdateSubscriber returned null (device not in DB?)",
+                            evnt.Id, evnt.DestinationId.Value, sourceDeviceId.Value);
+                    }
+                }
+                else
+                {
+                    logger.LogWarning("GetTargets: eventId={EventId} destinationId={DestinationId} — could not find owning device in DB (actuator/sensor/device not registered?)",
+                        evnt.Id, evnt.DestinationId.Value);
                 }
             }
 
             if (target is not null)
             {
-                subs = subs.Append(target.DeviceId);
+                subs.Add(target.DeviceId);
+            }
+            else
+            {
+                logger.LogWarning("GetTargets: eventId={EventId} destinationId={DestinationId} — no target device found, message will NOT be delivered",
+                    evnt.Id, evnt.DestinationId.Value);
             }
         }
+
+        logger.LogInformation("GetTargets: eventId={EventId} final recipients={Recipients}",
+            evnt.Id, string.Join(", ", subs.Distinct()));
 
         return subs;
     }
@@ -127,16 +164,26 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
     {
         var actuator = await conectifyDb.Set<Actuator>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == destinationId);
         if (actuator is not null)
+        {
+            logger.LogDebug("FindSourceDeviceId: {DestinationId} is actuator — sourceDeviceId={SourceDeviceId}", destinationId, actuator.SourceDeviceId);
             return actuator.SourceDeviceId;
+        }
 
         var sensor = await conectifyDb.Set<Sensor>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == destinationId);
         if (sensor is not null)
+        {
+            logger.LogDebug("FindSourceDeviceId: {DestinationId} is sensor — sourceDeviceId={SourceDeviceId}", destinationId, sensor.SourceDeviceId);
             return sensor.SourceDeviceId;
+        }
 
         var device = await conectifyDb.Set<Device>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == destinationId);
         if (device is not null)
+        {
+            logger.LogDebug("FindSourceDeviceId: {DestinationId} is device", destinationId);
             return device.Id;
+        }
 
+        logger.LogWarning("FindSourceDeviceId: {DestinationId} not found as actuator, sensor, or device", destinationId);
         return null;
     }
 
