@@ -53,7 +53,7 @@ public class RuleControllerTests
         serviceProvider = services.BuildServiceProvider();
 
         automatizationCache = new AutomatizationCache(serviceProvider, mapper, false);
-        ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         controller = new RuleController(ruleService);
     }
 
@@ -176,7 +176,7 @@ public class RuleControllerTests
         var localServiceProvider = localServices.BuildServiceProvider();
         var automatizationCacheLocal = new AutomatizationCache(localServiceProvider, mapper, false);
 
-        var localRuleService = new RuleService(automatizationCacheLocal, mapper, localDbContext, connectorService, fakeConfig, localServiceProvider);
+        var localRuleService = new RuleService(automatizationCacheLocal, mapper, localDbContext, connectorService, fakeConfig, localServiceProvider, A.Fake<ILogger<RuleService>>());
         var localController = new RuleController(localRuleService);
 
         var actuatorModel = new AddActuatorApiModel("TestActuator");

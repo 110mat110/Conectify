@@ -15,13 +15,15 @@ public class DeviceStatusService : IDeviceStatusService, IDisposable
     private readonly IServiceScopeFactory serviceScopeFactory;
     private readonly ISubscribersCache subscribersCache;
     private readonly Configuration configuration;
+    private readonly ILogger<DeviceStatusService> logger;
     private readonly System.Timers.Timer aTimer;
 
-    public DeviceStatusService(IServiceScopeFactory serviceScopeFactory, ISubscribersCache subscribersCache, Configuration configuration)
+    public DeviceStatusService(IServiceScopeFactory serviceScopeFactory, ISubscribersCache subscribersCache, Configuration configuration, ILogger<DeviceStatusService> logger)
     {
         this.serviceScopeFactory = serviceScopeFactory;
         this.subscribersCache = subscribersCache;
         this.configuration = configuration;
+        this.logger = logger;
 
         aTimer = new System.Timers.Timer(new TimeSpan(1, 0, 0));
         // Hook up the Elapsed event for the timer. 
@@ -38,8 +40,10 @@ public class DeviceStatusService : IDeviceStatusService, IDisposable
     public async Task CheckIfAlive()
     {
         var allDevices = subscribersCache.AllSubscribers();
+        var targets = allDevices.Where(x => x.DeviceId != Guid.Empty).DistinctBy(x => x.DeviceId).ToList();
+        logger.LogInformation("CheckIfAlive: pinging {DeviceCount} connected device(s)", targets.Count);
 
-        foreach (var device in allDevices.Where(x => x.DeviceId != Guid.Empty).DistinctBy(x => x.DeviceId))
+        foreach (var device in targets)
         {
             var command = new Event()
             {

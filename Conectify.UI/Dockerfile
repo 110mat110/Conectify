@@ -2,8 +2,8 @@
 FROM node:20.15.0 as node
 WORKDIR /app
 COPY Conectify.UI/. .
-RUN npm install
-RUN npm install chart.js
+RUN npm install --loglevel=error
+RUN npm install chart.js --loglevel=error
 RUN npm run build --prod
 #stage 2
 FROM nginx:alpine

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Conectify.Services.Android.Services;
 
-public class AndroidConfigService(ConectifyDb db)
+public class AndroidConfigService(ConectifyDb db, ILogger<AndroidConfigService> logger)
 {
     public const string WIDGET_LARGE = "large";
     public const string WIDGET_SMALL = "small";
@@ -30,6 +30,7 @@ public class AndroidConfigService(ConectifyDb db)
     public async Task SaveConfigAsync(
         string userMail, string widgetType, List<WidgetConfigItemDto> items, CancellationToken ct = default)
     {
+        logger.LogInformation("SaveConfig: user={UserMail} widgetType={WidgetType} itemCount={Count}", userMail, widgetType, items.Count);
         var existing = await db.AndroidWidgetItems
             .Where(i => i.UserMail == userMail && i.WidgetType == widgetType)
             .ToListAsync(ct);

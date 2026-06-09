@@ -7,18 +7,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Conectify.Services.Dashboard.Services;
 
-public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
+public class DashboardService(ConectifyDb conectifyDb, IMapper mapper, ILogger<DashboardService> logger)
 {
     public async Task<DashboardApi> Add(AddDashboardApi addDashboardApi, CancellationToken cancellationToken = default)
     {
         if (!conectifyDb.Users.Any(x => x.Id == addDashboardApi.UserId))
         {
+            logger.LogWarning("Add dashboard: user {UserId} not found", addDashboardApi.UserId);
             throw new ArgumentException("User with id {id} does not exist", addDashboardApi.UserId.ToString());
         }
         var dashboard = mapper.Map<Database.Models.Dashboard.Dashboard>(addDashboardApi);
 
         var entity = await conectifyDb.AddOrUpdateAsync(dashboard, cancellationToken);
         await conectifyDb.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("Add dashboard: created dashboardId={DashboardId} for userId={UserId}", entity.Id, addDashboardApi.UserId);
         return mapper.Map<DashboardApi>(entity);
     }
 
@@ -49,6 +51,7 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
 
     public async Task Remove(Guid id, CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("Remove dashboard: dashboardId={DashboardId}", id);
         var devices = conectifyDb.DashboardsDevice.Where(x => x.DashBoardId == id).ToListAsync(cancellationToken);
         conectifyDb.RemoveRange(devices);
 
@@ -80,6 +83,7 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
         await conectifyDb.DashboardsDevice.AddAsync(device, cancellationToken);
         await conectifyDb.SaveChangesAsync(cancellationToken);
 
+        logger.LogInformation("AddDevice: deviceId={DeviceId} sourceType={SourceType} added to dashboardId={DashboardId}", device.Id, deviceApi.SourceType, dashboardId);
         return device.Id;
     }
 
@@ -100,5 +104,6 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper)
         conectifyDb.DashboardsDevice.Remove(device);
 
         await conectifyDb.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("RemoveDevice: deviceId={DeviceId} removed from dashboardId={DashboardId}", deviceId, device.DashBoardId);
     }
 }

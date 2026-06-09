@@ -15,13 +15,15 @@ public interface IAutomatizationService
 public class AutomatizationService(IAutomatizationCache automatizationCache,
                              AutomatizationConfiguration configuration,
                              IServicesWebsocketClient websocketClient,
-                             IMeterFactory meterFactory) : IAutomatizationService
+                             IMeterFactory meterFactory,
+                             ILogger<AutomatizationService> logger) : IAutomatizationService
 {
 
     private System.Timers.Timer Timer { get; set; } = new System.Timers.Timer(new TimeSpan(0, 0, 1));
 
     public void StartServiceAsync()
     {
+        logger.LogInformation("AutomatizationService starting, refresh interval={IntervalSeconds}s", configuration.RefreshIntervalSeconds);
         websocketClient.OnIncomingEvent += WebsocketClient_OnIncomingEvent;
         websocketClient.ConnectAsync();
 
@@ -30,6 +32,7 @@ public class AutomatizationService(IAutomatizationCache automatizationCache,
         Timer.Elapsed += OnTimerElapsed;
         Timer.AutoReset = true;
         Timer.Enabled = true;
+        logger.LogInformation("AutomatizationService started");
     }
 
     private async void OnTimerElapsed(object? sender, ElapsedEventArgs e)
@@ -50,6 +53,8 @@ public class AutomatizationService(IAutomatizationCache automatizationCache,
             {
                 name = evnt.DestinationId.Value.ToString();
                 var sourceRules = await automatizationCache.GetRulesForSourceAsync(evnt.DestinationId.Value);
+                logger.LogInformation("Event {EventId} type=Action destinationId={DestinationId} matched {RuleCount} rule(s)",
+                    evnt.Id, evnt.DestinationId.Value, sourceRules.Count());
                 foreach (var sourceRule in sourceRules)
                 {
                     await sourceRule.InsertEvent(evnt, default, meterFactory);
@@ -59,6 +64,8 @@ public class AutomatizationService(IAutomatizationCache automatizationCache,
             {
                 name = evnt.SourceId.ToString();
                 var sourceRules = await automatizationCache.GetRulesForSourceAsync(evnt.SourceId);
+                logger.LogInformation("Event {EventId} type={EventType} sourceId={SourceId} matched {RuleCount} rule(s)",
+                    evnt.Id, evnt.Type, evnt.SourceId, sourceRules.Count());
                 foreach (var sourceRule in sourceRules)
                 {
                     await sourceRule.InsertEvent(evnt, default, meterFactory);

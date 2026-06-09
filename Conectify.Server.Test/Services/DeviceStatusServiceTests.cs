@@ -22,7 +22,8 @@ public class DeviceStatusServiceTests
         return new DeviceStatusService(
             this.fakeDataService,
             this.fakeSubscribersCache,
-            this.fakeConfiguration);
+            this.fakeConfiguration,
+            A.Fake<ILogger<DeviceStatusService>>());
     }
 
     [Fact]

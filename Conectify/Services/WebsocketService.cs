@@ -94,7 +94,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
     public async Task<bool> TestConnectionAsync(string testMessage, WebSocket webSocket, CancellationToken ct = default)
     {
         int i = 0;
-        Console.WriteLine("Test connection opened!");
+        logger.LogInformation("TestConnection opened: message={TestMessage}", testMessage);
         do
         {
             var msg = Encoding.UTF8.GetBytes(i++.ToString() + " " + testMessage);
@@ -102,7 +102,7 @@ public class WebSocketService(ILogger<WebSocketService> logger, ISubscribersCach
 
         } while (webSocket.State == WebSocketState.Open);
 
-        Console.WriteLine("Test connection closed!");
+        logger.LogInformation("TestConnection closed after {Count} messages", i);
         return true;
     }
 

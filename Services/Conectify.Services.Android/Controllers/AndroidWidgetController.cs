@@ -6,7 +6,7 @@ namespace Conectify.Services.Android.Controllers;
 
 [ApiController]
 [Route("api/android")]
-public class AndroidWidgetController(AndroidWidgetService widgetService) : ControllerBase
+public class AndroidWidgetController(AndroidWidgetService widgetService, ILogger<AndroidWidgetController> logger) : ControllerBase
 {
     /// <summary>
     /// Full widget data: all known sensors and actuators with metadata and last value.
@@ -37,7 +37,14 @@ public class AndroidWidgetController(AndroidWidgetService widgetService) : Contr
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetActuatorValue(Guid id, [FromBody] SetActuatorValueDto dto, CancellationToken ct)
     {
+        logger.LogInformation("Widget actuator trigger: actuatorId={ActuatorId} numericValue={NumericValue} stringValue={StringValue} unit={Unit}",
+            id, dto.NumericValue, dto.StringValue, dto.Unit);
+
         var success = await widgetService.SetActuatorValueAsync(id, dto, ct);
+
+        if (!success)
+            logger.LogWarning("Widget actuator trigger failed — actuator not found: actuatorId={ActuatorId}", id);
+
         return success ? NoContent() : NotFound();
     }
 }

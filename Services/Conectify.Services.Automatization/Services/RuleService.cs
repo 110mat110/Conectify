@@ -12,10 +12,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Conectify.Services.Automatization.Services;
 
-public class RuleService(IAutomatizationCache automatizationCache, IMapper mapper, AutomatizationDb database, IConnectorService connectorService, IDeviceData configuration, IServiceProvider services)
+public class RuleService(IAutomatizationCache automatizationCache, IMapper mapper, AutomatizationDb database, IConnectorService connectorService, IDeviceData configuration, IServiceProvider services, ILogger<RuleService> logger)
 {
     public async Task<GetRuleApiModel> AddNewRule(Guid behaviourId, CancellationToken cancellationToken)
     {
+        logger.LogInformation("AddNewRule: behaviourId={BehaviourId}", behaviourId);
         var behaviour = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, services) ?? throw new Exception($"Behaviour {behaviourId} does not exist");
 
         var inputs = new List<InputPoint>();
@@ -49,6 +50,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 
         await AddExtraParamsToModel(rule, cancellationToken);
         _ = await automatizationCache.AddNewRule(rule, cancellationToken);
+        logger.LogInformation("AddNewRule: created rule {RuleId} type={RuleType}", rule.Id, behaviourId);
 
         return mapper.Map<GetRuleApiModel>(rule);
     }
@@ -113,9 +115,11 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 
     public async Task<bool> EditRule(Guid ruleId, EditRuleApiModel apiRule, CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("EditRule: ruleId={RuleId}", ruleId);
         var rule = await database.Set<Rule>().FirstOrDefaultAsync(x => x.Id == ruleId, cancellationToken: cancellationToken);
         if (rule is null)
         {
+            logger.LogWarning("EditRule: rule {RuleId} not found", ruleId);
             return false;
         }
 
@@ -133,17 +137,20 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 
     public async Task<bool> SetConnection(Guid sourceId, Guid destinationId, CancellationToken ct = default)
     {
-        Debug.WriteLine("Starting set connection");
+        logger.LogInformation("SetConnection: source={SourceId} destination={DestinationId}", sourceId, destinationId);
         var sourcePoint = await automatizationCache.GetOutputPointById(sourceId);
         var destinationPoint = await automatizationCache.GetInputPointById(destinationId);
 
         if (sourcePoint is null || destinationPoint is null)
         {
+            logger.LogWarning("SetConnection: point not found — source={SourceId} (found={SourceFound}) destination={DestinationId} (found={DestFound})",
+                sourceId, sourcePoint is not null, destinationId, destinationPoint is not null);
             return false;
         }
 
         if (automatizationCache.ConnectionExist(sourceId, destinationId))
         {
+            logger.LogInformation("SetConnection: connection already exists, removing instead");
             return await RemoveConnection(sourceId, destinationId,ct);
         }
 
@@ -220,13 +227,19 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 
     public async Task<bool> Remove(Guid ruleId, CancellationToken ct)
     {
+        logger.LogInformation("Remove: ruleId={RuleId}", ruleId);
         var rule = await database.Rules.FirstOrDefaultAsync(x => x.Id == ruleId, ct);
 
-        if (rule is null) return false;
+        if (rule is null)
+        {
+            logger.LogWarning("Remove: rule {RuleId} not found", ruleId);
+            return false;
+        }
 
         database.Rules.Remove(rule);
         await database.SaveChangesAsync(ct);
         await automatizationCache.Reload(ruleId, ct);
+        logger.LogInformation("Remove: rule {RuleId} deleted", ruleId);
 
         return true;
     }

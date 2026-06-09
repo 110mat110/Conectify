@@ -18,7 +18,7 @@ public class AutomatizationServiceTests
         var websocketClient = A.Fake<IServicesWebsocketClient>();
         var meterFactory = A.Fake<IMeterFactory>();
 
-        var service = new AutomatizationService(cache, config, websocketClient, meterFactory);
+        var service = new AutomatizationService(cache, config, websocketClient, meterFactory, A.Fake<ILogger<AutomatizationService>>());
 
         service.StartServiceAsync();
 
@@ -34,7 +34,7 @@ public class AutomatizationServiceTests
         var websocketClient = A.Fake<IServicesWebsocketClient>();
         var meterFactory = A.Fake<IMeterFactory>();
 
-        var service = new AutomatizationService(cache, config, websocketClient, meterFactory);
+        var service = new AutomatizationService(cache, config, websocketClient, meterFactory, A.Fake<ILogger<AutomatizationService>>());
 
         service.StartServiceAsync();
 
@@ -50,7 +50,7 @@ public class AutomatizationServiceTests
         var websocketClient = A.Fake<IServicesWebsocketClient>();
         var meterFactory = A.Fake<IMeterFactory>();
 
-        var service = new AutomatizationService(cache, config, websocketClient, meterFactory);
+        var service = new AutomatizationService(cache, config, websocketClient, meterFactory, A.Fake<ILogger<AutomatizationService>>());
 
         Assert.NotNull(service);
     }
@@ -75,7 +75,7 @@ public class AutomatizationServiceTests
 
         foreach (var config in configs)
         {
-            var service = new AutomatizationService(cache, config, websocketClient, meterFactory);
+            var service = new AutomatizationService(cache, config, websocketClient, meterFactory, A.Fake<ILogger<AutomatizationService>>());
             service.StartServiceAsync();
 
             A.CallTo(() => websocketClient.ConnectAsync()).MustHaveHappened();

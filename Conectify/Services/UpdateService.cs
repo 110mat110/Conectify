@@ -15,11 +15,13 @@ public interface IUpdateService
     Task RegisterDeviceAsync(Guid deviceId, string softwareName, string chipVersion, CancellationToken ct = default);
 }
 
-public class UpdateService(ConectifyDb conectifyDb, Configuration configuration, IServiceScopeFactory serviceScopeFactory) : IUpdateService
+public class UpdateService(ConectifyDb conectifyDb, Configuration configuration, IServiceScopeFactory serviceScopeFactory, ILogger<UpdateService> logger) : IUpdateService
 {
     public async Task RegisterDeviceAsync(Guid deviceId, string softwareName, string chipVersion, CancellationToken ct = default)
     {
         var fullSwName = $"{softwareName}-{chipVersion}";
+        logger.LogInformation("RegisterDeviceAsync: deviceId={DeviceId} software={Software} chip={Chip}", deviceId, fullSwName, chipVersion);
+
         if (!await conectifyDb.DeviceVersions.AnyAsync(x => x.DeviceId == deviceId, ct) && await conectifyDb.Devices.AnyAsync(x => x.Id == deviceId, ct))
         {
             var software = conectifyDb.Softwares.FirstOrDefault(x => x.Name == fullSwName);
@@ -28,6 +30,11 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
             {
                 await conectifyDb.DeviceVersions.AddAsync(new Database.Models.Updates.DeviceVersion { DeviceId = deviceId, Software = software, ChipVersion = chipVersion, LastUpdate = DateTime.MinValue }, ct);
                 await conectifyDb.SaveChangesAsync(ct);
+                logger.LogInformation("RegisterDeviceAsync: registered device {DeviceId} with software {Software}", deviceId, fullSwName);
+            }
+            else
+            {
+                logger.LogWarning("RegisterDeviceAsync: software {Software} not found for device {DeviceId}", fullSwName, deviceId);
             }
         }
     }
@@ -42,9 +49,12 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
 
             if (swVersion is not null && swVersion.ReleaseDate > software.LastUpdate)
             {
+                logger.LogInformation("GetLatestVersionUrl: update available for device {DeviceId}, url={Url}", deviceId, swVersion.Url);
                 return swVersion.Url;
             }
         }
+
+        logger.LogDebug("GetLatestVersionUrl: no update available for device {DeviceId}", deviceId);
         return string.Empty;
     }
 
@@ -78,7 +88,7 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
             foreach (var folder in files.Where(f => f["type"]!.ToString() == "dir"))
             {
                 string filePath = folder["path"]!.ToString();
-                Console.WriteLine($"Processing file: {filePath}");
+                logger.LogInformation("GetLatestVersionFromGit: processing folder {FilePath}", filePath);
 
                 // Get last modification date for each file
                 var lastModifiedDate = await GetLastModifiedDate(owner, repo, filePath, token);
@@ -120,7 +130,7 @@ public class UpdateService(ConectifyDb conectifyDb, Configuration configuration,
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            logger.LogError(ex, "GetLatestVersionFromGit: failed to scrape GitHub");
             return "git error";
         }
 

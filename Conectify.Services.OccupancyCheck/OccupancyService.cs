@@ -8,7 +8,7 @@ using OpenQA.Selenium.Support.UI;
 
 namespace Conectify.Services.OccupancyCheck;
 
-public class OccupancyService(IServicesWebsocketClient websocketClient, Configuration configuration)
+public class OccupancyService(IServicesWebsocketClient websocketClient, Configuration configuration, ILogger<OccupancyService> logger)
 {
     public async Task CheckForLiveDevices()
     {
@@ -44,7 +44,8 @@ public class OccupancyService(IServicesWebsocketClient websocketClient, Configur
 
                     result = macs.Any(x => searchedMacs.Contains(x.ToLower()));
 
-                    Console.WriteLine(result);
+                    logger.LogInformation("Occupancy check: occupied={Occupied} matchedMacs={MatchedCount}/{TotalMacs}",
+                        result, macs.Count(x => searchedMacs.Contains(x.ToLower())), macs.Count);
 
                     var value = new WebsocketEvent()
                     {
@@ -66,7 +67,7 @@ public class OccupancyService(IServicesWebsocketClient websocketClient, Configur
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                logger.LogError(ex, "OccupancyService: browser/selenium error");
             }
             finally
             {

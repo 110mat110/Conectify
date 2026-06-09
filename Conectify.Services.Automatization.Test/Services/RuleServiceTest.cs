@@ -58,7 +58,7 @@ public class RuleServiceTests
     [Fact]
     public async Task AddNewRule_SuccessfulAsync()
     {
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
         var behaviourId = new AndRuleBehaviour(default).GetId();
         var result = await ruleService.AddNewRule(behaviourId, default);
@@ -81,7 +81,7 @@ public class RuleServiceTests
     [Fact]
     public async Task AddNewRule_IncorrectId()
     {
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
 
         try
@@ -106,7 +106,7 @@ public class RuleServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
 
         var input = await ruleService.AddInput(new Models.ApiModels.AddInputApiModel() { Index = 0, InputType = Models.Database.InputTypeEnum.Trigger, RuleId = ruleId });
@@ -127,7 +127,7 @@ public class RuleServiceTests
         await dbContext.SaveChangesAsync();
 
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
         try
         {
@@ -150,7 +150,7 @@ public class RuleServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
         try
         {
@@ -173,7 +173,7 @@ public class RuleServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
 
         var input = await ruleService.AddOutput(new Models.ApiModels.AddOutputApiModel() { Index = 0, RuleId = ruleId });
@@ -194,7 +194,7 @@ public class RuleServiceTests
         await dbContext.SaveChangesAsync();
 
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
         try
         {
@@ -219,7 +219,7 @@ public class RuleServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
         try
         {
@@ -248,7 +248,7 @@ public class RuleServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         var allRules = await ruleService.GetAllRules();
 
         Assert.NotEmpty(allRules);
@@ -270,7 +270,7 @@ public class RuleServiceTests
 
         string newTestingJson = Guid.NewGuid().ToString();
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         var editResult = await ruleService.EditRule(ruleId, new EditRuleApiModel() { BehaviourId = new RunAtRuleBehaviour(default).GetId(), Parameters = newTestingJson, Id = ruleId});
 
         Assert.True(editResult);
@@ -298,7 +298,7 @@ public class RuleServiceTests
 
         string invalidJson = "Invalid parameters!";
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         try
         {
             var editResult = await ruleService.EditRule(ruleId, new EditRuleApiModel() { BehaviourId = new RunAtRuleBehaviour(default).GetId(), Parameters = invalidJson, Id = ruleId });
@@ -317,7 +317,7 @@ public class RuleServiceTests
     [Fact]
     public async Task EditRule_EditNonExistentRule_ShouldReturnFalse()
     {
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         var editResult = await ruleService.EditRule(Guid.NewGuid(), new EditRuleApiModel());
 
         Assert.False(editResult);
@@ -359,7 +359,7 @@ public class RuleServiceTests
         });
         await localDbContext.SaveChangesAsync();
 
-        var ruleService = new RuleService(automatizationCacheLocal, mapper, localDbContext, connectorService, new FakeConfig(), localServiceProvider);
+        var ruleService = new RuleService(automatizationCacheLocal, mapper, localDbContext, connectorService, new FakeConfig(), localServiceProvider, A.Fake<ILogger<RuleService>>());
         var addedRules = await ruleService.SetConnection(outputId, inputId);
 
         Assert.True(addedRules);
@@ -375,7 +375,7 @@ public class RuleServiceTests
         var inputId = Guid.NewGuid();
         var outputId = Guid.NewGuid();
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         var result = await ruleService.SetConnection(outputId, inputId);
 
         Assert.False(result);
@@ -384,7 +384,7 @@ public class RuleServiceTests
     [Fact]
     public async Task RemoveConnection_NonExistentConnection_ReturnsFalse()
     {
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         var result = await ruleService.RemoveConnection(Guid.NewGuid(), Guid.NewGuid());
 
         Assert.False(result);
@@ -414,7 +414,7 @@ public class RuleServiceTests
         localServices.AddScoped(services => new AutomatizationDb(contextOptions));
         var localServiceProvider = localServices.BuildServiceProvider();
 
-        var ruleService = new RuleService(automatizationCache, mapper, localDbContext, connectorService, new FakeConfig(), localServiceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, localDbContext, connectorService, new FakeConfig(), localServiceProvider, A.Fake<ILogger<RuleService>>());
         var connections = await ruleService.GetAllConnections();
 
         Assert.NotEmpty(connections);
@@ -440,7 +440,7 @@ public class RuleServiceTests
         var localServiceProvider = localServices.BuildServiceProvider();
         var automatizationCacheLocal = new AutomatizationCache(localServiceProvider, mapper, false);
 
-        var ruleService = new RuleService(automatizationCacheLocal, mapper, localDbContext, connectorService, config, localServiceProvider);
+        var ruleService = new RuleService(automatizationCacheLocal, mapper, localDbContext, connectorService, config, localServiceProvider, A.Fake<ILogger<RuleService>>());
 
         var result = await ruleService.AddCustomInput(new AddActuatorApiModel("TestActuator"));
 
@@ -458,7 +458,7 @@ public class RuleServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         var result = await ruleService.Remove(ruleId, default);
 
         Assert.True(result);
@@ -468,7 +468,7 @@ public class RuleServiceTests
     [Fact]
     public async Task Remove_NonExistentRule_ReturnsFalse()
     {
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         var result = await ruleService.Remove(Guid.NewGuid(), default);
 
         Assert.False(result);
@@ -485,7 +485,7 @@ public class RuleServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         var result = await ruleService.GetRule(ruleId);
 
         Assert.NotNull(result);
@@ -495,7 +495,7 @@ public class RuleServiceTests
     [Fact]
     public async Task GetRule_NonExistentRule_ReturnsNull()
     {
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         var result = await ruleService.GetRule(Guid.NewGuid());
 
         Assert.Null(result);
@@ -504,7 +504,7 @@ public class RuleServiceTests
     [Fact]
     public async Task AddInput_NonExistentRule_ThrowsException()
     {
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
         await Assert.ThrowsAsync<ArgumentException>(async () =>
             await ruleService.AddInput(new Models.ApiModels.AddInputApiModel
@@ -518,7 +518,7 @@ public class RuleServiceTests
     [Fact]
     public async Task AddOutput_NonExistentRule_ThrowsException()
     {
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
         await Assert.ThrowsAsync<ArgumentException>(async () =>
             await ruleService.AddOutput(new Models.ApiModels.AddOutputApiModel
@@ -542,7 +542,7 @@ public class RuleServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider);
+        var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         var editResult = await ruleService.EditRule(ruleId, new EditRuleApiModel()
         {
             BehaviourId = new AndRuleBehaviour(default).GetId(),

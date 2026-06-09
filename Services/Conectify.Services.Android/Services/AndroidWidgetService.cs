@@ -15,7 +15,8 @@ public class AndroidWidgetService(
     AndroidConfigService configService,
     IServicesWebsocketClient websocketClient,
     AndroidConfiguration configuration,
-    IHttpFactory httpFactory)
+    IHttpFactory httpFactory,
+    ILogger<AndroidWidgetService> logger)
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
@@ -102,7 +103,7 @@ public class AndroidWidgetService(
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[AndroidWidget] History service unavailable: {ex.Message}");
+            logger.LogError(ex, "History service unavailable at {HistoryServiceUrl}", configuration.HistoryServiceUrl);
             return ([], []);
         }
     }
@@ -243,7 +244,14 @@ public class AndroidWidgetService(
     public async Task<bool> SetActuatorValueAsync(Guid actuatorId, SetActuatorValueDto dto, CancellationToken ct = default)
     {
         var actuator = await db.Actuators.FirstOrDefaultAsync(a => a.Id == actuatorId, ct);
-        if (actuator is null) return false;
+        if (actuator is null)
+        {
+            logger.LogWarning("SetActuatorValue: actuator {ActuatorId} not found in database", actuatorId);
+            return false;
+        }
+
+        logger.LogInformation("SetActuatorValue: found actuator {ActuatorId} name={ActuatorName} sourceDevice={SourceDeviceId}",
+            actuatorId, actuator.Name, actuator.SourceDeviceId);
 
         var ev = new WebsocketEvent
         {
@@ -258,7 +266,13 @@ public class AndroidWidgetService(
             DestinationId = actuatorId
         };
 
+        logger.LogInformation(
+            "SetActuatorValue: sending websocket event {EventId} destinationId={DestinationId} sourceId={SourceId} numericValue={NumericValue} stringValue={StringValue} unit={Unit}",
+            ev.Id, ev.DestinationId, ev.SourceId, ev.NumericValue, ev.StringValue, ev.Unit);
+
         await websocketClient.SendMessageAsync(ev, ct);
+
+        logger.LogInformation("SetActuatorValue: websocket event {EventId} sent successfully", ev.Id);
         return true;
     }
 

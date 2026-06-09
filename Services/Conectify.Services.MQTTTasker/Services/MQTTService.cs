@@ -93,6 +93,10 @@ public class MqttService : BackgroundService
         {
             await SendValueFromDoorSensor(id, payload);
         }
+        else
+        {
+            logger.LogDebug("DecodeIncomingValue: unknown device name={DeviceName}", deviceName);
+        }
     }
 
     private async Task SendValueFromDoorSensor(Guid id, string payload)
@@ -101,6 +105,7 @@ public class MqttService : BackgroundService
 
         if (value is not null)
         {
+            logger.LogInformation("SendValueFromDoorSensor: sensorId={SensorId} contact={Contact}", id, value.contact);
             await websocketClient.SendMessageAsync(new WebsocketEvent()
             {
                 Name = "Doors",
@@ -147,7 +152,12 @@ public class MqttService : BackgroundService
 
                 knownDevices.TryAdd(name, id);
             }
+            logger.LogInformation("RegisterAllDevices: registering {Count} Zigbee device(s)", sensors.Count);
             connectorService.RegisterSensors(sensors);
+        }
+        else
+        {
+            logger.LogWarning("RegisterAllDevices: could not find devices in bridge/info payload");
         }
     }
 

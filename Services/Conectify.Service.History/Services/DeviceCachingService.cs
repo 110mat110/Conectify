@@ -20,10 +20,12 @@ public class DeviceCachingService : IDeviceCachingService
     private IDictionary<Guid, DateTime> sensorsCache = new Dictionary<Guid, DateTime>();
     private readonly IDictionary<Guid, DateTime> actuatorCache = new Dictionary<Guid, DateTime>();
     private readonly IConnectorService connectorService;
+    private readonly ILogger<DeviceCachingService> logger;
 
-    public DeviceCachingService(IConnectorService connectorService)
+    public DeviceCachingService(IConnectorService connectorService, ILogger<DeviceCachingService> logger)
     {
         this.connectorService = connectorService;
+        this.logger = logger;
         ReloadActuators(Guid.NewGuid());
     }
 
@@ -78,7 +80,9 @@ public class DeviceCachingService : IDeviceCachingService
             {
                 actuatorCache.TryAdd(result.Id, DateTime.UtcNow);
             }
-        }, traceId, "Reload Sensors");
+
+            logger.LogInformation("ReloadActuators: loaded {Count} actuator(s) into cache", actuatorCache.Count);
+        }, traceId, "Reload Actuators");
 
     }
 
@@ -87,7 +91,9 @@ public class DeviceCachingService : IDeviceCachingService
         Tracing.Trace(() =>
         {
             var yesterday = DateTime.UtcNow.AddDays(-1);
+            var before = sensorsCache.Count;
             sensorsCache = sensorsCache.Where(sensor => sensor.Value.CompareTo(yesterday) >= 0).ToDictionary(x => x.Key, x => x.Value);
+            logger.LogInformation("ReloadSensors: {After} active sensor(s) ({Evicted} evicted)", sensorsCache.Count, before - sensorsCache.Count);
         }, traceId, "Reload Sensors");
     }
 }
