@@ -10,8 +10,8 @@ import { WebsocketService } from '../websocket.service';
 import { DashboardParams } from 'src/models/Dashboard/DashboardParams';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { color } from 'echarts';
 import { SensorData } from 'src/models/SensorData';
+import { UiSensor } from 'src/models/UiSensor';
 import { forkJoin, Subscription } from 'rxjs';
 
 @Component({
@@ -22,7 +22,7 @@ import { forkJoin, Subscription } from 'rxjs';
 
 export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
 
-  @Input() sensorInput?: { id: string[], visible: boolean };
+  @Input() sensorInput?: { id: string[], visible: boolean, preloaded?: UiSensor[] };
   @Input() params?: DashboardParams;
   public sensors: SensorData[] = [];
   public device?: Device;
@@ -32,16 +32,16 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
   mapedValues: (number | number)[][] = [];
   mergeOptions = {};
   chartOption: any = {};
-  
+
   private wsSubscription?: Subscription;
   private timeShiftInterval?: any;
   defaultColor: string = "#4fc3f7";
 
   constructor(
-    public messenger: MessagesService, 
-    private be: BEFetcherService, 
-    public dialog: MatDialog, 
-    private websocketService: WebsocketService, 
+    public messenger: MessagesService,
+    private be: BEFetcherService,
+    public dialog: MatDialog,
+    private websocketService: WebsocketService,
     private router: Router
   ) {}
 
@@ -69,20 +69,52 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
 
     if (!this.sensorInput || !this.sensorInput.id.length) return;
 
-    // Batch all sensor detail requests
-    const sensorDetailRequests = this.sensorInput.id.map(sensorId => 
+    if (this.sensorInput.preloaded?.length) {
+      this.initFromPreloaded(this.sensorInput.preloaded);
+    } else {
+      this.initFromHttp(this.sensorInput.id);
+    }
+  }
+
+  private initFromPreloaded(preloaded: UiSensor[]): void {
+    this.sensors = preloaded.map(s => ({
+      id: s.id,
+      sensor: { id: s.id, name: s.name, sourceDeviceId: s.sourceDeviceId, metadata: [] } as Sensor,
+      metadatas: s.metadata as Metadata[],
+      latestVal: s.latestValue ?? undefined,
+    }));
+
+    if (preloaded.length > 0) {
+      this.device = { id: preloaded[0].sourceDeviceId, name: preloaded[0].deviceName } as Device;
+      if (!this.isSoloSensor()) {
+        this.showName = this.device.name;
+      }
+    }
+
+    this.HandleMetadata();
+    this.getAccentColor();
+
+    if (this.isSoloSensor()) {
+      const latestVal = preloaded[0].latestValue;
+      if (latestVal) {
+        this.addData(latestVal);
+      }
+      this.GenerateChart(this.sensors[0].sensor);
+    }
+  }
+
+  private initFromHttp(ids: string[]): void {
+    const sensorDetailRequests = ids.map(sensorId =>
       this.be.getSensorDetail(sensorId)
     );
 
     forkJoin(sensorDetailRequests).subscribe(sensorDetails => {
-      // Initialize all sensors first
       this.sensors = sensorDetails.map(sensor => ({
         id: sensor.id,
         sensor: sensor,
         metadatas: [] as Metadata[]
       }));
 
-      // Get device once (all sensors should have same device)
       if (sensorDetails.length > 0) {
         this.be.getDevice(sensorDetails[0].sourceDeviceId).subscribe(device => {
           this.device = device;
@@ -92,7 +124,6 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
         });
       }
 
-      // Load metadata independently — drives visibility/name/chart thresholds
       forkJoin(this.sensors.map(sensor => this.be.getSensorMetadatas(sensor.id)))
         .subscribe(metadatas => {
           this.sensors.forEach((sensor, i) => {
@@ -105,7 +136,6 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
           }
         });
 
-      // Load latest values independently — updates accent color and chart seed point
       forkJoin(this.sensors.map(sensor => this.be.getLatestSensorValue(sensor.id)))
         .subscribe(latestValues => {
           this.sensors.forEach((sensor, i) => {
@@ -146,16 +176,14 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private GenerateChart(x: Sensor) {
-    this.be.getSensorValues(x.id).subscribe(values => {
+    this.be.getUiSensorValues(x.id).subscribe(values => {
       this.valsReady = values.length > 0;
       if (this.valsReady) {
         let previousTick = new Date().getTime() - 86400000;
         let previousValue = values[0].numericValue;
-        
-        // Pre-allocate array size for better performance
-        const estimatedSize = values.length * 30; // rough estimate
+
         this.mapedValues = [];
-        
+
         values.forEach(value => {
           for (let i = previousTick; i < value.timeCreated; i = i + 30000) {
             this.mapedValues.push([i, previousValue]);
@@ -163,13 +191,12 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
           previousValue = value.numericValue;
           previousTick = value.timeCreated;
         });
-        
+
         let now = new Date().getTime();
         for (let i = previousTick; i <= now; i = i + 30000) {
           this.mapedValues.push([i, previousValue]);
         }
-        
-        // Generate threshold pieces once
+
         this.updateChartWithThresholds();
       }
     });
@@ -243,8 +270,8 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
 
   private getAccentColor() {
     if (this.isSoloSensor() && this.sensors[0].latestVal?.numericValue) {
-      const metadata = this.sensors[0].metadatas.find(x => 
-        x.maxVal >= this.sensors[0].latestVal!.numericValue && 
+      const metadata = this.sensors[0].metadatas.find(x =>
+        x.maxVal >= this.sensors[0].latestVal!.numericValue &&
         x.minVal < this.sensors[0].latestVal!.numericValue
       );
       if (metadata) {
@@ -266,7 +293,7 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
     if (newVal == null) {
       return;
     }
-    
+
     this.mapedValues.push([newVal.timeCreated, newVal.numericValue]);
 
     if (this.isSoloSensor()) {

@@ -3,6 +3,7 @@ import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 import { fromEvent, forkJoin } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
+import { UiSensor } from 'src/models/UiSensor';
 
 @Component({
   selector: 'app-sensor-overview',
@@ -10,51 +11,54 @@ import { debounceTime } from 'rxjs/operators';
   styleUrls: ['./sensor-overview.component.css']
 })
 export class SensorOverviewComponent implements OnInit {
-  public sensors: {id: string[], visible: boolean}[] = [];
+  public sensors: {id: string[], visible: boolean, preloaded?: UiSensor[]}[] = [];
   columnNum: number = 4;
   tileSize: number = 400;
   @ViewChild('theContainer') theContainer: any;
 
-  constructor(private be: BEFetcherService, private messanger: MessagesService) { 
+  constructor(private be: BEFetcherService, private messanger: MessagesService) {
   }
 
   ngAfterViewInit(): void {
     this.calculateCols();
-  
+
     fromEvent(window, 'resize')
       .pipe(debounceTime(100))
       .subscribe(() => this.calculateCols());
   }
 
   ngOnInit(): void {
-    // Use forkJoin to batch all API calls and load data in parallel
     forkJoin({
-      devices: this.be.getAllDevices(),
-      activeSensors: this.be.getActiveSensors()
+      uiSensors: this.be.getUiSensors(),
+      devices: this.be.getAllDevices()
     }).subscribe({
-      next: ({ devices, activeSensors }) => {
-        // Process combo devices
-        const combos = devices.filter(x => x.metadata?.some(md => md.name === "combo" && md.numericValue === 1));
-        
-        // Batch all sensor requests for combo devices
-        const comboSensorRequests = combos.map(device => 
-          this.be.getAllSensorsForDevice(device.id)
-        );
+      next: ({ uiSensors, devices }) => {
+        const sensorMap = new Map<string, UiSensor>(uiSensors.map(s => [s.id, s]));
 
-        if (comboSensorRequests.length > 0) {
+        const combos = devices.filter(x => x.metadata?.some(md => md.name === "combo" && md.numericValue === 1));
+
+        if (combos.length > 0) {
+          const comboSensorRequests = combos.map(device =>
+            this.be.getAllSensorsForDevice(device.id)
+          );
+
           forkJoin(comboSensorRequests).subscribe(sensorArrays => {
-            sensorArrays.forEach(sensors => {
-              this.sensors.push({id: sensors.map(s => s.id), visible: true});
+            const comboSensorIds = new Set<string>();
+            sensorArrays.forEach(sensorList => {
+              const ids = sensorList.map(s => s.id);
+              const preloaded = ids.map(id => sensorMap.get(id)).filter(s => s !== undefined) as UiSensor[];
+              this.sensors.push({ id: ids, visible: true, preloaded });
+              ids.forEach(id => comboSensorIds.add(id));
             });
-            
-            // Add active sensors
-            activeSensors.forEach(s => this.sensors.push({id: [s], visible: true}));
-            
+
+            uiSensors
+              .filter(s => !comboSensorIds.has(s.id))
+              .forEach(s => this.sensors.push({ id: [s.id], visible: true, preloaded: [s] }));
+
             this.calculateCols();
           });
         } else {
-          // No combo devices, just add active sensors
-          activeSensors.forEach(s => this.sensors.push({id: [s], visible: true}));
+          uiSensors.forEach(s => this.sensors.push({ id: [s.id], visible: true, preloaded: [s] }));
           this.calculateCols();
         }
       },

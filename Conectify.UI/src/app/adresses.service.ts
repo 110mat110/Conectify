@@ -10,8 +10,21 @@ export class AdressesService {
   private automatizationURL: string = AdressesService.replaceServerHost(environment.automatizationURL + "/api/")
   private historyURL: string = AdressesService.replaceServerHost(environment.historyUrl + "/api/")
   private dashboardURL: string = AdressesService.replaceServerHost(environment.dashboardUrl + "/api/")
+  private uiServiceURL: string = AdressesService.replaceServerHost(environment.uiServiceUrl + "/api/")
 
   constructor() { }
+
+  getUiSensors(): string {
+    return this.uiServiceURL + "ui/sensors"
+  }
+
+  getUiActuators(): string {
+    return this.uiServiceURL + "ui/actuators"
+  }
+
+  getUiSensorValues(id: string): string {
+    return this.uiServiceURL + "ui/sensor/" + id + "/values"
+  }
 
   getActiveSensorIds(): string {
     return this.historyURL + "device/sensors"

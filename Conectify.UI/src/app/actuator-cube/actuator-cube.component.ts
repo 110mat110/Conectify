@@ -5,6 +5,7 @@ import { BaseInputType } from 'src/models/extendedValue';
 import { IOType } from 'src/models/IOType';
 import { Metadata } from 'src/models/metadata';
 import { Device } from 'src/models/thing';
+import { UiActuator } from 'src/models/UiActuator';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 import { OutputCreatorService } from '../output-creator.service';
@@ -20,7 +21,7 @@ import { Router } from '@angular/router';
 })
 export class ActuatorCubeComponent implements OnInit {
 
-  @Input() actuatorId?: {id: string, visible: boolean};
+  @Input() actuatorId?: {id: string, visible: boolean, preloaded?: UiActuator};
   @Input() params?: DashboardParams;
   public actuator?: Actuator;
   public device?: Device;
@@ -57,7 +58,38 @@ export class ActuatorCubeComponent implements OnInit {
     if (!this.actuatorId) return;
     const id = this.actuatorId.id;
 
-    // Metadata only needs the actuator ID — fire in parallel with detail
+    if (this.actuatorId.preloaded) {
+      this.initFromPreloaded(this.actuatorId.preloaded);
+      return;
+    }
+
+    this.initFromHttp(id);
+  }
+
+  private initFromPreloaded(preloaded: UiActuator): void {
+    this.actuator = {
+      id: preloaded.id,
+      name: preloaded.name,
+      sourceDeviceId: preloaded.sourceDeviceId,
+      sensorId: preloaded.sensorId,
+      metadata: [],
+    } as Actuator;
+
+    this.device = { id: preloaded.sourceDeviceId, name: preloaded.deviceName } as Device;
+    this.metadatas = preloaded.metadata as Metadata[];
+
+    if (preloaded.latestValue) {
+      this.setLatestVal(preloaded.latestValue, "preloaded");
+    }
+
+    this.processMetadata();
+
+    this.websocketService.receivedMessages.subscribe(msg => {
+      this.HandleIncomingValue(msg);
+    });
+  }
+
+  private initFromHttp(id: string): void {
     this.be.getActuatorMetadatas(id).subscribe(x => {
       this.metadatas = x;
       this.processMetadata();
@@ -68,7 +100,6 @@ export class ActuatorCubeComponent implements OnInit {
       this.websocketService.receivedMessages.subscribe(msg => {
         this.HandleIncomingValue(msg);
       });
-      // Latest value and device depend on data from the detail response
       if (!this.latestVal) {
         this.be.getLatestSensorValue(this.actuator.sensorId).subscribe(x => this.setLatestVal(x, "latestSensorValue"));
       }
@@ -148,4 +179,3 @@ export class ActuatorCubeComponent implements OnInit {
     }
   }
 }
-

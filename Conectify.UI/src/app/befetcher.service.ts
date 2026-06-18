@@ -14,6 +14,8 @@ import { AddDashboardApi, EditDashboardApi } from 'src/models/Dashboard/addDashb
 import { DashboardApi } from 'src/models/Dashboard/DashboardApi';
 import { AddDashboardDeviceApi } from 'src/models/Dashboard/DashboardDevice';
 import { EditDashboardDeviceApi } from 'src/models/Dashboard/EditDashboardDeviceApi';
+import { UiSensor } from 'src/models/UiSensor';
+import { UiActuator } from 'src/models/UiActuator';
 
 @Injectable({
   providedIn: 'root'
@@ -26,6 +28,18 @@ export class BEFetcherService {
   isResigtered: boolean = false;
 
   constructor(private http: HttpClient, private adresses: AdressesService, private messenger: MessagesService, private ocs: OutputCreatorService) { }
+
+  getUiSensors(): Observable<UiSensor[]> {
+    return this.http.get<UiSensor[]>(this.adresses.getUiSensors());
+  }
+
+  getUiActuators(): Observable<UiActuator[]> {
+    return this.http.get<UiActuator[]>(this.adresses.getUiActuators());
+  }
+
+  getUiSensorValues(id: string): Observable<BaseInputType[]> {
+    return this.http.get<BaseInputType[]>(this.adresses.getUiSensorValues(id));
+  }
 
   getAllActuators(): Observable<Actuator[]> {
     return this.http.get<Actuator[]>(this.adresses.getAllActuatorsDetails());

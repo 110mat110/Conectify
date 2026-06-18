@@ -19,4 +19,19 @@ public class DataController(IDataCachingService dataCachingService) : Controller
     {
         return await dataCachingService.GetLatestValueAsync(sensorId);
     }
+
+    [HttpPost("latest-batch")]
+    public async Task<Dictionary<Guid, ApiEvent>> GetLatestBatch([FromBody] List<Guid> sensorIds, CancellationToken ct)
+    {
+        var tasks = sensorIds.Select(async id =>
+        {
+            var latest = await dataCachingService.GetLatestValueAsync(id, ct);
+            return (id, latest);
+        });
+
+        var results = await Task.WhenAll(tasks);
+        return results
+            .Where(r => r.latest is not null)
+            .ToDictionary(r => r.id, r => r.latest!);
+    }
 }
