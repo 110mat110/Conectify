@@ -30,7 +30,7 @@ String processor(const String &var)
     }
     if (var == "wifi")
     {
-        return IsWiFi() ? "<i class=\"material-icons\">wifi</i>" : "<i class=\"material-icons\">cloud</i>";
+        return IsWiFi() ? "<span class=\"badge on\">Wi-Fi connected</span>" : "<span class=\"badge off\">Access point mode</span>";
     }
     if (var == "connectToWifiHidden")
     {
@@ -55,7 +55,7 @@ String processor(const String &var)
         DebugMessage("Replacing sensor literal");
         for (int i = 0; i < GetGlobalVariables()->sensorsArrSize; i++)
         {
-            String currentSensorHtml = GetGlobalVariables()->sensorsArr[i].ShowHtml();
+            String currentSensorHtml = GetGlobalVariables()->sensorsArr[i].ShowHtml(i);
             result.concat(currentSensorHtml);
         }
         return result;
@@ -123,17 +123,17 @@ void StartWebServer()
 
     server.on("/reboot", HTTP_POST, [](AsyncWebServerRequest *request)
               {
-              HandleCommand("",CommandReboot, 0, "");
-              request->redirect("/"); });
+              request->send(200, "text/plain", "rebooting");
+              HandleCommand("",CommandReboot, 0, ""); });
     server.on("/reboot.html", HTTP_POST, [](AsyncWebServerRequest *request)
               {
-              HandleCommand("",CommandReboot, 0, "");
-              request->redirect("/"); });
+              request->send(200, "text/plain", "rebooting");
+              HandleCommand("",CommandReboot, 0, ""); });
 
     server.on("/reboot.html", HTTP_GET, [](AsyncWebServerRequest *request)
               {
-              HandleCommand("",CommandReboot, 0, "");
-              request->redirect("/"); });
+              request->redirect("/");
+              HandleCommand("",CommandReboot, 0, ""); });
     server.on("/device", HTTP_POST, [](AsyncWebServerRequest *request)
               {
     DebugMessage("Device settings");
@@ -204,32 +204,63 @@ void StartWebServer()
 
     server.on("/actuatorSet", HTTP_POST, [](AsyncWebServerRequest *request)
               {
-    DebugMessage("Actuator set");          
-    if (request->hasParam(DTActuatorId, true) && request->hasParam(DTstringValue, true) )
+    DebugMessage("Actuator set");
+    if (request->hasParam("idx", true) && request->hasParam(DTstringValue, true))
     {
-      String strId = request->getParam(DTActuatorId, true)->value();
-      float numericValue = 0;
-      if(request->getParam(DTstringValue, true)->value() == "on") {
-        numericValue = 100;
-      }
+      int idx = request->getParam("idx", true)->value().toInt();
+      float numericValue = (request->getParam(DTstringValue, true)->value() == "on") ? 100 : 0;
 
-      if (!strId.isEmpty())
+      if (idx >= 0 && idx < GetGlobalVariables()->actuatorArrSize)
       {
-        char id[IdStringLength];
-        strId.toCharArray(id, IdStringLength, 0);
-
-        for (int i = 0; i < GetGlobalVariables()->actuatorArrSize; i++)
-        {
-          DebugMessage("Targer ID" + String(GetGlobalVariables()->actuatorsArr[i].id));
-          if (GetGlobalVariables()->actuatorsArr[i].isInitialized && !strcmp(id, GetGlobalVariables()->actuatorsArr[i].id))
-          {
-            DebugMessage("Found target!");
-            GetGlobalVariables()->actuatorsArr[i].SetActuatorValue(numericValue, "%");
-          }
-        }
+        GetGlobalVariables()->actuatorsArr[idx].SetActuatorValue(numericValue, "%");
       }
     }
     request->redirect("/"); });
+
+    server.on("/actuatorId", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+    DebugMessage("Actuator id set");
+    if (request->hasParam("idx", true) && request->hasParam(DTActuatorId, true))
+    {
+      int idx = request->getParam("idx", true)->value().toInt();
+      String strId = request->getParam(DTActuatorId, true)->value();
+
+      if (idx >= 0 && idx < GetGlobalVariables()->actuatorArrSize && !strId.isEmpty())
+      {
+        strId.toCharArray(GetGlobalVariables()->actuatorsArr[idx].id, IdStringLength, 0);
+        GetGlobalVariables()->actuatorsArr[idx].isInitialized = true;
+        SaveActuatorIDs(GetGlobalVariables()->actuatorsArr, GetGlobalVariables()->actuatorArrSize);
+      }
+    }
+    request->redirect("/"); });
+
+    server.on("/sensorId", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+    DebugMessage("Sensor id set");
+    if (request->hasParam("idx", true) && request->hasParam("sensorId", true))
+    {
+      int idx = request->getParam("idx", true)->value().toInt();
+      String strId = request->getParam("sensorId", true)->value();
+
+      if (idx >= 0 && idx < GetGlobalVariables()->sensorsArrSize && !strId.isEmpty())
+      {
+        strId.toCharArray(GetGlobalVariables()->sensorsArr[idx].id, IdStringLength, 0);
+        GetGlobalVariables()->sensorsArr[idx].isInitialized = true;
+        SaveSensorIDs(GetGlobalVariables()->sensorsArr, GetGlobalVariables()->sensorsArrSize);
+      }
+    }
+    request->redirect("/"); });
+
+    server.on("/activitycheck", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+    HandleCommand("", CommandActivityCheck, 0, "");
+    request->send(200, "text/plain", "active"); });
+
+    server.on("/cleareeprom", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+    request->send(200, "text/plain", "clearing");
+    HandleCommand("", CommandClearEEPRom, 0, ""); });
+
     server.begin();
 }
 

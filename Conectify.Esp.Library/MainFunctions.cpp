@@ -13,7 +13,6 @@
 #endif
 
 #include <WiFiUdp.h>
-#include <ArduinoOTA.h>
 #include <ArduinoWebsockets.h>
 #include "MainFunctions.h"
 #include <Arduino.h>
@@ -28,6 +27,7 @@
 #include "CommandHandler.h"
 #include "Int64String.h"
 #include "WebServer.h"
+#include "Updater.h"
 
 using namespace websockets;
 
@@ -37,7 +37,10 @@ WebsocketsClient websocketClient;
 DNSServer dnsServer;
 Value *watchedValuesArray;
 int valuesArrayLength = 0;
-String softwareName = ""; 
+String softwareId = "";
+Updater updater;
+unsigned long lastWebSocketPongMillis = 0;
+const unsigned long WebSocketPongTimeoutMs = 90000; // if no ping response for this long, connection is considered dead even if socket looks open
 
 bool InitializeNetwork();
 void InitializeDevice(int psensorArrSize, int pactuatorArrSize, void (*SensorsDeclarations)());
@@ -46,7 +49,6 @@ void RecievedMessageRoutine();
 void SendAllSensorsToServerIfNeeded();
 void CreateBaseDevice();
 void RegisterAllEntities();
-void StartOTA(String OTAName);
 void AskServerForTime();
 void onMessageCallback(WebsocketsMessage message);
 void onEventsCallback(WebsocketsEvent event, String data);
@@ -55,11 +57,9 @@ bool ConnectToWifi();
 void InitializeAP();
 void StartWebServer();
 bool ReloadNetwork();
-void RegisterSoftwareVersion();
 
 void StartupMandatoryRoutine(int psensorArrSize, int pactuatorArrSize, void (*SensorsDeclarations)())
 {
-
   delay(5000);
   // setCpuFrequencyMhz(80);
   WiFi.mode(WIFI_AP_STA);
@@ -71,7 +71,6 @@ void StartupMandatoryRoutine(int psensorArrSize, int pactuatorArrSize, void (*Se
 
 void LoopMandatoryRoutines()
 {
-  // DO NOT USE ANY DELAY IN LOOP, you will kill OTA function
   ReceiveSerialConnection();
   RecievedMessageRoutine();
   if (GetGlobalVariables()->RestartRequired())
@@ -89,13 +88,34 @@ void LoopMandatoryRoutines()
   {
     ReloadNetwork();
   }
-  // dnsServer.processNextRequest();
+
+  if (GetGlobalVariables()->WifiTimer.IsTriggered())
+  {
+    if (IsUpdateIdSet())
+    {
+      updater.TryUpdate(softwareId.c_str());
+    }
+  }
 
   if (websocketClient.available())
   {
     SendAllSensorsToServerIfNeeded();
     websocketClient.poll();
-    ArduinoOTA.handle();
+
+    if (GetGlobalVariables()->WebSocketPingTimer.IsTriggered())
+    {
+      websocketClient.ping();
+    }
+
+    if (millis() - lastWebSocketPongMillis > WebSocketPongTimeoutMs)
+    {
+      DebugMessage("Websocket looks open but server stopped responding to pings. Forcing reconnect");
+      websocketClient.close();
+      if (IsWiFi())
+      {
+        ConnectWebsocket();
+      }
+    }
   }
   else
   {
@@ -130,8 +150,6 @@ void InitializeDevice(int psensorArrSize, int pactuatorArrSize, void (*SensorsDe
 bool InitializeNetwork()
 {
   StartWebServer();
-  String otaName = String("Conectify - ") + String(GetGlobalVariables()->baseDevice.Name);
-  StartOTA(otaName);
   return ReloadNetwork();
 }
 
@@ -147,16 +165,6 @@ bool ReloadNetwork()
   InitializeAP();
   return false;
 }
-
-void RegisterSoftwareVersion()
- {
-   if (softwareName != "")
-   {
-     DebugMessage("Registering softwareVersion");
-     String version = ESP.getChipModel();
-     SendSoftwareVersion(GetGlobalVariables()->baseDevice, softwareName);
-   }
- }
 
 bool ConnectToWifi()
 {
@@ -236,6 +244,8 @@ void ConnectWebsocket()
   DebugMessage("port: " + String(String(GetGlobalVariables()->baseDevice.port).toInt()));
   DebugMessage("suffix: " + inputWebSocketSuffix + String(GetGlobalVariables()->baseDevice.id));
   websocketClient.connect(GetGlobalVariables()->baseDevice.serverUrl, String(GetGlobalVariables()->baseDevice.port).toInt(), inputWebSocketSuffix + String(GetGlobalVariables()->baseDevice.id) + "/");
+  lastWebSocketPongMillis = millis();
+  GetGlobalVariables()->WebSocketPingTimer.ResetTimer();
   websocketClient.ping();
 }
 
@@ -312,16 +322,35 @@ void RegisterActuator()
   }
 }
 
-void onEventsCallback(WebsocketsEvent event, String data) {}
+void onEventsCallback(WebsocketsEvent event, String data)
+{
+  if (event == WebsocketsEvent::GotPong)
+  {
+    lastWebSocketPongMillis = millis();
+  }
+  else if (event == WebsocketsEvent::ConnectionOpened)
+  {
+    DebugMessage("Websocket connection opened");
+    lastWebSocketPongMillis = millis();
+  }
+  else if (event == WebsocketsEvent::ConnectionClosed)
+  {
+    DebugMessage("Websocket connection closed");
+  }
+}
 
 void CreateBaseDevice()
 {
-    ReadBaseDevice(GetGlobalVariables()->baseDevice);
-    if (GetGlobalVariables()->baseDevice.WiFiTimer > 10)
-    {
-      GetGlobalVariables()->SetWiFiTimerInSeconds(GetGlobalVariables()->baseDevice.WiFiTimer);
-    }
-    GetGlobalVariables()->SetSensoricTimerInSeconds(GetGlobalVariables()->baseDevice.SensorTimer);
+  ReadBaseDevice(GetGlobalVariables()->baseDevice);
+  if (GetGlobalVariables()->baseDevice.WiFiTimer > 0)
+  {
+    GetGlobalVariables()->SetWiFiTimerInSeconds(GetGlobalVariables()->baseDevice.WiFiTimer);
+  }
+  else
+  {
+    GetGlobalVariables()->SetWiFiTimerInSeconds(120);
+  }
+  GetGlobalVariables()->SetSensoricTimerInSeconds(GetGlobalVariables()->baseDevice.SensorTimer);
 }
 
 void AskServerForTime()
@@ -343,46 +372,6 @@ void AskServerForTime()
   }
 }
 
-void StartOTA(String OTAName)
-{
-  DebugMessage("Registering OTA");
-
-  int n = OTAName.length();
-  char char_array[n + 1];
-  strcpy(char_array, OTAName.c_str());
-
-  ArduinoOTA.setHostname(char_array);
-  ArduinoOTA.onStart([]()
-                     {
-    String type;
-    if (ArduinoOTA.getCommand() == U_FLASH) {
-      type = "sketch";
-    } else { // U_FS
-      type = "filesystem";
-    }
-
-    DebugMessage("Start updating " + type); });
-  ArduinoOTA.onEnd([]()
-                   { DebugMessage("OTA Failed"); });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total)
-                        { Serial.printf("Progress: %u%%\r", (progress / (total / 100))); });
-  ArduinoOTA.onError([](ota_error_t error)
-                     {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) {
-      DebugMessage("Auth Failed");
-    } else if (error == OTA_BEGIN_ERROR) {
-      DebugMessage("Begin Failed");
-    } else if (error == OTA_CONNECT_ERROR) {
-      DebugMessage("Connect Failed");
-    } else if (error == OTA_RECEIVE_ERROR) {
-      DebugMessage("Receive Failed");
-    } else if (error == OTA_END_ERROR) {
-      DebugMessage("End Failed");
-    } });
-  ArduinoOTA.begin();
-}
-
 void RecievedMessageRoutine()
 {
   if (usb.ReadMessage())
@@ -402,7 +391,6 @@ void RegisterAllEntities()
     SaveSensorIDs(GetGlobalVariables()->sensorsArr, GetGlobalVariables()->sensorsArrSize);
     RegisterActuator();
     SaveActuatorIDs(GetGlobalVariables()->actuatorsArr, GetGlobalVariables()->actuatorArrSize);
-    RegisterSoftwareVersion();
   }
   else
   {
@@ -412,7 +400,8 @@ void RegisterAllEntities()
 
 void HandleIncomingValue(String source, float value, String stringValue, String unit)
 {
-  if(valuesArrayLength == 0){
+  if (valuesArrayLength == 0)
+  {
     DebugMessage("Values array is empty");
     return;
   }
@@ -458,6 +447,19 @@ DNSServer *GetDns()
   return &dnsServer;
 }
 
-void SetSoftwareName(String soft){
-  softwareName = soft;
+void SetSoftwareId(String id)
+{
+  softwareId = id;
+}
+
+bool IsUpdateIdSet()
+{
+  if (softwareId.length() != 32)
+    return false;
+  for (int i = 0; i < 32; i++)
+  {
+    if (!isxdigit(softwareId[i]))
+      return false;
+  }
+  return true;
 }

@@ -34,7 +34,7 @@ public:
     float GetNumericValue();
     String SerializeSensor(char deviceId[IdStringLength]);
     String SerializeValue(Time dateTime);
-    String ShowHtml();
+    String ShowHtml(int idx);
     void MarkAsRead();
     bool HasChanged();
 };
@@ -57,7 +57,7 @@ public:
 
     String SerializeActuator(char deviceId[IdStringLength]);
     String SerializeResponse(Time dateTime);
-    String ShowHtml();
+    String ShowHtml(int idx);
 
     Actuator(Sensor* sensor, String ActuatorName);
     Actuator();

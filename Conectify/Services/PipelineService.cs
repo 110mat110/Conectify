@@ -110,8 +110,19 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
 
         if (evnt.DestinationId.HasValue)
         {
+            var cachedOwner = allSubs.FirstOrDefault(x => x.AllDependantIds.Contains(evnt.DestinationId.Value));
 
-            var sourceDeviceId = await FindSourceDeviceId(evnt.DestinationId.Value);
+            Guid? sourceDeviceId = cachedOwner?.DeviceId;
+
+            if (sourceDeviceId is null)
+            {
+                sourceDeviceId = await FindSourceDeviceId(evnt.DestinationId.Value);
+
+                if (sourceDeviceId.HasValue)
+                {
+                    await subscribersCache.UpdateSubscriber(sourceDeviceId.Value);
+                }
+            }
 
             if (sourceDeviceId.HasValue)
             {

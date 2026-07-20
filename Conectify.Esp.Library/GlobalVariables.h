@@ -19,6 +19,7 @@ public:
     TickTimer TimeHandler = TickTimer(1);
     TickTimer WifiTimer = TickTimer(120);
     TickTimer SensoricTimer = TickTimer(1);
+    TickTimer WebSocketPingTimer = TickTimer(30);
 
     bool initialized;
     int ledstate;

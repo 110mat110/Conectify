@@ -54,7 +54,7 @@ String Sensor::SerializeValue(Time dateTime)
     return json;
 }
 
-String Sensor::ShowHtml()
+String Sensor::ShowHtml(int idx)
 {
     String sensor_html = String(PMTXT(SENSOR_HTML));
     sensor_html.replace("{{ValueName}}", valueName);
@@ -62,6 +62,7 @@ String Sensor::ShowHtml()
     sensor_html.replace("{{Unit}}", valueUnit);
     sensor_html.replace("{{deviceID}}", id);
     sensor_html.replace("{{deviceName}}", sensorName);
+    sensor_html.replace("{{idx}}", String(idx));
     sensor_html.replace("%", HTMLPercentileSign);
     sensor_html.replace("°", HTMLDegreeSign);
 
@@ -71,7 +72,7 @@ String Sensor::ShowHtml()
     {
         if (GetGlobalVariables()->actuatorsArr[i].IsSensorOfThis(id))
         {
-            String currentActuatorHtml = GetGlobalVariables()->actuatorsArr[i].ShowHtml();
+            String currentActuatorHtml = GetGlobalVariables()->actuatorsArr[i].ShowHtml(i);
             sensor_html.replace("{{actuators}}", currentActuatorHtml);
         }
     }
@@ -192,7 +193,7 @@ String Actuator::SerializeResponse(Time dateTime)
     doc.clear();
     return json;
 };
-String Actuator::ShowHtml()
+String Actuator::ShowHtml(int idx)
 {
     String actuator_html = String(PMTXT(ACTUATOR_HTML));
     actuator_html.replace("{{ValueName}}", sensor->GetValueName());
@@ -200,6 +201,7 @@ String Actuator::ShowHtml()
     actuator_html.replace("{{Unit}}", sensor->GetValueUnit());
     actuator_html.replace("{{actuatorId}}", id);
     actuator_html.replace("{{deviceName}}", actuatorName);
+    actuator_html.replace("{{aidx}}", String(idx));
     actuator_html.replace("%", HTMLPercentileSign);
     actuator_html.replace("°", HTMLDegreeSign);
     return actuator_html;

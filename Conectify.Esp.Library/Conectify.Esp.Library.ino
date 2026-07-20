@@ -40,7 +40,7 @@ void UserLoopRoutines(){
 
 #pragma region HiddenRoutines
 void setup() {
-  SetSoftwareName("Conectify.Random");
+SetSoftwareId("09ee4933c114c113856ba10addcfbbc9");
 StartupMandatoryRoutine(NoSensors, NoActuators, DeclareSensors);
 UserSetupRoutines();
 }
