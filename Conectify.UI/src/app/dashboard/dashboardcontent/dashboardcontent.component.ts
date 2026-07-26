@@ -9,12 +9,15 @@ import { DashboardParams } from 'src/models/Dashboard/DashboardParams';
 import { EditDashboardDeviceApi } from 'src/models/Dashboard/EditDashboardDeviceApi';
 import { DashboardDeviceApi } from 'src/models/Dashboard/DashboardDevice';
 import { Actuator } from 'src/models/actuator';
+import { UiSensor } from 'src/models/UiSensor';
+import { UiActuator } from 'src/models/UiActuator';
+import { forkJoin } from 'rxjs';
 
 interface GridItem {
   dashboardDevice: DashboardDeviceApi;
   sourceType: 'sensor' | 'actuator';
-  sensorCube: { id: string[]; visible: boolean; position: { x: number; y: number } } | null;
-  actuatorCube: { id: string; visible: boolean; position: { x: number; y: number } } | null;
+  sensorCube: { id: string[]; visible: boolean; position: { x: number; y: number }; preloaded?: UiSensor[] } | null;
+  actuatorCube: { id: string; visible: boolean; position: { x: number; y: number }; preloaded?: UiActuator } | null;
 }
 
 @Component({
@@ -26,11 +29,11 @@ export class DashboardcontentComponent implements OnInit {
   @Input() dashboard: DashboardApi = null!;
   sensors: {
     apiSensor: DashboardDeviceApi;
-    cube: { id: string[]; visible: boolean; position: { x: number; y: number } };
+    cube: { id: string[]; visible: boolean; position: { x: number; y: number }; preloaded?: UiSensor[] };
   }[] = [];
   actuators: {
     apiActuator: DashboardDeviceApi;
-    cube: { id: string; visible: boolean; position: { x: number; y: number } };
+    cube: { id: string; visible: boolean; position: { x: number; y: number }; preloaded?: UiActuator };
   }[] = [];
   gridItems: GridItem[] = [];
   params: DashboardParams = { editable: false };
@@ -43,15 +46,32 @@ export class DashboardcontentComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Pull the fully-prepared sensor/actuator data (metadata + latest + 24h values) in a single
+    // call, then hand each cube its data so it never has to fetch anything itself.
+    forkJoin({
+      uiSensors: this.befetcher.getUiSensors(),
+      uiActuators: this.befetcher.getUiActuators(),
+    }).subscribe({
+      next: ({ uiSensors, uiActuators }) => this.buildDashboard(uiSensors, uiActuators),
+      error: () => this.buildDashboard([], []),
+    });
+  }
+
+  private buildDashboard(uiSensors: UiSensor[], uiActuators: UiActuator[]): void {
+    const sensorMap = new Map<string, UiSensor>(uiSensors.map(s => [s.id, s]));
+    const actuatorMap = new Map<string, UiActuator>(uiActuators.map(a => [a.id, a]));
+
     if (this.dashboard.dashboardDevices) {
       this.dashboard.dashboardDevices.forEach((item) => {
         if (item.sourceType === 'sensor') {
+          const preloaded = sensorMap.get(item.deviceId);
           this.sensors.push({
             apiSensor: item,
             cube: {
               id: [item.deviceId],
               visible: true,
               position: { x: item.posX, y: item.posY },
+              preloaded: preloaded ? [preloaded] : undefined,
             },
           });
         } else if (item.sourceType === 'actuator') {
@@ -61,6 +81,7 @@ export class DashboardcontentComponent implements OnInit {
               id: item.deviceId,
               visible: true,
               position: { x: item.posX, y: item.posY },
+              preloaded: actuatorMap.get(item.deviceId),
             },
           });
         }

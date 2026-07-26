@@ -9,6 +9,7 @@ public interface IHistoryHttpClient
     Task<IEnumerable<Guid>> GetActiveSensorIds(CancellationToken ct = default);
     Task<IEnumerable<Guid>> GetActiveActuatorIds(CancellationToken ct = default);
     Task<Dictionary<Guid, ApiEvent>> GetLatestValuesBatch(IEnumerable<Guid> sensorIds, CancellationToken ct = default);
+    Task<Dictionary<Guid, SensorHistoryBundle>> GetBundle(IEnumerable<Guid> sourceIds, CancellationToken ct = default);
     Task<IEnumerable<ApiEvent>> GetSensorValues(Guid sensorId, CancellationToken ct = default);
 }
 
@@ -54,6 +55,26 @@ public class HistoryHttpClient : IHistoryHttpClient
 
         var json = await response.Content.ReadAsStringAsync(ct);
         return JsonConvert.DeserializeObject<Dictionary<Guid, ApiEvent>>(json) ?? [];
+    }
+
+    public async Task<Dictionary<Guid, SensorHistoryBundle>> GetBundle(IEnumerable<Guid> sourceIds, CancellationToken ct = default)
+    {
+        var ids = sourceIds.ToList();
+        if (ids.Count == 0) return [];
+
+        var body = JsonConvert.SerializeObject(ids);
+        var content = new StringContent(body, Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync($"{_historyBaseUrl}/api/data/bundle", content, ct);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning("bundle returned {StatusCode}, falling back to latest-only batch", response.StatusCode);
+            var latest = await GetLatestValuesBatch(ids, ct);
+            return latest.ToDictionary(kv => kv.Key, kv => new SensorHistoryBundle { Latest = kv.Value });
+        }
+
+        var json = await response.Content.ReadAsStringAsync(ct);
+        return JsonConvert.DeserializeObject<Dictionary<Guid, SensorHistoryBundle>>(json) ?? [];
     }
 
     private async Task<Dictionary<Guid, ApiEvent>> GetLatestValuesIndividually(IEnumerable<Guid> sensorIds, CancellationToken ct)

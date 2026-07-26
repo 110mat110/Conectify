@@ -18,11 +18,12 @@ public class UiController(
         var activeSensorIds = (await historyClient.GetActiveSensorIds(ct)).ToList();
         if (activeSensorIds.Count == 0) return [];
 
-        var latestValues = await historyClient.GetLatestValuesBatch(activeSensorIds, ct);
+        // One call to history: latest value + last 24h of values for every sensor, served from cache.
+        var bundles = await historyClient.GetBundle(activeSensorIds, ct);
 
         return activeSensorIds.Select(id =>
         {
-            latestValues.TryGetValue(id, out var latest);
+            bundles.TryGetValue(id, out var bundle);
             var deviceId = metadataCache.GetSensorDeviceId(id);
             return new UiSensorResponse
             {
@@ -31,7 +32,8 @@ public class UiController(
                 SourceDeviceId = deviceId,
                 DeviceName = metadataCache.GetDeviceName(deviceId),
                 Metadata = metadataCache.GetSensorMetadata(id),
-                LatestValue = latest,
+                LatestValue = bundle?.Latest,
+                Values = bundle?.Values ?? [],
             };
         });
     }

@@ -11,7 +11,6 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
 import com.conectify.android.data.model.ActionDevice
 import com.conectify.android.data.model.SensorValue
 import com.conectify.android.data.preferences.AppPreferences
@@ -27,22 +26,12 @@ class DelayedRefreshWorker(
     override suspend fun doWork(): Result {
         if (!AppPreferences(context).isConfigured()) return Result.failure()
 
-        val deviceId = inputData.getString(KEY_DEVICE_ID)
-        val value = inputData.getFloat(KEY_VALUE, Float.NaN)
         val repository = SensorRepository(context)
 
-        // Trigger actuator immediately
-        if (deviceId != null && !value.isNaN()) {
-            try {
-                repository.triggerActuator(deviceId, value)
-                Log.d(TAG, "Triggered $deviceId = $value")
-            } catch (e: Exception) {
-                Log.e(TAG, "Trigger failed: ${e.message}")
-                return Result.failure()
-            }
-        }
-
-        // Refresh current values at 1s, 2s, 5s after trigger
+        // Refresh-only worker. The actuator trigger is sent once at click time
+        // (see TriggerDeviceAction); it is deliberately NOT done here, because a
+        // worker that gets stopped/rescheduled re-runs from the top and would
+        // resend the value. These refreshes are read-only GETs — safe to retry.
         for ((label, delayMs) in listOf("1s" to 1_000L, "2s" to 1_000L, "5s" to 3_000L)) {
             delay(delayMs)
             try {
@@ -82,15 +71,13 @@ class DelayedRefreshWorker(
 
     companion object {
         private const val TAG = "DelayedRefreshWorker"
-        const val KEY_DEVICE_ID = "deviceId"
-        const val KEY_VALUE = "value"
+        private const val WORK_NAME = "conectify_refresh_after_trigger"
 
-        fun enqueue(context: Context, deviceId: String, value: Float) {
-            val data = workDataOf(KEY_DEVICE_ID to deviceId, KEY_VALUE to value)
+        fun enqueue(context: Context) {
             WorkManager.getInstance(context).enqueueUniqueWork(
-                "trigger_$deviceId",
+                WORK_NAME,
                 ExistingWorkPolicy.REPLACE,
-                OneTimeWorkRequestBuilder<DelayedRefreshWorker>().setInputData(data).build()
+                OneTimeWorkRequestBuilder<DelayedRefreshWorker>().build()
             )
         }
     }

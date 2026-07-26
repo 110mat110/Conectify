@@ -8,4 +8,5 @@ export interface UiSensor {
   deviceName: string;
   metadata: Metadata[];
   latestValue: BaseInputType | null;
+  values: BaseInputType[];
 }

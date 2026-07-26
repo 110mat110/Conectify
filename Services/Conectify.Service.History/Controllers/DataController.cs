@@ -34,4 +34,14 @@ public class DataController(IDataCachingService dataCachingService) : Controller
             .Where(r => r.latest is not null)
             .ToDictionary(r => r.id, r => r.latest!);
     }
+
+    /// <summary>
+    /// One call returns the latest value AND the last 24h of values for every requested source,
+    /// served entirely from the in-memory cache (no Event table access).
+    /// </summary>
+    [HttpPost("bundle")]
+    public async Task<Dictionary<Guid, SensorHistoryBundle>> GetBundle([FromBody] List<Guid> sourceIds, CancellationToken ct)
+    {
+        return await dataCachingService.GetBundleAsync(sourceIds, ct);
+    }
 }

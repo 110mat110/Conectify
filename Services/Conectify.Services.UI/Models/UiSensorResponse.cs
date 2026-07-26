@@ -11,4 +11,5 @@ public record UiSensorResponse
     public string DeviceName { get; set; } = string.Empty;
     public List<ApiMetadata> Metadata { get; set; } = [];
     public ApiEvent? LatestValue { get; set; }
+    public IEnumerable<ApiEvent> Values { get; set; } = [];
 }

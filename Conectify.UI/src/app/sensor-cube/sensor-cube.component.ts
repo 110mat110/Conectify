@@ -95,11 +95,12 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
     this.getAccentColor();
 
     if (this.isSoloSensor()) {
-      const latestVal = preloaded[0].latestValue;
-      if (latestVal) {
-        this.addData(latestVal);
-      }
-      this.GenerateChart(this.sensors[0].sensor);
+      // Chart data is already in the payload - render it directly, no extra HTTP call.
+      this.setupChartOption();
+      const vals = preloaded[0].values?.length
+        ? preloaded[0].values
+        : (preloaded[0].latestValue ? [preloaded[0].latestValue] : []);
+      this.renderValues(vals);
     }
   }
 
@@ -176,31 +177,12 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private GenerateChart(x: Sensor) {
-    this.be.getUiSensorValues(x.id).subscribe(values => {
-      this.valsReady = values.length > 0;
-      if (this.valsReady) {
-        let previousTick = new Date().getTime() - 86400000;
-        let previousValue = values[0].numericValue;
+    // HTTP fallback (used only when the cube was not preloaded, e.g. the legacy detail path).
+    this.setupChartOption();
+    this.be.getUiSensorValues(x.id).subscribe(values => this.renderValues(values));
+  }
 
-        this.mapedValues = [];
-
-        values.forEach(value => {
-          for (let i = previousTick; i < value.timeCreated; i = i + 30000) {
-            this.mapedValues.push([i, previousValue]);
-          }
-          previousValue = value.numericValue;
-          previousTick = value.timeCreated;
-        });
-
-        let now = new Date().getTime();
-        for (let i = previousTick; i <= now; i = i + 30000) {
-          this.mapedValues.push([i, previousValue]);
-        }
-
-        this.updateChartWithThresholds();
-      }
-    });
-
+  private setupChartOption() {
     this.chartOption = {
       grid: { top: 0, right: 0, bottom: 0, left: 0, containLabel: false },
       xAxis: {
@@ -219,6 +201,33 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
         symbolKeepAspect: false,
       }]
     };
+  }
+
+  private renderValues(values: BaseInputType[]) {
+    this.valsReady = values.length > 0;
+    if (!this.valsReady) {
+      return;
+    }
+
+    let previousTick = new Date().getTime() - 86400000;
+    let previousValue = values[0].numericValue;
+
+    this.mapedValues = [];
+
+    values.forEach(value => {
+      for (let i = previousTick; i < value.timeCreated; i = i + 30000) {
+        this.mapedValues.push([i, previousValue]);
+      }
+      previousValue = value.numericValue;
+      previousTick = value.timeCreated;
+    });
+
+    let now = new Date().getTime();
+    for (let i = previousTick; i <= now; i = i + 30000) {
+      this.mapedValues.push([i, previousValue]);
+    }
+
+    this.updateChartWithThresholds();
   }
 
   private updateChartWithThresholds() {
