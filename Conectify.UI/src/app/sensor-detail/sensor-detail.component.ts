@@ -1,11 +1,9 @@
 import { Component, Inject, Input, OnInit } from '@angular/core';
-import { BaseInputType } from 'src/models/extendedValue';
 import { Sensor } from 'src/models/sensor';
-import { Device } from 'src/models/thing';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Metadata } from 'src/models/metadata';
+import { UiThreshold, UiValue } from 'src/models/UiCube';
 
 @Component({
   selector: 'app-sensor-detail',
@@ -16,11 +14,11 @@ export class SensorDetailComponent implements OnInit {
 
   chartOption: any;
   mapedValues: (string | number)[][] = [];
-  public latestVal?: BaseInputType;
+  public latestVal?: UiValue;
   public latestValTime?: string;
   defaultColor: string = "#4fc3f7";
 
-  constructor(public messenger: MessagesService, private be: BEFetcherService, @Inject(MAT_DIALOG_DATA) public data: { sensor: Sensor, metadata: Metadata[], latestVal?: BaseInputType }) { }
+  constructor(public messenger: MessagesService, private be: BEFetcherService, @Inject(MAT_DIALOG_DATA) public data: { sensor: Sensor, thresholds: UiThreshold[], latestVal?: UiValue }) { }
 
   ngOnInit(): void {
     if (this.data.sensor) {
@@ -62,12 +60,11 @@ export class SensorDetailComponent implements OnInit {
   setOptions() {
     const distanceFromEdge = 50;
 
-    let thresholdPieces = this.data.metadata
-      .filter(m => m.name === "Threshold") // Filter metadata where type is "Threshold"
-      .map(m => ({
-        gt: m.minVal,
-        lte: m.maxVal,
-        color: m.stringValue
+    let thresholdPieces = this.data.thresholds
+      .map(t => ({
+        gt: t.min,
+        lte: t.max,
+        color: t.color
       }));
     if (thresholdPieces.length == 0) {
       thresholdPieces.push({ gt: -10000, lte: -9000, color: this.defaultColor })

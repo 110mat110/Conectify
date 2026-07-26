@@ -1,12 +1,17 @@
-import { Metadata } from './metadata';
-import { BaseInputType } from './extendedValue';
+import { UiIcon, UiValue } from './UiCube';
 
 export interface UiActuator {
   id: string;
-  name: string;
-  sourceDeviceId: string;
+  deviceId: string;
   sensorId: string;
+  name: string;
   deviceName: string;
-  metadata: Metadata[];
-  latestValue: BaseInputType | null;
+  showName: string | null;
+  visible: boolean;
+  latest: UiValue | null;
+  ioType: number;
+  minValue: number;
+  maxValue: number;
+  metadataValue: number;
+  icons: UiIcon[];
 }

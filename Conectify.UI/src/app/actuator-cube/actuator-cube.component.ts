@@ -1,11 +1,11 @@
 import { Overlay } from '@angular/cdk/overlay';
 import { Component, Input, OnInit, Output, ViewContainerRef, EventEmitter } from '@angular/core';
 import { Actuator } from 'src/models/actuator';
-import { BaseInputType } from 'src/models/extendedValue';
 import { IOType } from 'src/models/IOType';
 import { Metadata } from 'src/models/metadata';
 import { Device } from 'src/models/thing';
 import { UiActuator } from 'src/models/UiActuator';
+import { UiIcon, UiValue } from 'src/models/UiCube';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 import { OutputCreatorService } from '../output-creator.service';
@@ -25,9 +25,10 @@ export class ActuatorCubeComponent implements OnInit {
   @Input() params?: DashboardParams;
   public actuator?: Actuator;
   public device?: Device;
-  public latestVal?: BaseInputType;
+  public latestVal?: UiValue;
   public showName?: string = undefined;
-  iotype: IOType = IOType.Undefined;
+  public icons: UiIcon[] = [];
+  iotype: number = IOType.Undefined;
   stringvalue: string = "";
   numericvalue: number | undefined = undefined;
   metadatas: Metadata[] = [];
@@ -49,8 +50,8 @@ export class ActuatorCubeComponent implements OnInit {
     }
   }
 
-  setLatestVal(val: BaseInputType, soruce: string){
-    this.latestVal = val ??  null;
+  setLatestVal(val: UiValue, soruce: string){
+    this.latestVal = val ?? undefined;
     console.warn(this.latestVal?.numericValue + " from " + soruce);
   }
 
@@ -67,22 +68,29 @@ export class ActuatorCubeComponent implements OnInit {
   }
 
   private initFromPreloaded(preloaded: UiActuator): void {
+    // The UI service already parsed the IOType metadata and resolved name/visibility/icons.
     this.actuator = {
       id: preloaded.id,
       name: preloaded.name,
-      sourceDeviceId: preloaded.sourceDeviceId,
+      sourceDeviceId: preloaded.deviceId,
       sensorId: preloaded.sensorId,
       metadata: [],
     } as Actuator;
 
-    this.device = { id: preloaded.sourceDeviceId, name: preloaded.deviceName } as Device;
-    this.metadatas = preloaded.metadata as Metadata[];
-
-    if (preloaded.latestValue) {
-      this.setLatestVal(preloaded.latestValue, "preloaded");
+    this.device = { id: preloaded.deviceId, name: preloaded.deviceName } as Device;
+    this.icons = preloaded.icons ?? [];
+    this.iotype = preloaded.ioType;
+    this.minValue = preloaded.minValue;
+    this.maxValue = preloaded.maxValue;
+    this.metadataValue = preloaded.metadataValue;
+    this.showName = preloaded.showName ?? undefined;
+    if (this.actuatorId) {
+      this.actuatorId.visible = preloaded.visible;
     }
 
-    this.processMetadata();
+    if (preloaded.latest) {
+      this.setLatestVal(preloaded.latest, "preloaded");
+    }
 
     this.websocketService.receivedMessages.subscribe(msg => {
       this.HandleIncomingValue(msg);
@@ -92,6 +100,7 @@ export class ActuatorCubeComponent implements OnInit {
   private initFromHttp(id: string): void {
     this.be.getActuatorMetadatas(id).subscribe(x => {
       this.metadatas = x;
+      this.icons = x.map(m => ({ name: m.name, stringValue: m.stringValue }));
       this.processMetadata();
     });
 
@@ -110,7 +119,7 @@ export class ActuatorCubeComponent implements OnInit {
 
     if (this.latestVal) {
       this.stringvalue = this.latestVal.stringValue;
-      this.numericvalue = this.latestVal.numericValue;
+      this.numericvalue = this.latestVal.numericValue ?? undefined;
     }
   }
 

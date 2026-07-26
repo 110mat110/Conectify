@@ -6,8 +6,8 @@
     <b *ngIf="!showName">{{sensors[0]?.sensor?.name}} &#64; {{device?.name}}</b>
   </div>
 
-  <div *ngIf="sensors[0]?.metadatas" class="cube-meta">
-    <app-metadata-icons [metadatas]="sensors[0].metadatas"></app-metadata-icons>
+  <div *ngIf="icons.length" class="cube-meta">
+    <app-metadata-icons [metadatas]="icons"></app-metadata-icons>
   </div>
 
   <div *ngIf="sensors[0]?.latestVal" class="cube-value">

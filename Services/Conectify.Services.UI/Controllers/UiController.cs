@@ -18,24 +18,29 @@ public class UiController(
         var activeSensorIds = (await historyClient.GetActiveSensorIds(ct)).ToList();
         if (activeSensorIds.Count == 0) return [];
 
-        // One call to history: latest value + last 24h of values for every sensor, served from cache.
+        // One call to history: latest value + downsampled 24h series for every sensor.
         var bundles = await historyClient.GetBundle(activeSensorIds, ct);
 
         return activeSensorIds.Select(id =>
         {
             bundles.TryGetValue(id, out var bundle);
             var deviceId = metadataCache.GetSensorDeviceId(id);
+            var metadata = metadataCache.GetSensorMetadata(id);
+
             return new UiSensorResponse
             {
                 Id = id,
+                DeviceId = deviceId,
                 Name = metadataCache.GetSensorName(id),
-                SourceDeviceId = deviceId,
                 DeviceName = metadataCache.GetDeviceName(deviceId),
-                Metadata = metadataCache.GetSensorMetadata(id),
-                LatestValue = bundle?.Latest,
-                Values = bundle?.Values ?? [],
+                ShowName = UiCubeMapper.ShowName(metadata),
+                Visible = UiCubeMapper.IsVisible(metadata),
+                Latest = UiCubeMapper.ToUiValue(bundle?.Latest),
+                Values = bundle is null ? [] : UiCubeMapper.ToPoints(bundle.Values),
+                Thresholds = UiCubeMapper.Thresholds(metadata),
+                Icons = UiCubeMapper.Icons(metadata),
             };
-        });
+        }).ToList();
     }
 
     [HttpGet("actuators")]
@@ -59,17 +64,26 @@ public class UiController(
             var sensorId = metadataCache.GetActuatorSensorId(id);
             latestValues.TryGetValue(sensorId, out var latest);
             var deviceId = metadataCache.GetActuatorDeviceId(id);
+            var metadata = metadataCache.GetActuatorMetadata(id);
+            var (ioType, min, max, metaValue) = UiCubeMapper.IoType(metadata);
+
             return new UiActuatorResponse
             {
                 Id = id,
-                Name = metadataCache.GetActuatorName(id),
-                SourceDeviceId = deviceId,
+                DeviceId = deviceId,
                 SensorId = sensorId,
+                Name = metadataCache.GetActuatorName(id),
                 DeviceName = metadataCache.GetDeviceName(deviceId),
-                Metadata = metadataCache.GetActuatorMetadata(id),
-                LatestValue = latest,
+                ShowName = UiCubeMapper.ShowName(metadata),
+                Visible = UiCubeMapper.IsVisible(metadata),
+                Latest = UiCubeMapper.ToUiValue(latest),
+                IoType = ioType,
+                MinValue = min,
+                MaxValue = max,
+                MetadataValue = metaValue,
+                Icons = UiCubeMapper.Icons(metadata),
             };
-        });
+        }).ToList();
     }
 
     [HttpGet("sensor/{sensorId}/values")]

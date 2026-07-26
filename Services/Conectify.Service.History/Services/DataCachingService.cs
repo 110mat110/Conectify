@@ -36,6 +36,9 @@ public class DataCachingService : IDataCachingService
     private readonly Timer pruneTimer;
     private static readonly TimeSpan window = TimeSpan.FromDays(1);
 
+    private const long BucketMillis = 2 * 60 * 1000;
+    private const int MaxPoints = 720;
+
     public DataCachingService(IServiceProvider serviceProvider, IMapper mapper, ILogger<DataCachingService> logger, IDeviceCachingService deviceCachingService)
     {
         this.serviceProvider = serviceProvider;
@@ -106,7 +109,7 @@ public class DataCachingService : IDataCachingService
                 return Enumerable.Empty<ApiEvent>();
             }
 
-            return mapper.Map<IEnumerable<ApiEvent>>(snapshot);
+            return mapper.Map<IEnumerable<ApiEvent>>(Downsample(snapshot));
         }, sourceId, "Get data for last 24h"));
     }
 
@@ -141,11 +144,12 @@ public class DataCachingService : IDataCachingService
                     continue;
                 }
 
-                var values = mapper.Map<List<ApiEvent>>(snapshot);
                 result[sourceId] = new SensorHistoryBundle
                 {
-                    Values = values,
-                    Latest = values[^1], // snapshot is ordered ascending by time
+                    // Downsampled series for the chart, but keep the true latest reading un-averaged
+                    // so the cube's current value and accent colour stay exact.
+                    Values = mapper.Map<List<ApiEvent>>(Downsample(snapshot)),
+                    Latest = mapper.Map<ApiEvent>(snapshot[^1]), // snapshot is ordered ascending by time
                 };
             }
 
@@ -193,6 +197,61 @@ public class DataCachingService : IDataCachingService
             }
         }
     }
+
+    /// <summary>
+    /// Collapses an ascending-by-time list of events into at most one point per 2-minute bucket,
+    /// averaging the numeric value of everything that falls in the same bucket. Non-numeric fields
+    /// (unit, string value, ...) are taken from the last event in the bucket.
+    /// </summary>
+    private static List<Event> Downsample(List<Event> ordered)
+    {
+        if (ordered.Count <= MaxPoints)
+        {
+            return ordered;
+        }
+
+        var result = new List<Event>();
+        long currentBucket = ordered[0].TimeCreated / BucketMillis;
+        double sum = 0;
+        int numericCount = 0;
+        Event last = ordered[0];
+
+        foreach (var e in ordered)
+        {
+            long bucket = e.TimeCreated / BucketMillis;
+            if (bucket != currentBucket)
+            {
+                result.Add(BuildAveraged(last, sum, numericCount));
+                currentBucket = bucket;
+                sum = 0;
+                numericCount = 0;
+            }
+
+            if (e.NumericValue.HasValue)
+            {
+                sum += e.NumericValue.Value;
+                numericCount++;
+            }
+            last = e;
+        }
+
+        result.Add(BuildAveraged(last, sum, numericCount));
+
+        return result;
+    }
+
+    private static Event BuildAveraged(Event representative, double sum, int numericCount) => new()
+    {
+        Id = representative.Id,
+        SourceId = representative.SourceId,
+        DestinationId = representative.DestinationId,
+        Type = representative.Type,
+        Name = representative.Name,
+        Unit = representative.Unit,
+        StringValue = representative.StringValue,
+        NumericValue = numericCount > 0 ? (float)(sum / numericCount) : null,
+        TimeCreated = representative.TimeCreated,
+    };
 
     private List<Event> SnapshotWithinWindow(Guid sourceId)
     {

@@ -207,7 +207,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
     private async Task SendPower(float? pwr, Guid sensorId)
     {
-        var res = cache.ProcessFrequentValue(sensorId, pwr, TimeSpan.FromSeconds(pwr < 1 ? 0 : 10));
+        var res = cache.ProcessFrequentValue(sensorId, pwr, TimeSpan.FromMinutes(1));
 
         if (res is null)
         {
@@ -227,23 +227,6 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         };
 
         await websocketClient.SendMessageAsync(message);
-
-        if (pwr < 1)
-        {
-            var lowPwr = new WebsocketEvent()
-            {
-                Id = Guid.NewGuid(),
-                Name = "Power",
-                NumericValue = pwr.Value,
-                StringValue = "",
-                TimeCreated = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-                Unit = "W",
-                SourceId = sensorId,
-                Type = Constants.Events.Value,
-            };
-
-            await websocketClient.SendMessageAsync(lowPwr);
-        }
     }
 
     private async Task InitializeShelly(ShellyWS message, WebSocket source, string src)

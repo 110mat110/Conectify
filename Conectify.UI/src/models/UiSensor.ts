@@ -1,12 +1,14 @@
-import { Metadata } from './metadata';
-import { BaseInputType } from './extendedValue';
+import { UiIcon, UiPoint, UiThreshold, UiValue } from './UiCube';
 
 export interface UiSensor {
   id: string;
+  deviceId: string;
   name: string;
-  sourceDeviceId: string;
   deviceName: string;
-  metadata: Metadata[];
-  latestValue: BaseInputType | null;
-  values: BaseInputType[];
+  showName: string | null;
+  visible: boolean;
+  latest: UiValue | null;
+  values: UiPoint[];
+  thresholds: UiThreshold[];
+  icons: UiIcon[];
 }

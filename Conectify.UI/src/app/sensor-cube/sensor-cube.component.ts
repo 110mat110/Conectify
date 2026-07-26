@@ -1,6 +1,4 @@
-import { Component, ElementRef, HostListener, Input, OnChanges, OnInit, SimpleChanges, ViewChild, ViewContainerRef, OnDestroy } from '@angular/core';
-import { BaseInputType } from 'src/models/extendedValue';
-import { Metadata } from 'src/models/metadata';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, OnDestroy } from '@angular/core';
 import { Sensor } from 'src/models/sensor';
 import { Device } from 'src/models/thing';
 import { BEFetcherService } from '../befetcher.service';
@@ -12,6 +10,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { SensorData } from 'src/models/SensorData';
 import { UiSensor } from 'src/models/UiSensor';
+import { UiIcon, UiPoint, UiThreshold, UiValue } from 'src/models/UiCube';
 import { forkJoin, Subscription } from 'rxjs';
 
 @Component({
@@ -29,7 +28,9 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
   public valsReady: boolean = false;
   public showName?: string = undefined;
   public accentColor: string = "#2a2a2a";
-  mapedValues: (number | number)[][] = [];
+  public icons: UiIcon[] = [];
+  public thresholds: UiThreshold[] = [];
+  mapedValues: (number | null)[][] = [];
   mergeOptions = {};
   chartOption: any = {};
 
@@ -77,30 +78,34 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private initFromPreloaded(preloaded: UiSensor[]): void {
+    // Everything is pre-computed by the UI service - just wire it into the view.
     this.sensors = preloaded.map(s => ({
       id: s.id,
-      sensor: { id: s.id, name: s.name, sourceDeviceId: s.sourceDeviceId, metadata: [] } as Sensor,
-      metadatas: s.metadata as Metadata[],
-      latestVal: s.latestValue ?? undefined,
+      sensor: { id: s.id, name: s.name, sourceDeviceId: s.deviceId, metadata: [] } as Sensor,
+      latestVal: s.latest ?? undefined,
     }));
 
     if (preloaded.length > 0) {
-      this.device = { id: preloaded[0].sourceDeviceId, name: preloaded[0].deviceName } as Device;
+      this.device = { id: preloaded[0].deviceId, name: preloaded[0].deviceName } as Device;
       if (!this.isSoloSensor()) {
         this.showName = this.device.name;
       }
     }
 
-    this.HandleMetadata();
-    this.getAccentColor();
-
     if (this.isSoloSensor()) {
-      // Chart data is already in the payload - render it directly, no extra HTTP call.
+      const s = preloaded[0];
+      this.thresholds = s.thresholds ?? [];
+      this.icons = s.icons ?? [];
+      this.showName = s.showName ?? undefined;
+      if (this.sensorInput) {
+        this.sensorInput.visible = s.visible;
+      }
+      this.getAccentColor();
       this.setupChartOption();
-      const vals = preloaded[0].values?.length
-        ? preloaded[0].values
-        : (preloaded[0].latestValue ? [preloaded[0].latestValue] : []);
-      this.renderValues(vals);
+      const points: UiPoint[] = s.values?.length
+        ? s.values
+        : (s.latest ? [[s.latest.timeCreated, s.latest.numericValue]] : []);
+      this.renderValues(points);
     }
   }
 
@@ -113,7 +118,6 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
       this.sensors = sensorDetails.map(sensor => ({
         id: sensor.id,
         sensor: sensor,
-        metadatas: [] as Metadata[]
       }));
 
       if (sensorDetails.length > 0) {
@@ -127,10 +131,21 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
 
       forkJoin(this.sensors.map(sensor => this.be.getSensorMetadatas(sensor.id)))
         .subscribe(metadatas => {
-          this.sensors.forEach((sensor, i) => {
-            sensor.metadatas = metadatas[i];
-          });
-          this.HandleMetadata();
+          const meta = metadatas[0] ?? [];
+          this.thresholds = meta
+            .filter(m => m.name === "Threshold")
+            .map(m => ({ min: m.minVal, max: m.maxVal, color: m.stringValue }));
+          this.icons = meta.map(m => ({ name: m.name, stringValue: m.stringValue }));
+
+          const nameMetadata = meta.find(m => m.name === "Name");
+          if (nameMetadata && this.isSoloSensor()) {
+            this.showName = nameMetadata.stringValue;
+          }
+          const visibilityMetadata = meta.find(m => m.name === "Visible");
+          if (visibilityMetadata && this.sensorInput && this.isSoloSensor()) {
+            this.sensorInput.visible = visibilityMetadata.numericValue > 0;
+          }
+
           this.getAccentColor();
           if (this.isSoloSensor()) {
             this.GenerateChart(this.sensors[0].sensor);
@@ -167,7 +182,7 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
     const lastValue = this.mapedValues[this.mapedValues.length - 1][1];
 
     this.mapedValues.push([now, lastValue]);
-    this.mapedValues = this.mapedValues.filter(p => p[0] >= cutoff);
+    this.mapedValues = this.mapedValues.filter(p => (p[0] ?? 0) >= cutoff);
 
     this.updateChartWithThresholds();
   }
@@ -177,9 +192,11 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private GenerateChart(x: Sensor) {
-    // HTTP fallback (used only when the cube was not preloaded, e.g. the legacy detail path).
+    // HTTP fallback (used only when the cube was not preloaded, e.g. an inactive sensor).
     this.setupChartOption();
-    this.be.getUiSensorValues(x.id).subscribe(values => this.renderValues(values));
+    this.be.getUiSensorValues(x.id).subscribe(values =>
+      this.renderValues(values.map(v => [v.timeCreated, v.numericValue] as UiPoint))
+    );
   }
 
   private setupChartOption() {
@@ -203,23 +220,24 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
     };
   }
 
-  private renderValues(values: BaseInputType[]) {
-    this.valsReady = values.length > 0;
+  private renderValues(points: UiPoint[]) {
+    this.valsReady = points.length > 0;
     if (!this.valsReady) {
       return;
     }
 
     let previousTick = new Date().getTime() - 86400000;
-    let previousValue = values[0].numericValue;
+    let previousValue = points[0][1];
 
     this.mapedValues = [];
 
-    values.forEach(value => {
-      for (let i = previousTick; i < value.timeCreated; i = i + 30000) {
+    points.forEach(point => {
+      const time = point[0];
+      for (let i = previousTick; i < time; i = i + 30000) {
         this.mapedValues.push([i, previousValue]);
       }
-      previousValue = value.numericValue;
-      previousTick = value.timeCreated;
+      previousValue = point[1];
+      previousTick = time;
     });
 
     let now = new Date().getTime();
@@ -233,12 +251,11 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
   private updateChartWithThresholds() {
     if (!this.isSoloSensor()) return;
 
-    let thresholdPieces = this.sensors[0].metadatas
-      .filter(m => m.name === "Threshold")
-      .map(m => ({
-        gt: m.minVal,
-        lte: m.maxVal,
-        color: m.stringValue
+    let thresholdPieces = this.thresholds
+      .map(t => ({
+        gt: t.min,
+        lte: t.max,
+        color: t.color
       }));
 
     if (thresholdPieces.length == 0) {
@@ -264,27 +281,12 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
     };
   }
 
-  private HandleMetadata() {
-    if (this.isSoloSensor()) {
-      const visibilityMetadata = this.sensors[0].metadatas.find(x => x.name === "Visible");
-      if (visibilityMetadata && this.sensorInput) {
-        this.sensorInput.visible = visibilityMetadata.numericValue > 0;
-      }
-      const nameMetadata = this.sensors[0].metadatas.find(x => x.name === "Name");
-      if (nameMetadata) {
-        this.showName = nameMetadata.stringValue;
-      }
-    }
-  }
-
   private getAccentColor() {
-    if (this.isSoloSensor() && this.sensors[0].latestVal?.numericValue) {
-      const metadata = this.sensors[0].metadatas.find(x =>
-        x.maxVal >= this.sensors[0].latestVal!.numericValue &&
-        x.minVal < this.sensors[0].latestVal!.numericValue
-      );
-      if (metadata) {
-        this.accentColor = metadata.stringValue;
+    const value = this.sensors[0]?.latestVal?.numericValue;
+    if (this.isSoloSensor() && value != null) {
+      const threshold = this.thresholds.find(t => t.max >= value && t.min < value);
+      if (threshold) {
+        this.accentColor = threshold.color;
         return;
       }
     }
@@ -298,7 +300,7 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
     this.openOverlay();
   }
 
-  addData(newVal: BaseInputType | undefined) {
+  addData(newVal: UiValue | undefined) {
     if (newVal == null) {
       return;
     }
@@ -315,7 +317,7 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
       const dialogRef = this.dialog.open(SensorDetailComponent, {
         width: '70%',
         height: '80%',
-        data: { sensor: this.sensors[0], metadata: this.sensors[0].metadatas, latestVal: this.sensors[0].latestVal },
+        data: { sensor: this.sensors[0].sensor, thresholds: this.thresholds, latestVal: this.sensors[0].latestVal },
         panelClass: "sensor-detail-panel"
       });
     }

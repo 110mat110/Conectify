@@ -1,10 +1,8 @@
-import { BaseInputType } from "src/models/extendedValue";
-import { Metadata } from "src/models/metadata";
 import { Sensor } from "src/models/sensor";
+import { UiValue } from "src/models/UiCube";
 
 export interface SensorData {
   id: string;
   sensor: Sensor;
-  metadatas: Metadata[];
-  latestVal?: BaseInputType;
+  latestVal?: UiValue;
 }

@@ -59,23 +59,52 @@ public class ShellyDeviceCacheItem
 
 public class ShellyFequentValueCahceItem
 {
+    private const float OnThreshold = 10f;   // idle -> drawing power
+    private const float OffThreshold = 1f;    // drawing power -> idle
+
     public DateTime LastSent { get; set; } = DateTime.MinValue;
+
+    public float LastSentValue { get; set; }
 
     public List<float> Values { get; set; } = [];
 
+    /// <summary>
+    /// Averages incoming power and only returns a value to forward once per <paramref name="interval"/>.
+    /// Two transitions bypass the throttle and forward the new reading immediately:
+    ///  - the running average is below 10W and the new reading is above 10W (device turned on),
+    ///  - the running average is above 1W and the new reading is below 1W (device turned off).
+    /// </summary>
     public float? ProcessValue(float? value, TimeSpan interval)
     {
-        if (value == null) return null;
+        if (value is null) return null;
 
-        Values.Add(value.Value);
+        var newValue = value.Value;
+
+        var average = Values.Count > 0 ? Values.Sum() / Values.Count : LastSentValue;
+
+        var turnedOn = average < OnThreshold && newValue > OnThreshold;
+        var turnedOff = average > OffThreshold && newValue < OffThreshold;
+
+        if (turnedOn || turnedOff)
+        {
+            return Flush(newValue);
+        }
+
+        Values.Add(newValue);
+
         if (DateTime.UtcNow - LastSent > interval)
         {
-            var result = Values.Sum() / Values.Count;
-
-            Values.Clear();
-            LastSent = DateTime.UtcNow;
-            return result;
+            return Flush(Values.Sum() / Values.Count);
         }
+
         return null;
+    }
+
+    private float Flush(float valueToSend)
+    {
+        Values.Clear();
+        LastSent = DateTime.UtcNow;
+        LastSentValue = valueToSend;
+        return valueToSend;
     }
 }

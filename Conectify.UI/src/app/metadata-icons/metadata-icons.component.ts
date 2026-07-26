@@ -1,5 +1,4 @@
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
-import { Metadata } from 'src/models/metadata';
 import { MessagesService } from '../messages.service';
 import { MetadataIconService } from '../metadata-icon.service';
 
@@ -10,7 +9,7 @@ import { MetadataIconService } from '../metadata-icon.service';
 })
 export class MetadataIconsComponent implements OnChanges {
 
-  @Input() metadatas: Metadata[] = [];
+  @Input() metadatas: { name: string, stringValue: string }[] = [];
   pics: string[] = [];
   constructor(private msg: MessagesService ,private mis: MetadataIconService) { }
 

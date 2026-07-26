@@ -7,13 +7,13 @@
     <b *ngIf="!showName && !device">{{actuator.name}}</b>
   </div>
 
-  <div *ngIf="metadatas" class="cube-meta">
-    <app-metadata-icons [metadatas]="metadatas"></app-metadata-icons>
+  <div *ngIf="icons.length" class="cube-meta">
+    <app-metadata-icons [metadatas]="icons"></app-metadata-icons>
   </div>
 
   <div *ngIf="latestVal && iotype != 3" class="cube-value">
     <span *ngIf="latestVal.name" class="value-label">{{latestVal.name}}</span>
-    <span *ngIf="latestVal.numericValue >= 0" class="value-chip">{{latestVal.numericValue}} {{latestVal.unit}}</span>
+    <span *ngIf="(latestVal.numericValue ?? -1) >= 0" class="value-chip">{{latestVal.numericValue}} {{latestVal.unit}}</span>
     <span *ngIf="latestVal.stringValue" class="value-chip">{{latestVal.stringValue}}</span>
   </div>
 
