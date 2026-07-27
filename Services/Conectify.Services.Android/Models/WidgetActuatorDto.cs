@@ -1,12 +1,17 @@
 namespace Conectify.Services.Android.Models;
 
+/// <summary>
+/// An actuator row exactly as the widget draws it. IOType is already parsed to the numeric form the
+/// client switches on, and min/max/trigger are the values its buttons send.
+/// </summary>
 public record WidgetActuatorDto(
     Guid Id,
     string Name,
-    string SourceDeviceName,
-    float? CurrentNumericValue,
-    string CurrentStringValue,
+    bool IsActive,
+    float? CurrentValue,
     string Unit,
-    long LastUpdated,
-    List<MetadataDto> Metadata
+    int IoType,
+    float MinVal,
+    float MaxVal,
+    float TriggerValue
 );

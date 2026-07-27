@@ -9,8 +9,9 @@ namespace Conectify.Services.Android.Controllers;
 public class AndroidWidgetController(AndroidWidgetService widgetService, ILogger<AndroidWidgetController> logger) : ControllerBase
 {
     /// <summary>
-    /// Full widget data: all known sensors and actuators with metadata and last value.
-    /// Called once on widget load or after manual refresh.
+    /// Everything the widget draws, already formatted for it: ordered, filtered to visible devices,
+    /// accent colours resolved, IO types parsed, current values attached. Served from memory, so the
+    /// widget can call it on every refresh.
     /// </summary>
     [HttpGet("widget")]
     [ProducesResponseType(typeof(WidgetDataDto), StatusCodes.Status200OK)]
@@ -21,15 +22,6 @@ public class AndroidWidgetController(AndroidWidgetService widgetService, ILogger
         Ok(await widgetService.GetWidgetDataAsync(user, widgetType, ct));
 
     /// <summary>
-    /// Lightweight value refresh: returns only id + current value for each sensor/actuator.
-    /// Called periodically (every 10 min) or on manual refresh button.
-    /// </summary>
-    [HttpGet("values")]
-    [ProducesResponseType(typeof(List<CurrentValueDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetCurrentValues(CancellationToken ct) =>
-        Ok(await widgetService.GetCurrentValuesAsync(ct));
-
-    /// <summary>
     /// Sets a new value for an actuator (e.g. button press in the widget).
     /// </summary>
     [HttpPost("actuator/{id:guid}")]
@@ -37,13 +29,10 @@ public class AndroidWidgetController(AndroidWidgetService widgetService, ILogger
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetActuatorValue(Guid id, [FromBody] SetActuatorValueDto dto, CancellationToken ct)
     {
-        logger.LogInformation("Widget actuator trigger: actuatorId={ActuatorId} numericValue={NumericValue} stringValue={StringValue} unit={Unit}",
-            id, dto.NumericValue, dto.StringValue, dto.Unit);
+        logger.LogInformation("Widget actuator trigger: actuatorId={ActuatorId} numericValue={NumericValue}",
+            id, dto.NumericValue);
 
         var success = await widgetService.SetActuatorValueAsync(id, dto, ct);
-
-        if (!success)
-            logger.LogWarning("Widget actuator trigger failed — actuator not found: actuatorId={ActuatorId}", id);
 
         return success ? NoContent() : NotFound();
     }

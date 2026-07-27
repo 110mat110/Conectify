@@ -6,13 +6,11 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.conectify.android.data.preferences.AppPreferences
 import com.conectify.android.data.repository.SensorRepository
-import com.conectify.android.widget.ConectifyWidget
 import com.conectify.android.widget.RefreshWorker
+import com.conectify.android.widget.SmallRefreshWorker
+import com.conectify.android.widget.WidgetTicker
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -66,11 +64,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun triggerWidgetRefresh() {
-        WorkManager.getInstance(this).enqueueUniqueWork(
-            ConectifyWidget.INITIAL_LOAD_WORK,
-            ExistingWorkPolicy.REPLACE,
-            OneTimeWorkRequestBuilder<RefreshWorker>().build()
-        )
+        WidgetTicker.schedule(this)
+        RefreshWorker.enqueueNow(this)
+        SmallRefreshWorker.enqueueNow(this)
     }
 
     private fun showStatus(view: TextView, message: String, type: StatusType) {

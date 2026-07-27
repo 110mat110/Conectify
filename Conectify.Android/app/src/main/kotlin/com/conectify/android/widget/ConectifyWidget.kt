@@ -42,8 +42,6 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.conectify.android.R
@@ -73,16 +71,15 @@ class ConectifyWidget : GlanceAppWidget() {
     )
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        schedulePeriodicRefresh(context)
+        WidgetTicker.schedule(context)
+        scheduleBackstopRefresh(context)
 
         if (AppPreferences(context).isConfigured()) {
             val state = getAppWidgetState(context, PreferencesGlanceStateDefinition, id)
+            // Only when there is nothing to show at all — refreshing unconditionally here would
+            // loop, since a refresh updates the widget and that runs provideGlance again.
             if (state[WidgetState.SENSORS_JSON_KEY] == null) {
-                WorkManager.getInstance(context).enqueueUniqueWork(
-                    INITIAL_LOAD_WORK,
-                    ExistingWorkPolicy.KEEP,
-                    OneTimeWorkRequestBuilder<RefreshWorker>().build()
-                )
+                RefreshWorker.enqueueNow(context)
             }
         }
 
@@ -111,17 +108,22 @@ class ConectifyWidget : GlanceAppWidget() {
         }
     }
 
-    private fun schedulePeriodicRefresh(context: Context) {
+    /**
+     * Safety net for the one-minute [WidgetTicker] alarm, which does not survive a reboot on its
+     * own. WorkManager's schedule does, and every [RefreshWorker] run re-arms the alarm. 15 minutes
+     * is WorkManager's floor for periodic work — anything shorter is silently clamped to it, which
+     * is why the minute cadence is an alarm rather than a periodic worker.
+     */
+    private fun scheduleBackstopRefresh(context: Context) {
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP,
-            PeriodicWorkRequestBuilder<RefreshWorker>(10, TimeUnit.MINUTES).build()
+            ExistingPeriodicWorkPolicy.UPDATE,
+            PeriodicWorkRequestBuilder<RefreshWorker>(15, TimeUnit.MINUTES).build()
         )
     }
 
     companion object {
         const val WORK_NAME = "conectify_periodic_refresh"
-        const val INITIAL_LOAD_WORK = "conectify_initial_load"
     }
 }
 
@@ -264,32 +266,27 @@ private fun SensorsCarousel(sensors: List<SensorValue>, modifier: GlanceModifier
     }
 }
 
+// A plain Column, not a LazyColumn, and that is the whole reason the buttons work: Glance routes
+// a click inside a lazy collection through an invisible trampoline Activity, and modern Android
+// blocks that as a background activity start, so ON/OFF/TRIGGER taps silently did nothing. Outside
+// a lazy collection the click is a direct broadcast PendingIntent. The trade-off is that Glance
+// caps a container at 10 children, so at most 10 rows are shown (20 actuators when two-column).
 @Composable
 private fun ActuatorsCarousel(devices: List<ActionDevice>, modifier: GlanceModifier) {
     val twoColumns = LocalSize.current.width >= 300.dp
-    if (twoColumns) {
-        val pairs = devices.chunked(2)
-        LazyColumn(modifier = modifier) {
-            items(pairs) { pair ->
-                Row(modifier = GlanceModifier.fillMaxWidth().padding(bottom = 5.dp)) {
-                    pair.forEachIndexed { index, device ->
-                        ActuatorRow(
-                            device = device,
-                            modifier = GlanceModifier.defaultWeight()
-                                .padding(start = if (index > 0) 4.dp else 0.dp)
-                        )
-                    }
-                    if (pair.size == 1) Spacer(modifier = GlanceModifier.defaultWeight())
+    val rows = (if (twoColumns) devices.chunked(2) else devices.map { listOf(it) }).take(10)
+
+    Column(modifier = modifier) {
+        rows.forEach { row ->
+            Row(modifier = GlanceModifier.fillMaxWidth().padding(bottom = 5.dp)) {
+                row.forEachIndexed { index, device ->
+                    ActuatorRow(
+                        device = device,
+                        modifier = GlanceModifier.defaultWeight()
+                            .padding(start = if (index > 0) 4.dp else 0.dp)
+                    )
                 }
-            }
-        }
-    } else {
-        LazyColumn(modifier = modifier) {
-            items(devices) { device ->
-                ActuatorRow(
-                    device = device,
-                    modifier = GlanceModifier.fillMaxWidth().padding(bottom = 5.dp)
-                )
+                if (row.size == 1 && twoColumns) Spacer(modifier = GlanceModifier.defaultWeight())
             }
         }
     }

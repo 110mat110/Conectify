@@ -369,3 +369,42 @@ MigrationBackup/
 /Conectify.UI/.claude
 /Conectify.UI/.angular/cache/18.2.21/angular-webpack/20f92138d7f2e71d25fa9d3d147594d969b5fa72
 /Conectify.Esp.Library/Conectify.Esp.Library.ino.esp32c3.bin
+
+# ---------------------------------------------------------------------------
+# Android (Conectify.Android) — Gradle / Kotlin / Android Studio
+# ---------------------------------------------------------------------------
+
+# Gradle caches & build output
+Conectify.Android/.gradle/
+Conectify.Android/**/build/
+Conectify.Android/buildSrc/build/
+Conectify.Android/.kotlin/
+Conectify.Android/.cxx/
+Conectify.Android/.externalNativeBuild/
+Conectify.Android/captures/
+Conectify.Android/.navigation/
+
+# Machine-specific (SDK/NDK paths) — must never be committed
+**/local.properties
+
+# Android Studio / IntelliJ
+Conectify.Android/.idea/
+
+# Signing material
+*.jks
+*.keystore
+keystore.properties
+
+# Android build artifacts / IDE module files (any location)
+*.apk
+*.aab
+*.aar
+*.ap_
+*.dex
+*.iml
+*.hprof
+
+# The generic [Dd]ebug/ + [Rr]elease/ rules above are for MSBuild output;
+# they must not swallow Android build-variant source sets.
+!Conectify.Android/**/src/[Dd]ebug/
+!Conectify.Android/**/src/[Rr]elease/

@@ -46,10 +46,12 @@ class SmallConectifyWidget : GlanceAppWidget() {
     override val stateDefinition = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        WidgetTicker.schedule(context)
+
         if (AppPreferences(context).isConfigured()) {
             val state = getAppWidgetState(context, PreferencesGlanceStateDefinition, id)
             if (state[WidgetState.SMALL_ITEMS_JSON_KEY] == null) {
-                SmallRefreshWorker.enqueue(context)
+                SmallRefreshWorker.enqueueNow(context)
             }
         }
 

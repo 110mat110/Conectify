@@ -43,7 +43,7 @@ public class DataServiceTest
     [Theory]
     [InlineData("Value")]
     [InlineData("Command")]
-    public async void ItShallRegisterIncomingJsonToCorespondingService(string valueType)
+    public async Task ItShallRegisterIncomingJsonToCorespondingService(string valueType)
     {
         var mapper = new MapperConfiguration(cfg =>
         {
@@ -87,7 +87,7 @@ public class DataServiceTest
 
     [Theory]
     [InlineData(typeof(Event))]
-    public async void ItShallSaveValueToDatabase(Type valueType)
+    public async Task ItShallSaveValueToDatabase(Type valueType)
     {
         var mapper = new MapperConfiguration(cfg =>
         {

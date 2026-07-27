@@ -17,6 +17,13 @@ builder.Services.AddDbContext<ConectifyDb>(o =>
 builder.Services.AddScoped<AndroidWidgetService>();
 builder.Services.AddScoped<AndroidConfigService>();
 
+// Singleton: the whole point is that the snapshot outlives a request.
+builder.Services.AddSingleton<WidgetCache>();
+
+// Pooled client with a timeout well under the widget's one-minute refresh, so a History outage
+// fails fast instead of holding the request open.
+builder.Services.AddHttpClient<HistoryClient>(client => client.Timeout = TimeSpan.FromSeconds(5));
+
 builder.Logging.AddRemoteLogging();
 builder.Services.UseConectifyWebsocket<AndroidConfiguration, DeviceData>();
 builder.Services.AddTelemetry();
