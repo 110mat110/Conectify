@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Conectify.Database;
 using Conectify.Services.Android.Models;
 using Conectify.Services.Library;
@@ -7,6 +8,13 @@ using Conectify.Shared.Library.Models.Websocket;
 using Microsoft.EntityFrameworkCore;
 
 namespace Conectify.Services.Android.Services;
+
+public enum TriggerResult
+{
+    Sent,
+    UnknownActuator,
+    TransportUnavailable,
+}
 
 /// <summary>
 /// Builds the widget payload. A refresh reads device definitions from <see cref="WidgetCache"/> and
@@ -24,6 +32,10 @@ public class AndroidWidgetService(
     public async Task<WidgetDataDto> GetWidgetDataAsync(
         string userMail, string widgetType = AndroidConfigService.WIDGET_LARGE, CancellationToken ct = default)
     {
+        using var activity = AndroidTelemetry.Source.StartActivity("widget.build");
+        activity?.SetTag("widget.user", userMail);
+        activity?.SetTag("widget.type", widgetType);
+
         var definitions = await cache.GetDefinitionsAsync(ct);
         var layout = await cache.GetLayoutAsync(userMail, widgetType, ct);
 
@@ -34,10 +46,13 @@ public class AndroidWidgetService(
         // when the user has a configured or dashboard-derived order — which is the normal case.
         HashSet<Guid>? activeSensors = null;
         HashSet<Guid>? activeActuators = null;
-        if (sensorOrder is not { Count: > 0 } || actuatorOrder is not { Count: > 0 })
+        var usedActiveIds = sensorOrder is not { Count: > 0 } || actuatorOrder is not { Count: > 0 };
+        if (usedActiveIds)
         {
             (activeSensors, activeActuators) = await history.GetActiveIdsAsync(ct);
         }
+
+        activity?.SetTag("widget.ordering", usedActiveIds ? "active-ids-fallback" : "configured");
 
         var sensors = Select(definitions.Sensors, s => s.Id, sensorOrder, activeSensors, fallbackTake: 5);
         var actuators = Select(definitions.Actuators, a => a.Id, actuatorOrder, activeActuators, fallbackTake: null);
@@ -51,21 +66,45 @@ public class AndroidWidgetService(
 
         var values = await history.GetLatestValuesAsync(valueIds, ct);
 
+        activity?.SetTag("widget.sensor_count", sensors.Count);
+        activity?.SetTag("widget.actuator_count", actuators.Count);
+        activity?.SetTag("widget.values_requested", valueIds.Count);
+        activity?.SetTag("widget.values_returned", values.Count);
+
+        logger.LogInformation(
+            "Widget built for user={UserMail} type={WidgetType}: {SensorCount} sensor(s), {ActuatorCount} actuator(s), " +
+            "{ValuesReturned}/{ValuesRequested} value(s) from History, ordering={Ordering}",
+            userMail, widgetType, sensors.Count, actuators.Count, values.Count, valueIds.Count,
+            usedActiveIds ? "active-ids-fallback" : "configured");
+
+        // Values missing here mean History has nothing cached for those sources, which is what a
+        // cube stuck on an empty value looks like from the phone.
+        if (values.Count < valueIds.Count)
+        {
+            logger.LogWarning("Widget has {MissingCount} source(s) with no cached value in History: {MissingIds}",
+                valueIds.Count - values.Count,
+                string.Join(", ", valueIds.Where(id => !values.ContainsKey(id)).Take(10)));
+        }
+
         return new WidgetDataDto(
             sensors.Select(s => ToDto(s, Value(values, s.Id))).ToList(),
             actuators.Select(a => ToDto(a, Value(values, a.SensorId))).ToList());
     }
 
-    /// <summary>
-    /// Sets a new value for an actuator (a button press in the widget). Returns false only when the
-    /// actuator does not exist at all.
-    /// </summary>
-    public async Task<bool> SetActuatorValueAsync(Guid actuatorId, SetActuatorValueDto dto, CancellationToken ct = default)
+    /// <summary>Sets a new value for an actuator (a button press in the widget).</summary>
+    public async Task<TriggerResult> SetActuatorValueAsync(Guid actuatorId, SetActuatorValueDto dto, CancellationToken ct = default)
     {
+        using var activity = AndroidTelemetry.Source.StartActivity("actuator.trigger");
+        activity?.SetTag("actuator.id", actuatorId);
+        activity?.SetTag("actuator.numeric_value", dto.NumericValue);
+        activity?.SetTag("actuator.unit", dto.Unit);
+
         if (!await ActuatorExistsAsync(actuatorId, ct))
         {
             logger.LogWarning("SetActuatorValue: actuator {ActuatorId} not found", actuatorId);
-            return false;
+            activity?.SetTag("actuator.result", nameof(TriggerResult.UnknownActuator));
+            activity?.SetStatus(ActivityStatusCode.Error, "Unknown actuator");
+            return TriggerResult.UnknownActuator;
         }
 
         var ev = new WebsocketEvent
@@ -81,13 +120,27 @@ public class AndroidWidgetService(
             DestinationId = actuatorId
         };
 
-        await websocketClient.SendMessageAsync(ev, ct);
+        // The websocket returns false when it is not connected. Reporting that as success is why a
+        // button press could look fine from the widget while nothing ever switched on.
+        activity?.SetTag("actuator.event_id", ev.Id);
+        activity?.SetTag("actuator.websocket_state", websocketClient.WebSocketState.ToString());
+
+        if (!await websocketClient.SendMessageAsync(ev, ct))
+        {
+            logger.LogError(
+                "SetActuatorValue: websocket unavailable (state={WebSocketState}) — event {EventId} for actuator {ActuatorId} was NOT sent",
+                websocketClient.WebSocketState, ev.Id, actuatorId);
+            activity?.SetTag("actuator.result", nameof(TriggerResult.TransportUnavailable));
+            activity?.SetStatus(ActivityStatusCode.Error, "Websocket unavailable");
+            return TriggerResult.TransportUnavailable;
+        }
 
         logger.LogInformation(
             "SetActuatorValue: sent event {EventId} to actuator {ActuatorId} with numericValue={NumericValue}",
             ev.Id, actuatorId, ev.NumericValue);
 
-        return true;
+        activity?.SetTag("actuator.result", nameof(TriggerResult.Sent));
+        return TriggerResult.Sent;
     }
 
     /// <summary>

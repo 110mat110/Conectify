@@ -19,6 +19,11 @@
             </intent-filter>
         </activity>
 
+        <!-- Widget button taps. Explicit intents only, so no intent-filter is needed. -->
+        <receiver
+            android:name=".widget.WidgetActionReceiver"
+            android:exported="false" />
+
         <!-- Large widget — Glance -->
         <receiver
             android:name=".widget.ConectifyWidgetReceiver"

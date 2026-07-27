@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Conectify.Database;
 using Conectify.Shared.Library;
 using Microsoft.EntityFrameworkCore;
@@ -79,9 +80,15 @@ public class WidgetCache(IServiceScopeFactory scopeFactory, ILogger<WidgetCache>
     {
         var snapshot = definitions;
 
+        // Tagged on the request span so a trace shows at a glance whether this call touched the DB.
+        AndroidTelemetry.TagCurrent(
+            "cache.definitions",
+            snapshot is null ? "cold-load" : IsExpired() ? "hit-stale" : "hit");
+
         if (snapshot is null)
         {
             // Cold start only — this is the one request that pays for the database.
+            logger.LogInformation("Widget definition cache is cold — loading from the database");
             return await LoadDefinitionsAsync(ct);
         }
 
@@ -109,6 +116,9 @@ public class WidgetCache(IServiceScopeFactory scopeFactory, ILogger<WidgetCache>
 
     private async Task<DeviceDefinitions> LoadDefinitionsAsync(CancellationToken ct)
     {
+        using var activity = AndroidTelemetry.Source.StartActivity("widget.definitions.load");
+        var stopwatch = Stopwatch.StartNew();
+
         await definitionsLock.WaitAsync(ct);
         try
         {
@@ -163,8 +173,16 @@ public class WidgetCache(IServiceScopeFactory scopeFactory, ILogger<WidgetCache>
             definitions = loaded;
             Interlocked.Exchange(ref definitionsExpireAtTicks, DateTime.UtcNow.Add(Ttl).Ticks);
 
-            logger.LogInformation("Widget definitions cached: {SensorCount} sensor(s), {ActuatorCount} actuator(s)",
-                sensors.Count, actuators.Count);
+            activity?.SetTag("db.sensor_rows", sensorRows.Count);
+            activity?.SetTag("db.actuator_rows", actuatorRows.Count);
+            activity?.SetTag("cache.sensor_count", sensors.Count);
+            activity?.SetTag("cache.actuator_count", actuators.Count);
+            activity?.SetTag("db.duration_ms", stopwatch.ElapsedMilliseconds);
+
+            logger.LogInformation(
+                "Widget definitions loaded from DB in {ElapsedMs}ms: {SensorRows} sensor row(s) → {SensorCount} visible, " +
+                "{ActuatorRows} actuator row(s) → {ActuatorCount} usable",
+                stopwatch.ElapsedMilliseconds, sensorRows.Count, sensors.Count, actuatorRows.Count, actuators.Count);
 
             return loaded;
         }
@@ -173,7 +191,9 @@ public class WidgetCache(IServiceScopeFactory scopeFactory, ILogger<WidgetCache>
             // Keep serving the previous snapshot rather than failing the widget, and back off so the
             // next request does not immediately queue another doomed load.
             Interlocked.Exchange(ref definitionsExpireAtTicks, DateTime.UtcNow.Add(FailureBackoff).Ticks);
-            logger.LogError(ex, "Widget definition refresh failed — keeping the previous snapshot");
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            logger.LogError(ex, "Widget definition refresh failed after {ElapsedMs}ms — keeping the previous snapshot",
+                stopwatch.ElapsedMilliseconds);
             return definitions;
         }
         finally
@@ -263,6 +283,10 @@ public class WidgetCache(IServiceScopeFactory scopeFactory, ILogger<WidgetCache>
 
     private async Task<WidgetLayout> LoadLayoutAsync(string userMail, string widgetType, CancellationToken ct)
     {
+        using var activity = AndroidTelemetry.Source.StartActivity("widget.layout.load");
+        activity?.SetTag("widget.user", userMail);
+        activity?.SetTag("widget.type", widgetType);
+
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ConectifyDb>();
 
@@ -275,12 +299,23 @@ public class WidgetCache(IServiceScopeFactory scopeFactory, ILogger<WidgetCache>
 
         if (configured.Count > 0)
         {
+            activity?.SetTag("widget.layout_source", "user-config");
+            logger.LogInformation("Widget layout for {UserMail}/{WidgetType}: {ItemCount} configured item(s)",
+                userMail, widgetType, configured.Count);
+
             return new WidgetLayout(
                 configured.Where(i => i.SourceType == "sensor").Select(i => i.DeviceId).ToList(),
                 configured.Where(i => i.SourceType == "actuator").Select(i => i.DeviceId).ToList());
         }
 
-        return await LoadDashboardLayoutAsync(db, userMail, ct);
+        var dashboard = await LoadDashboardLayoutAsync(db, userMail, ct);
+
+        activity?.SetTag("widget.layout_source", "dashboard");
+        logger.LogInformation(
+            "Widget layout for {UserMail}/{WidgetType} falls back to the dashboard: {SensorCount} sensor(s), {ActuatorCount} actuator(s)",
+            userMail, widgetType, dashboard.SensorIds.Count, dashboard.ActuatorIds.Count);
+
+        return dashboard;
     }
 
     /// <summary>Fallback ordering when the user has not configured the widget: their dashboard order.</summary>

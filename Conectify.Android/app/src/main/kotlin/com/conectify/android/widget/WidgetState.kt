@@ -15,6 +15,10 @@ object WidgetState {
     val ACTUATORS_JSON_KEY = stringPreferencesKey("actuators_json")
     val STATUS_KEY = stringPreferencesKey("last_status")
 
+    // Outcome of the last button press. Survives a refresh (which clears STATUS_KEY) so a tap's
+    // result stays on screen until the next tap.
+    val SEND_STATUS_KEY = stringPreferencesKey("last_send_status")
+
     // Small carousel widget (Glance — separate DataStore)
     val SMALL_ITEMS_JSON_KEY = stringPreferencesKey("small_items_json")
     val SMALL_INDEX_KEY = intPreferencesKey("small_index")

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http.Json;
 using Conectify.Shared.Library.Models.Values;
 
@@ -22,7 +23,17 @@ public class HistoryClient(HttpClient http, AndroidConfiguration configuration, 
     public async Task<Dictionary<Guid, ApiEvent>> GetLatestValuesAsync(
         IReadOnlyCollection<Guid> sourceIds, CancellationToken ct = default)
     {
-        if (!IsConfigured || sourceIds.Count == 0)
+        using var activity = AndroidTelemetry.Source.StartActivity("history.latest_values");
+        activity?.SetTag("history.requested_count", sourceIds.Count);
+
+        if (!IsConfigured)
+        {
+            logger.LogWarning("HistoryServiceUrl is not configured — the widget will show no values");
+            activity?.SetTag("history.skipped", "not-configured");
+            return [];
+        }
+
+        if (sourceIds.Count == 0)
         {
             return [];
         }
@@ -32,11 +43,18 @@ public class HistoryClient(HttpClient http, AndroidConfiguration configuration, 
             var response = await http.PostAsJsonAsync($"{BaseUrl}/api/data/latest-batch", sourceIds, ct);
             response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadFromJsonAsync<Dictionary<Guid, ApiEvent>>(ct) ?? [];
+            var values = await response.Content.ReadFromJsonAsync<Dictionary<Guid, ApiEvent>>(ct) ?? [];
+
+            activity?.SetTag("history.returned_count", values.Count);
+            logger.LogInformation("History returned {ReturnedCount}/{RequestedCount} cached value(s)",
+                values.Count, sourceIds.Count);
+
+            return values;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Latest-value batch failed against {HistoryServiceUrl}", configuration.HistoryServiceUrl);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             return [];
         }
     }
@@ -44,6 +62,8 @@ public class HistoryClient(HttpClient http, AndroidConfiguration configuration, 
     /// <summary>Sensors and actuators the History service has seen traffic from in the last 24h.</summary>
     public async Task<(HashSet<Guid> Sensors, HashSet<Guid> Actuators)> GetActiveIdsAsync(CancellationToken ct = default)
     {
+        using var activity = AndroidTelemetry.Source.StartActivity("history.active_ids");
+
         if (!IsConfigured)
         {
             return ([], []);
@@ -55,11 +75,19 @@ public class HistoryClient(HttpClient http, AndroidConfiguration configuration, 
             var actuators = http.GetFromJsonAsync<IEnumerable<Guid>>($"{BaseUrl}/api/device/actuators", ct);
             await Task.WhenAll(sensors, actuators);
 
-            return ((await sensors ?? []).ToHashSet(), (await actuators ?? []).ToHashSet());
+            var result = ((await sensors ?? []).ToHashSet(), (await actuators ?? []).ToHashSet());
+
+            activity?.SetTag("history.active_sensors", result.Item1.Count);
+            activity?.SetTag("history.active_actuators", result.Item2.Count);
+            logger.LogInformation("History reports {SensorCount} active sensor(s), {ActuatorCount} active actuator(s)",
+                result.Item1.Count, result.Item2.Count);
+
+            return result;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Active-device lookup failed against {HistoryServiceUrl}", configuration.HistoryServiceUrl);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             return ([], []);
         }
     }

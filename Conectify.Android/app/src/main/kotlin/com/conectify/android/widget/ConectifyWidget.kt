@@ -11,12 +11,15 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalContext
 import androidx.glance.LocalSize
+import androidx.glance.action.Action
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.action.actionSendBroadcast
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
@@ -52,7 +55,6 @@ import com.conectify.android.widget.WidgetState.TAB_ACTUATORS
 import com.conectify.android.widget.WidgetState.TAB_SENSORS
 import com.conectify.android.widget.actions.RefreshAction
 import com.conectify.android.widget.actions.SwitchTabAction
-import com.conectify.android.widget.actions.TriggerDeviceAction
 import com.google.gson.Gson
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -103,7 +105,8 @@ class ConectifyWidget : GlanceAppWidget() {
                 activeTab = activeTab,
                 lastRefreshTime = lastRefresh,
                 isConfigured = configured,
-                statusMessage = state[WidgetState.STATUS_KEY]
+                statusMessage = state[WidgetState.STATUS_KEY],
+                sendStatus = state[WidgetState.SEND_STATUS_KEY]
             )
         }
     }
@@ -136,7 +139,8 @@ fun ConectifyWidgetContent(
     activeTab: String,
     lastRefreshTime: Long,
     isConfigured: Boolean = true,
-    statusMessage: String? = null
+    statusMessage: String? = null,
+    sendStatus: String? = null
 ) {
     Box(
         modifier = GlanceModifier
@@ -172,7 +176,11 @@ fun ConectifyWidgetContent(
             }
 
             Spacer(modifier = GlanceModifier.height(4.dp))
-            RefreshBar(lastRefreshTime = lastRefreshTime, statusMessage = statusMessage)
+            RefreshBar(
+                lastRefreshTime = lastRefreshTime,
+                statusMessage = statusMessage,
+                sendStatus = sendStatus
+            )
         }
     }
 }
@@ -410,24 +418,14 @@ private fun ActuatorRow(device: ActionDevice, modifier: GlanceModifier = GlanceM
                             label = "ON",
                             color = BTN_GREEN,
                             modifier = GlanceModifier.defaultWeight(),
-                            onClick = actionRunCallback<TriggerDeviceAction>(
-                                actionParametersOf(
-                                    TriggerDeviceAction.DEVICE_ID_KEY to device.id,
-                                    TriggerDeviceAction.VALUE_KEY to device.maxVal
-                                )
-                            )
+                            onClick = triggerAction(device.id, device.maxVal)
                         )
                         Spacer(modifier = GlanceModifier.width(6.dp))
                         ActuatorButton(
                             label = "OFF",
                             color = BTN_RED,
                             modifier = GlanceModifier.defaultWeight(),
-                            onClick = actionRunCallback<TriggerDeviceAction>(
-                                actionParametersOf(
-                                    TriggerDeviceAction.DEVICE_ID_KEY to device.id,
-                                    TriggerDeviceAction.VALUE_KEY to device.minVal
-                                )
-                            )
+                            onClick = triggerAction(device.id, device.minVal)
                         )
                     }
                     IO_TRIGGER -> {
@@ -435,12 +433,7 @@ private fun ActuatorRow(device: ActionDevice, modifier: GlanceModifier = GlanceM
                             label = "TRIGGER",
                             color = BTN_BLUE,
                             modifier = GlanceModifier.fillMaxWidth(),
-                            onClick = actionRunCallback<TriggerDeviceAction>(
-                                actionParametersOf(
-                                    TriggerDeviceAction.DEVICE_ID_KEY to device.id,
-                                    TriggerDeviceAction.VALUE_KEY to device.triggerValue
-                                )
-                            )
+                            onClick = triggerAction(device.id, device.triggerValue)
                         )
                     }
                 }
@@ -448,6 +441,14 @@ private fun ActuatorRow(device: ActionDevice, modifier: GlanceModifier = GlanceM
         }
     }
 }
+
+/**
+ * A button tap goes straight to [WidgetActionReceiver] as a plain explicit broadcast — no Glance
+ * callback machinery in between.
+ */
+@Composable
+private fun triggerAction(deviceId: String, value: Float): Action =
+    actionSendBroadcast(WidgetActionReceiver.triggerIntent(LocalContext.current, deviceId, value))
 
 @Composable
 private fun ActuatorButton(
@@ -478,16 +479,21 @@ private fun ActuatorButton(
 // ── Refresh bar ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun RefreshBar(lastRefreshTime: Long, statusMessage: String? = null) {
-    val isError = statusMessage?.startsWith("Error") == true
+private fun RefreshBar(
+    lastRefreshTime: Long,
+    statusMessage: String? = null,
+    sendStatus: String? = null
+) {
+    // The last button press wins: it is the most recent thing the user did, and seeing it appear is
+    // how you tell a tap that never fired from one whose request failed.
     val displayText = when {
-        isError -> statusMessage!!
-        statusMessage != null && lastRefreshTime > 0 ->
-            "${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(lastRefreshTime))} — $statusMessage"
+        sendStatus != null -> sendStatus
+        statusMessage != null -> statusMessage
         lastRefreshTime > 0 ->
             "Refreshed ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(lastRefreshTime))}"
         else -> "Tap ↺ to load"
     }
+    val isError = displayText.startsWith("Error") || displayText.startsWith("✗")
     val textColor = if (isError) Color(0xFFef5350) else Color(0xFF555555)
 
     Row(

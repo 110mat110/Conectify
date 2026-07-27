@@ -10,10 +10,12 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalContext
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.action.actionSendBroadcast
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.getAppWidgetState
@@ -38,7 +40,6 @@ import com.conectify.android.R
 import com.conectify.android.data.model.WidgetItemDto
 import com.conectify.android.data.preferences.AppPreferences
 import com.conectify.android.widget.actions.NavigateAction
-import com.conectify.android.widget.actions.TriggerDeviceAction
 import com.google.gson.Gson
 
 class SmallConectifyWidget : GlanceAppWidget() {
@@ -174,11 +175,8 @@ private fun SmallCube(item: WidgetItemDto, index: Int, total: Int) {
                     label = "ON",
                     accent = accent,
                     active = true,
-                    onClick = actionRunCallback<TriggerDeviceAction>(
-                        actionParametersOf(
-                            TriggerDeviceAction.DEVICE_ID_KEY to item.id,
-                            TriggerDeviceAction.VALUE_KEY to item.maxVal
-                        )
+                    onClick = actionSendBroadcast(
+                        WidgetActionReceiver.triggerIntent(LocalContext.current, item.id, item.maxVal)
                     )
                 )
                 Spacer(modifier = GlanceModifier.padding(horizontal = 4.dp))
@@ -186,11 +184,8 @@ private fun SmallCube(item: WidgetItemDto, index: Int, total: Int) {
                     label = "OFF",
                     accent = accent,
                     active = false,
-                    onClick = actionRunCallback<TriggerDeviceAction>(
-                        actionParametersOf(
-                            TriggerDeviceAction.DEVICE_ID_KEY to item.id,
-                            TriggerDeviceAction.VALUE_KEY to item.minVal
-                        )
+                    onClick = actionSendBroadcast(
+                        WidgetActionReceiver.triggerIntent(LocalContext.current, item.id, item.minVal)
                     )
                 )
             }

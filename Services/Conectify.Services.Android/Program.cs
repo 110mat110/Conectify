@@ -1,9 +1,11 @@
 using Conectify.Database;
 using Conectify.Services.Android;
+using Conectify.Services.Android.Middleware;
 using Conectify.Services.Android.Services;
 using Conectify.Services.Library;
 using Conectify.Shared.Services;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,13 +27,22 @@ builder.Services.AddSingleton<WidgetCache>();
 builder.Services.AddHttpClient<HistoryClient>(client => client.Timeout = TimeSpan.FromSeconds(5));
 
 builder.Logging.AddRemoteLogging();
+
+// UseConectifyWebsocket already calls AddTelemetry(); calling it again here registered a second
+// OTLP exporter and a second set of instrumentations, so every span was reported twice in Aspire.
 builder.Services.UseConectifyWebsocket<AndroidConfiguration, DeviceData>();
-builder.Services.AddTelemetry();
+
+// Emit the widget's own spans (widget.build, actuator.trigger, history.*, widget.*.load).
+builder.Services.ConfigureOpenTelemetryTracerProvider(tracer => tracer.AddSource(AndroidTelemetry.SourceName));
+
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
 await app.Services.ConnectToConectifyServer();
+
+// Before everything else that handles /api/android, so the log line brackets the whole request.
+app.UseMiddleware<ApiLoggingMiddleware>();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();

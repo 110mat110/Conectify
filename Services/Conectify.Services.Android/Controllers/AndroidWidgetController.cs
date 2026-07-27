@@ -24,16 +24,24 @@ public class AndroidWidgetController(AndroidWidgetService widgetService, ILogger
     /// <summary>
     /// Sets a new value for an actuator (e.g. button press in the widget).
     /// </summary>
+    /// <remarks>
+    /// The status code tells the widget which of the two failures happened, which is the difference
+    /// between "wrong id" and "the server could not reach the device bus".
+    /// </remarks>
     [HttpPost("actuator/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> SetActuatorValue(Guid id, [FromBody] SetActuatorValueDto dto, CancellationToken ct)
     {
         logger.LogInformation("Widget actuator trigger: actuatorId={ActuatorId} numericValue={NumericValue}",
             id, dto.NumericValue);
 
-        var success = await widgetService.SetActuatorValueAsync(id, dto, ct);
-
-        return success ? NoContent() : NotFound();
+        return await widgetService.SetActuatorValueAsync(id, dto, ct) switch
+        {
+            TriggerResult.Sent => NoContent(),
+            TriggerResult.UnknownActuator => NotFound(),
+            _ => StatusCode(StatusCodes.Status503ServiceUnavailable),
+        };
     }
 }
