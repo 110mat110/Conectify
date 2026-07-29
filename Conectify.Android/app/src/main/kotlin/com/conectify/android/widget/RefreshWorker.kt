@@ -60,7 +60,9 @@ class RefreshWorker(
             if (glanceIds.isEmpty()) return
 
             if (!AppPreferences(context).isConfigured()) {
-                publish(context, glanceIds) { it[WidgetState.STATUS_KEY] = "Open app to set server URL" }
+                publish(context, glanceIds) {
+                    it[WidgetState.STATUS_KEY] = StatusLine.error("Open the app to set the server URL")
+                }
                 return
             }
 
@@ -73,13 +75,18 @@ class RefreshWorker(
                     prefs[WidgetState.SENSORS_JSON_KEY] = gson.toJson(sensors)
                     prefs[WidgetState.ACTUATORS_JSON_KEY] = gson.toJson(devices)
                     prefs[WidgetState.LAST_REFRESH_KEY] = System.currentTimeMillis()
+                    // A good refresh clears both the previous error and the last tap's message,
+                    // so the bar settles back to "Up to date" instead of holding stale news.
                     prefs.remove(WidgetState.STATUS_KEY)
+                    prefs.remove(WidgetState.SEND_STATUS_KEY)
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Refresh failed", e)
-                publish(context, glanceIds) { it[WidgetState.STATUS_KEY] = "Error: ${e.javaClass.simpleName}" }
+                publish(context, glanceIds) { prefs ->
+                    prefs[WidgetState.STATUS_KEY] = StatusLine.error(StatusLine.describe(e))
+                }
             }
         }
 

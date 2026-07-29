@@ -120,6 +120,51 @@
             android:layout_marginTop="40dp"
             android:layout_marginBottom="24dp" />
 
+        <!-- Self-test: runs exactly what the widget runs, from inside the app -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DIAGNOSTICS"
+            android:textColor="#4fc3f7"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnSelfTest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Run widget self-test"
+            android:textColor="#4fc3f7"
+            android:backgroundTint="#1A1A1A"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnAllowBackground"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Allow background network"
+            android:textColor="#66bb6a"
+            android:backgroundTint="#1A1A1A"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/tvSelfTest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#CCCCCC"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#1E1E1E"
+            android:layout_marginBottom="24dp" />
+
         <!-- Info -->
         <TextView
             android:layout_width="wrap_content"

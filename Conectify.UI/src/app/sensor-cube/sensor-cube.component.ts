@@ -38,6 +38,12 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
   private timeShiftInterval?: any;
   defaultColor: string = "#4fc3f7";
 
+  // The series is drawn edge to edge, so a value sitting exactly on the axis minimum or maximum
+  // (a power sensor idling at 0 W spends most of the day there) would land on the very first/last
+  // pixel row of the canvas and get clipped away. A few pixels of vertical padding keep the whole
+  // stroke inside the chart.
+  private static readonly chartGrid = { top: 4, right: 0, bottom: 4, left: 0, containLabel: false };
+
   constructor(
     public messenger: MessagesService,
     private be: BEFetcherService,
@@ -201,7 +207,7 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
 
   private setupChartOption() {
     this.chartOption = {
-      grid: { top: 0, right: 0, bottom: 0, left: 0, containLabel: false },
+      grid: SensorCubeComponent.chartGrid,
       xAxis: {
         type: 'time',
         show: false
@@ -263,7 +269,7 @@ export class SensorCubeComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     this.mergeOptions = {
-      grid: { top: 0, right: 0, bottom: 0, left: 0, containLabel: false },
+      grid: SensorCubeComponent.chartGrid,
       series: [{
         name: this.sensors[0].sensor.name,
         data: this.mapedValues,

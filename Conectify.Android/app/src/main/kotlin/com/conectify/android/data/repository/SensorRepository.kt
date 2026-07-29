@@ -2,6 +2,7 @@ package com.conectify.android.data.repository
 
 import android.content.Context
 import com.conectify.android.data.api.ConectifyApi
+import com.conectify.android.data.api.RecordingInterceptor
 import com.conectify.android.data.model.ActionDevice
 import com.conectify.android.data.model.SensorValue
 import com.conectify.android.data.model.SetActuatorValueRequest
@@ -21,6 +22,8 @@ class SensorRepository(context: Context) {
         val logging = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
         val client = OkHttpClient.Builder()
             .addInterceptor(logging)
+            // Innermost, so it sees the request as sent and the outcome as it happens.
+            .addInterceptor(RecordingInterceptor())
             // Well under the widget's one-minute refresh cadence, so a hung request fails and
             // shows an error rather than overlapping the next tick.
             .connectTimeout(15, TimeUnit.SECONDS)

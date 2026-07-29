@@ -418,14 +418,14 @@ private fun ActuatorRow(device: ActionDevice, modifier: GlanceModifier = GlanceM
                             label = "ON",
                             color = BTN_GREEN,
                             modifier = GlanceModifier.defaultWeight(),
-                            onClick = triggerAction(device.id, device.maxVal)
+                            onClick = triggerAction(device, device.maxVal, "${device.name} on")
                         )
                         Spacer(modifier = GlanceModifier.width(6.dp))
                         ActuatorButton(
                             label = "OFF",
                             color = BTN_RED,
                             modifier = GlanceModifier.defaultWeight(),
-                            onClick = triggerAction(device.id, device.minVal)
+                            onClick = triggerAction(device, device.minVal, "${device.name} off")
                         )
                     }
                     IO_TRIGGER -> {
@@ -433,7 +433,7 @@ private fun ActuatorRow(device: ActionDevice, modifier: GlanceModifier = GlanceM
                             label = "TRIGGER",
                             color = BTN_BLUE,
                             modifier = GlanceModifier.fillMaxWidth(),
-                            onClick = triggerAction(device.id, device.triggerValue)
+                            onClick = triggerAction(device, device.triggerValue, "${device.name} triggered")
                         )
                     }
                 }
@@ -444,11 +444,14 @@ private fun ActuatorRow(device: ActionDevice, modifier: GlanceModifier = GlanceM
 
 /**
  * A button tap goes straight to [WidgetActionReceiver] as a plain explicit broadcast — no Glance
- * callback machinery in between.
+ * callback machinery in between. [label] is carried along so the status line can name the device
+ * without having to resolve the id again.
  */
 @Composable
-private fun triggerAction(deviceId: String, value: Float): Action =
-    actionSendBroadcast(WidgetActionReceiver.triggerIntent(LocalContext.current, deviceId, value))
+private fun triggerAction(device: ActionDevice, value: Float, label: String): Action =
+    actionSendBroadcast(
+        WidgetActionReceiver.triggerIntent(LocalContext.current, device.id, value, label)
+    )
 
 @Composable
 private fun ActuatorButton(
@@ -484,37 +487,48 @@ private fun RefreshBar(
     statusMessage: String? = null,
     sendStatus: String? = null
 ) {
-    // The last button press wins: it is the most recent thing the user did, and seeing it appear is
-    // how you tell a tap that never fired from one whose request failed.
-    val displayText = when {
-        sendStatus != null -> sendStatus
-        statusMessage != null -> statusMessage
-        lastRefreshTime > 0 ->
-            "Refreshed ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(lastRefreshTime))}"
-        else -> "Tap ↺ to load"
+    // The last button press wins — it is the most recent thing the user did. A refresh problem
+    // comes next, and when there is nothing to report the bar just says when the data is from.
+    val raw = sendStatus ?: statusMessage
+    val message = raw?.let { StatusLine.text(it) }
+        ?: if (lastRefreshTime > 0) "Up to date" else "Loading…"
+
+    val isError = raw != null && StatusLine.isError(raw)
+    val isSuccess = raw != null && !isError
+
+    val textColor = when {
+        isError -> Color(0xFFef5350)
+        isSuccess -> Color(0xFF66bb6a)
+        else -> Color(0xFF6E6E6E)
     }
-    val isError = displayText.startsWith("Error") || displayText.startsWith("✗")
-    val textColor = if (isError) Color(0xFFef5350) else Color(0xFF555555)
 
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
             .background(ColorProvider(Color(0xFF1A1A1A)))
             .cornerRadius(8.dp)
-            .padding(horizontal = 10.dp, vertical = 6.dp),
+            .padding(horizontal = 10.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             provider = ImageProvider(R.drawable.ic_refresh),
             contentDescription = "Refresh",
-            modifier = GlanceModifier.size(16.dp).clickable(actionRunCallback<RefreshAction>())
+            modifier = GlanceModifier.size(15.dp).clickable(actionRunCallback<RefreshAction>())
         )
-        Spacer(modifier = GlanceModifier.width(6.dp))
+        Spacer(modifier = GlanceModifier.width(8.dp))
         Text(
-            text = displayText,
+            text = message,
             style = TextStyle(color = ColorProvider(textColor), fontSize = 11.sp),
+            modifier = GlanceModifier.defaultWeight(),
             maxLines = 1
         )
+        if (lastRefreshTime > 0) {
+            Text(
+                text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(lastRefreshTime)),
+                style = TextStyle(color = ColorProvider(Color(0xFF4A4A4A)), fontSize = 10.sp),
+                maxLines = 1
+            )
+        }
     }
 }
 

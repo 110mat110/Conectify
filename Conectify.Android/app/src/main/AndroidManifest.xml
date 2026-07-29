@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Lets the settings screen offer the exemption. Without it Android's per-UID firewall drops
+         the widget's background requests, which surfaces as a connect timeout. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:allowBackup="true"
@@ -23,6 +26,15 @@
         <receiver
             android:name=".widget.WidgetActionReceiver"
             android:exported="false" />
+
+        <!-- Re-render placed widgets after an update, so their clicks point at the new build. -->
+        <receiver
+            android:name=".widget.PackageReplacedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <!-- Large widget — Glance -->
         <receiver

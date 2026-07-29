@@ -176,7 +176,9 @@ private fun SmallCube(item: WidgetItemDto, index: Int, total: Int) {
                     accent = accent,
                     active = true,
                     onClick = actionSendBroadcast(
-                        WidgetActionReceiver.triggerIntent(LocalContext.current, item.id, item.maxVal)
+                        WidgetActionReceiver.triggerIntent(
+                            LocalContext.current, item.id, item.maxVal, "${item.name} on"
+                        )
                     )
                 )
                 Spacer(modifier = GlanceModifier.padding(horizontal = 4.dp))
@@ -185,7 +187,9 @@ private fun SmallCube(item: WidgetItemDto, index: Int, total: Int) {
                     accent = accent,
                     active = false,
                     onClick = actionSendBroadcast(
-                        WidgetActionReceiver.triggerIntent(LocalContext.current, item.id, item.minVal)
+                        WidgetActionReceiver.triggerIntent(
+                            LocalContext.current, item.id, item.minVal, "${item.name} off"
+                        )
                     )
                 )
             }
