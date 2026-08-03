@@ -13,7 +13,7 @@ public class DeviceData(CloudConfiguration configuration) : IDeviceData
     public ApiDevice Device => new()
     {
         Id = configuration.DeviceId,
-        IPAdress = WebFunctions.GetIPAdress(),
+        IPAdress = configuration.ExternalAddress,
         MacAdress = WebFunctions.GetMacAdress(),
         Name = "Cloud service"
     };

@@ -12,7 +12,7 @@ namespace Conectify.Services.Shelly.Services;
 
 public interface IShellyService
 {
-    public Task ReceiveMessages(WebSocket webSocket, CancellationToken cancellationToken = default);
+    public Task ReceiveMessages(WebSocket webSocket, string? remoteIp = null, CancellationToken cancellationToken = default);
     Task SendValueToShelly(Database.Models.Values.Event action);
 }
 
@@ -20,29 +20,51 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 {
     private static readonly string[] SupportedEvents = ["double_push", "triple_push", "long_push", "single_push", "btn_down"];
 
-    public async Task ReceiveMessages(WebSocket webSocket, CancellationToken cancellationToken = default)
+    private static readonly JsonSerializerSettings SerializerSettings = new()
     {
+        NullValueHandling = NullValueHandling.Ignore,
+    };
+
+    public async Task ReceiveMessages(WebSocket webSocket, string? remoteIp = null, CancellationToken cancellationToken = default)
+    {
+        // A device without a power meter reports nothing until its state changes. Waiting for it to
+        // speak first means that after a restart it only rejoins the system when somebody flips the
+        // switch by hand - so ask who it is the moment it connects.
+        await SendMessage(webSocket, "Shelly.GetDeviceInfo", null);
+
         var buffer = new byte[1024 * 4];
+        using var payload = new MemoryStream();
         WebSocketReceiveResult result;
-        var sw = Stopwatch.StartNew();
         do
         {
             result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            
-            
-            var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
+            if (result.CloseStatus.HasValue)
+            {
+                break;
+            }
+
+            payload.Write(buffer, 0, result.Count);
+
+            // A status message can outgrow the buffer. Parsing a single frame would hand the
+            // deserializer truncated JSON and the whole message would be thrown away.
+            if (!result.EndOfMessage)
+            {
+                continue;
+            }
+
+            var message = Encoding.UTF8.GetString(payload.ToArray());
+            payload.SetLength(0);
+
+            var sw = Stopwatch.StartNew();
             try
             {
-                var deserialized = JsonConvert.DeserializeObject<ShellyWS>(message, new JsonSerializerSettings
-                {
-                    NullValueHandling = NullValueHandling.Ignore,
-                });
+                var deserialized = JsonConvert.DeserializeObject<ShellyWS>(message, SerializerSettings);
 
                 if (deserialized is not null)
                 {
                     logger.LogDebug("RECEIVED: {msg}", message);
-                    await ReadMessage(deserialized, webSocket);
+                    await ReadMessage(deserialized, message, webSocket, remoteIp);
                 }
             }
             catch (Exception ex)
@@ -61,7 +83,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
     }
 
-    private async Task ReadMessage(ShellyWS message, WebSocket source)
+    private async Task ReadMessage(ShellyWS message, string rawMessage, WebSocket source, string? remoteIp)
     {
         var src = message.Src;
 
@@ -72,12 +94,37 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
         if (cache.Cache.TryGetValue(src, out ShellyDeviceCacheItem? shelly) && shelly.Shelly is not null)
         {
+            // Keeps the dashboard's view current (address, firmware, relay and power state) and
+            // re-points the entry at the current socket when a device reconnects.
+            shelly.Record(message, source, remoteIp);
             await WebsocketStateInput(message, shelly);
+
+            // Shelly.GetStatus answers with the same payload a notification puts under "params",
+            // only under "result" - so it needs a second read to be seen as a status at all.
+            var status = AsStatus(rawMessage);
+            if (status is not null)
+            {
+                shelly.Record(status, source, remoteIp);
+                await WebsocketStateInput(status, shelly);
+            }
         }
         else
         {
-            await InitializeShelly(message, source, src);
+            await InitializeShelly(message, source, src, remoteIp);
         }
+    }
+
+    /// <summary>
+    /// Re-reads a reply whose "result" carries a device status. Replies that carry something else
+    /// (device info, wifi status) deserialize into an empty status and are ignored downstream.
+    /// </summary>
+    private static ShellyWS? AsStatus(string rawMessage)
+    {
+        var reply = JsonConvert.DeserializeObject<ShellyStatusReply>(rawMessage, SerializerSettings);
+
+        return reply?.Result is null
+            ? null
+            : new ShellyWS { Src = reply.Src, Params = reply.Result };
     }
 
     private async Task WebsocketStateInput(ShellyWS message, ShellyDeviceCacheItem shelly)
@@ -229,15 +276,15 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         await websocketClient.SendMessageAsync(message);
     }
 
-    private async Task InitializeShelly(ShellyWS message, WebSocket source, string src)
+    private async Task InitializeShelly(ShellyWS message, WebSocket source, string src, string? remoteIp)
     {
         if (message.Result is not null && !string.IsNullOrEmpty(message.Result.Model))
         {
-            var shellyModel = await shellyFactory.GetShelly(message.Result.Model, src, message?.Result?.Name ?? string.Empty);
+            var shellyModel = await shellyFactory.GetShelly(message.Result.Model, src, message.Result.Name ?? string.Empty);
 
             if (shellyModel is null)
             {
-                logger.LogWarning("Cannot load shelly {model}", message?.Result.Model);
+                logger.LogWarning("Cannot load shelly {model}", message.Result.Model);
                 return;
             }
 
@@ -250,11 +297,32 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             {
                 cache.Cache[src].Shelly = shellyModel;
             }
+
+            var device = cache.Cache[src];
+            device.Record(message, source, remoteIp);
             logger.LogInformation("Updating shelly info scr: {src}", src);
 
+            // Whatever the device announced before we knew what it was would otherwise be dropped,
+            // and with it the relay state that makes the light appear in the system.
+            if (cache.PendingStatus.TryRemove(src, out var pending))
+            {
+                device.Record(pending, source, remoteIp);
+                await WebsocketStateInput(pending, device);
+            }
+
+            // Its current state, so the server hears about the device without anyone touching it.
+            // The reply also carries wifi.sta_ip - the address the dashboard links to, which the
+            // socket cannot supply because in Docker that is only the NAT address.
+            await SendMessage(source, "Shelly.GetStatus", null);
         }
         else
         {
+            // Held until the device identifies itself, then replayed above.
+            if (message.Params is not null)
+            {
+                cache.PendingStatus[src] = message;
+            }
+
             await SendMessage(source, "Shelly.GetDeviceInfo", null);
             logger.LogInformation("Requesting shelly {src} for more info", src);
         }
@@ -266,7 +334,7 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         {
             if (cacheItem.WebSocket?.State is not WebSocketState.Open)
             {
-                cache.Cache.Remove(deviceId);
+                cache.Cache.TryRemove(deviceId, out _);
                 return;
             }
 

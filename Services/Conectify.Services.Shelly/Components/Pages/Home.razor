@@ -1,38 +1,195 @@
-﻿@page "/"
+@page "/"
+@rendermode InteractiveServer
 @using Conectify.Services.Shelly.Services
-@attribute [StreamRendering]
-@inject WebsocketCache websocketCache;
+@implements IAsyncDisposable
+@inject WebsocketCache websocketCache
 
 <PageTitle>Shelly</PageTitle>
 
-<h1>Shelly overlook</h1>
+<div class="dash-head">
+    <h1>Shelly devices</h1>
+    <p class="dash-sub">
+        <span class="count">@shellys.Count(x => x.IsOnline)</span> of
+        <span class="count">@shellys.Length</span> connected
+        <span class="dot">&middot;</span>
+        refreshed @lastRefresh.ToString("HH:mm:ss")
+    </p>
+</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Id</th>
-            <th>ShellyId</th>
-        </tr>
-    </thead>
-    <tbody>
+@if (shellys.Length == 0)
+{
+    <div class="empty">
+        No Shelly has connected to this service yet. Devices show up here once they open their
+        outbound websocket to <code>/ws</code>.
+    </div>
+}
+else
+{
+    <div class="cards">
         @foreach (var shelly in shellys)
         {
-            <tr>
-                <td>@shelly.Shelly.Name</td>
-                <td>@shelly.Shelly.Id</td>
-                <td>@shelly.ShellyId</td>
-            </tr>
+            <article class="shelly @(shelly.IsOnline ? "is-online" : "is-offline")">
+                <header>
+                    <h2 title="@shelly.ShellyId">@shelly.DisplayName</h2>
+                    <span class="badge @(shelly.IsOnline ? "badge-online" : "badge-offline")">
+                        @(shelly.IsOnline ? "Online" : "Offline")
+                    </span>
+                </header>
+
+                <dl class="meta">
+                    <dt>Model</dt>
+                    <dd>@(shelly.Model ?? "—")</dd>
+
+                    <dt>Device id</dt>
+                    <dd class="mono">@shelly.ShellyId</dd>
+
+                    <dt>Address</dt>
+                    <dd class="mono">@(shelly.IpAddress ?? "unknown")</dd>
+
+                    @if (shelly.Firmware is not null)
+                    {
+                        <dt>Firmware</dt>
+                        <dd class="mono">@shelly.Firmware</dd>
+                    }
+
+                    @if (shelly.Uptime is not null)
+                    {
+                        <dt>Uptime</dt>
+                        <dd>@FormatUptime(shelly.Uptime.Value)</dd>
+                    }
+
+                    @if (shelly.Rssi is not null)
+                    {
+                        <dt>Wi-Fi</dt>
+                        <dd>@shelly.Ssid <span class="muted">@shelly.Rssi dBm</span></dd>
+                    }
+
+                    @if (shelly.TemperatureC is not null)
+                    {
+                        <dt>Temperature</dt>
+                        <dd>@shelly.TemperatureC.Value.ToString("0.#") °C</dd>
+                    }
+
+                    <dt>Last message</dt>
+                    <dd>@FormatAge(shelly.LastSeen)</dd>
+                </dl>
+
+                @if (!shelly.SwitchOutputs.IsEmpty || !shelly.MeterPower.IsEmpty)
+                {
+                    <div class="chips">
+                        @foreach (var sw in shelly.SwitchOutputs.OrderBy(x => x.Key))
+                        {
+                            <span class="chip @(sw.Value ? "chip-on" : "chip-off")">
+                                SW-@sw.Key @(sw.Value ? "ON" : "OFF")
+                                @if (shelly.SwitchPower.TryGetValue(sw.Key, out var watts))
+                                {
+                                    <span class="chip-val">@FormatWatts(watts)</span>
+                                }
+                            </span>
+                        }
+                        @foreach (var meter in shelly.MeterPower.OrderBy(x => x.Key))
+                        {
+                            <span class="chip chip-meter">
+                                PM-@meter.Key <span class="chip-val">@FormatWatts(meter.Value)</span>
+                            </span>
+                        }
+                    </div>
+                }
+
+                <footer>
+                    @if (shelly.WebUrl is not null)
+                    {
+                        <a class="open" href="@shelly.WebUrl" target="_blank" rel="noopener">
+                            Open device web UI &rarr;
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="muted">Address not reported yet</span>
+                    }
+                </footer>
+            </article>
         }
-    </tbody>
-</table>
+    </div>
+}
 
 @code {
     private ShellyDeviceCacheItem[] shellys = [];
+    private DateTime lastRefresh = DateTime.Now;
+    private PeriodicTimer? timer;
+    private Task? refreshLoop;
 
-    protected override void OnInitialized()
+    protected override void OnInitialized() => Load();
+
+    protected override void OnAfterRender(bool firstRender)
     {
-        // Populate the shellys array
-        shellys = websocketCache.Cache.Values.ToArray();
+        // Only the interactive render has a live circuit worth pushing updates over.
+        if (!firstRender)
+        {
+            return;
+        }
+
+        timer = new PeriodicTimer(TimeSpan.FromSeconds(2));
+        refreshLoop = RefreshLoop();
+    }
+
+    private async Task RefreshLoop()
+    {
+        try
+        {
+            while (await timer!.WaitForNextTickAsync())
+            {
+                Load();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Circuit went away - nothing left to refresh.
+        }
+    }
+
+    private void Load()
+    {
+        shellys = websocketCache.Cache.Values
+            .OrderByDescending(x => x.IsOnline)
+            .ThenBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        lastRefresh = DateTime.Now;
+    }
+
+    private static string FormatWatts(float watts) =>
+        watts >= 1000 ? $"{watts / 1000:0.##} kW" : $"{watts:0.#} W";
+
+    private static string FormatUptime(TimeSpan uptime) => uptime.TotalDays >= 1
+        ? $"{(int)uptime.TotalDays} d {uptime.Hours} h"
+        : uptime.TotalHours >= 1
+            ? $"{(int)uptime.TotalHours} h {uptime.Minutes} min"
+            : $"{(int)uptime.TotalMinutes} min";
+
+    private static string FormatAge(DateTimeOffset when)
+    {
+        var age = DateTimeOffset.Now - when;
+        if (age < TimeSpan.FromSeconds(10)) return "just now";
+        if (age < TimeSpan.FromMinutes(1)) return $"{(int)age.TotalSeconds} s ago";
+        if (age < TimeSpan.FromHours(1)) return $"{(int)age.TotalMinutes} min ago";
+        if (age < TimeSpan.FromDays(1)) return $"{(int)age.TotalHours} h ago";
+        return when.ToString("d MMM HH:mm");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        timer?.Dispose();
+
+        if (refreshLoop is not null)
+        {
+            try
+            {
+                await refreshLoop;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
     }
 }

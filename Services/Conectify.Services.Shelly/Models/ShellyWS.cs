@@ -12,6 +12,16 @@ public class ShellyWS
     public Result? Result { get; set; }
 }
 
+/// <summary>
+/// Shelly.GetStatus answers with the payload a notification puts under "params", only under
+/// "result" - so reading a reply as a status needs this shape rather than <see cref="ShellyWS"/>.
+/// </summary>
+public class ShellyStatusReply
+{
+    public string? Src { get; set; }
+    public Params? Result { get; set; }
+}
+
 public class Result
 {
     public string? Name { get; set; }
@@ -25,6 +35,13 @@ public class Result
     public string? App { get; set; }
     public bool AuthEn { get; set; }
     public string? AuthDomain { get; set; }
+
+    // Carried by a Wifi.GetStatus reply - the device's own LAN address, which is the only
+    // trustworthy source when the service sits behind Docker NAT.
+    [JsonProperty("sta_ip")]
+    public string? StaIp { get; set; }
+    public string? Ssid { get; set; }
+    public int? Rssi { get; set; }
 }
 
 public class Params
@@ -181,6 +198,9 @@ public class AvailableUpdates
 
 public class Wifi
 {
+    // Newtonsoft matches names case-insensitively but does not strip underscores, so the
+    // snake_case key has to be spelled out or it silently stays null.
+    [JsonProperty("sta_ip")]
     public string? StaIp { get; set; }
     public string? Status { get; set; }
     public string? Ssid { get; set; }

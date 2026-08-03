@@ -11,7 +11,7 @@ public class DeviceData(AndroidConfiguration configuration) : IDeviceData
     public ApiDevice Device => new()
     {
         Id = configuration.DeviceId,
-        IPAdress = WebFunctions.GetIPAdress(),
+        IPAdress = configuration.ExternalAddress,
         MacAdress = WebFunctions.GetMacAdress(),
         Name = "Android Widget Service"
     };

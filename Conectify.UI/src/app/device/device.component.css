@@ -1,3 +1,25 @@
+/* Cube grid - same overrides as the Sensors overview. Material gives mat-grid-tile
+   `overflow: hidden`, so a cube taller than the 250px row gets its bottom (the chart)
+   cut off instead of spilling out of the tile. */
+mat-grid-list {
+  margin: 0 auto;
+  width: 100%;
+  padding: 8px;
+}
+
+mat-grid-tile {
+  background: transparent !important;
+  border-radius: 0 !important;
+  border: none !important;
+  overflow: visible !important;
+}
+
+app-sensor-cube,
+app-actuator-cube {
+  width: 100%;
+  flex: 1 1 auto;
+}
+
 .example-tree-invisible {
   display: none;
 }
