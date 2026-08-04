@@ -62,11 +62,7 @@ public class InputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
             await rule.SetAllOutputs(evnt, false);
         }
     }
-
-    public void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
-    {
-    }
-
+
     public async Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
         var behaviour = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceSensorId = Guid.Empty, Name = string.Empty, Event = string.Empty });

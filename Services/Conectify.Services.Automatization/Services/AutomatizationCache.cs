@@ -9,6 +9,12 @@ namespace Conectify.Services.Automatization.Services;
 
 public interface IAutomatizationCache
 {
+    /// <summary>
+    /// Raised whenever the set of cached rules or their parameters changed, so that consumers such as
+    /// <see cref="IRuleScheduler"/> can re-read the cache instead of polling it.
+    /// </summary>
+    event Action? RulesChanged;
+
     Task<Guid> AddNewRule(Rule rule, CancellationToken cancellationToken);
     Task<RuleDTO?> GetRuleByIdAsync(Guid id, CancellationToken ct = default);
     Task<IEnumerable<RuleDTO>> GetRulesByTypeIdAsync(Guid ruleTypeId);
@@ -36,6 +42,9 @@ public class AutomatizationCache : IAutomatizationCache
     private readonly TimeSpan cacheLongevity = new(0, 10, 0);
 
     private bool reloading = false;
+
+    public event Action? RulesChanged;
+
     public AutomatizationCache(IServiceProvider services, IMapper mapper, bool reload = true)
     {
         reloading = false;
@@ -84,6 +93,7 @@ public class AutomatizationCache : IAutomatizationCache
         await dto.InitializeAsync(services, null);
 
         cache.TryAdd(dto.Id, dto);
+        RulesChanged?.Invoke();
         return rule.Id;
     }
 
@@ -104,6 +114,7 @@ public class AutomatizationCache : IAutomatizationCache
         if (rule is null)
         {
             cache.Remove(id);
+            RulesChanged?.Invoke();
             return;
         }
 
@@ -123,6 +134,7 @@ public class AutomatizationCache : IAutomatizationCache
 
         cache.Remove(id);
         cache.Add(dto.Id, dto);
+        RulesChanged?.Invoke();
     }
 
     private async Task<bool> Reload()
@@ -221,5 +233,6 @@ public class AutomatizationCache : IAutomatizationCache
         cache.Clear();
         cache = tempcache;
         lastReload = DateTime.UtcNow;
+        RulesChanged?.Invoke();
     }
 }

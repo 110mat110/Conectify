@@ -32,11 +32,6 @@ public class RuleDTO
 
     public bool TriggerOnValue { get; set; }
 
-    public void Clock(TimeSpan timeSpan)
-    {
-        RuleBehaviour?.Clock(this, timeSpan);
-    }
-
     public async Task InsertEvent(Event evnt, CancellationToken ct, IMeterFactory meterFactory)
     {
         var automationValue = new AutomatisationEvent()

@@ -86,11 +86,7 @@ public class DecisionRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
     {
         return Task.CompletedTask;
     }
-
-    public void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
-    {
-    }
-
+
     public async Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
         var parameters = JsonConvert.DeserializeObject<DecisionOptions>(rule.ParametersJson);

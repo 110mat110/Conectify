@@ -1,15 +1,20 @@
-﻿using Conectify.Services.Automatization.Models;
+using Conectify.Services.Automatization.Models;
 using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
+using Conectify.Services.Automatization.Services;
 using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
 
-#pragma warning disable CS9113 // Parameter is unread. Need to be there due to BehaviourFactory
-public class SetDelayBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
-#pragma warning restore CS9113 // Parameter is unread.
+public class SetDelayBehaviour(IServiceProvider serviceProvider) : IRuleBehavior, ISchedulableRuleBehavior
 {
+    /// <summary>
+    /// A delay of zero (or a broken one) would make a rule wired back into itself spin as fast as the
+    /// scheduler can dispatch. The old one second timer put the same floor on it implicitly.
+    /// </summary>
+    private static readonly TimeSpan MinimalDelay = TimeSpan.FromSeconds(1);
+
     public MinMaxDef Outputs => new(1, 1, 1);
 
     public IEnumerable<Tuple<InputTypeEnum, MinMaxDef>> Inputs => [
@@ -18,42 +23,77 @@ public class SetDelayBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
         new(InputTypeEnum.Parameter, new(0, 0, 0))
         ];
 
-    public async void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
-    {
-        var options = JsonConvert.DeserializeObject<SetDelayOptions>(masterRule.ParametersJson);
-
-        if (options?.NextTrigger is not null && DateTime.UtcNow > options.NextTrigger.Value)
-        {
-            options.NextTrigger = null;
-            masterRule.ParametersJson = JsonConvert.SerializeObject(options);
-
-            await masterRule.SetAllOutputs(new AutomatisationEvent()
-            {
-                Name = "DelayRuleResult",
-                NumericValue = 0,
-                Unit = "",
-                TimeCreated = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                SourceId = masterRule.Id,
-                Type = "Trigger",
-            });
-        }
-    }
-
     public string DisplayName() => "SET DELAY";
 
+    /// <summary>
+    /// Arms the delay. The rule does not fire here, it only writes down when it wants to be woken up
+    /// and asks the scheduler to re-plan it.
+    /// </summary>
     public Task Execute(RuleDTO masterRule, AutomatisationEvent triggerValue, CancellationToken ct = default)
     {
-        var options = JsonConvert.DeserializeObject<SetDelayOptions>(masterRule.ParametersJson);
+        var options = ReadOptions(masterRule.ParametersJson);
 
         if (options is null)
         {
             return Task.CompletedTask;
         }
 
-        options.NextTrigger = DateTime.UtcNow.Add(options.Delay);
+        var delay = options.Delay > TimeSpan.Zero ? options.Delay : MinimalDelay;
+
+        options.NextTrigger = TimeSource.GetUtcNow().UtcDateTime.Add(delay);
         masterRule.ParametersJson = JsonConvert.SerializeObject(options);
 
+        serviceProvider.GetService<IRuleScheduler>()?.Reschedule(masterRule);
+
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// The armed instant, as long as it was not consumed yet. A value already in the past is returned
+    /// unchanged so that a delay armed while the scheduler was busy still fires instead of being lost.
+    /// </summary>
+    public DateTimeOffset? GetNextOccurrence(RuleDTO rule, DateTimeOffset now, DateTimeOffset? lastOccurrence)
+    {
+        var options = ReadOptions(rule.ParametersJson);
+
+        if (options?.NextTrigger is null)
+        {
+            return null;
+        }
+
+        // NextTrigger is written as UtcNow + delay. Values stored without a kind are treated as UTC,
+        // which is how the previous DateTime.UtcNow comparison read them too.
+        var next = new DateTimeOffset(DateTime.SpecifyKind(options.NextTrigger.Value, DateTimeKind.Utc), TimeSpan.Zero);
+
+        if (lastOccurrence is not null && next <= lastOccurrence)
+        {
+            return null;
+        }
+
+        return next;
+    }
+
+    public async Task OnScheduledAsync(RuleDTO rule, DateTimeOffset occurrence, CancellationToken ct = default)
+    {
+        var options = ReadOptions(rule.ParametersJson);
+
+        if (options is null)
+        {
+            return;
+        }
+
+        options.NextTrigger = null;
+        rule.ParametersJson = JsonConvert.SerializeObject(options);
+
+        await rule.SetAllOutputs(new AutomatisationEvent()
+        {
+            Name = "DelayRuleResult",
+            NumericValue = 0,
+            Unit = "",
+            TimeCreated = occurrence.ToUnixTimeMilliseconds(),
+            SourceId = rule.Id,
+            Type = "Trigger",
+        });
     }
 
     public Guid GetId() => Guid.Parse("768fe726-caff-4120-a7f1-3d4c3c6817ac");
@@ -70,7 +110,7 @@ public class SetDelayBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
 
     public Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
-        var options = JsonConvert.DeserializeObject<SetDelayOptions>(rule.ParametersJson);
+        var options = ReadOptions(rule.ParametersJson);
 
         if (options?.Delay is not null)
         {
@@ -78,6 +118,25 @@ public class SetDelayBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
         }
 
         return Task.CompletedTask;
+    }
+
+    private TimeProvider TimeSource => serviceProvider.GetService<TimeProvider>() ?? System.TimeProvider.System;
+
+    private static SetDelayOptions? ReadOptions(string parametersJson)
+    {
+        if (string.IsNullOrWhiteSpace(parametersJson))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonConvert.DeserializeObject<SetDelayOptions>(parametersJson);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     private class SetDelayOptions

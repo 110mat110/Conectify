@@ -44,11 +44,7 @@ public class UserInputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeh
     {
         return Task.CompletedTask;
     }
-
-    public void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
-    {
-    }
-
+
     public async Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
         var id = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceActuatorId = Guid.Empty })?.SourceActuatorId;

@@ -19,7 +19,5 @@ public interface IRuleBehavior
 
     Task InitializationValue(RuleDTO rule, RuleDTO? oldDTO);
 
-    void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default);
-
     Task SetParameters(Rule rule, CancellationToken cancellationToken);
 }

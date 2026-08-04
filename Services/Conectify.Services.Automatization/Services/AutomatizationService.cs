@@ -1,9 +1,7 @@
 ﻿using Conectify.Database.Models.Values;
 using Conectify.Services.Library;
 using Conectify.Shared.Library;
-using Google.Protobuf.WellKnownTypes;
 using System.Diagnostics.Metrics;
-using System.Timers;
 
 namespace Conectify.Services.Automatization.Services;
 
@@ -13,34 +11,22 @@ public interface IAutomatizationService
 }
 
 public class AutomatizationService(IAutomatizationCache automatizationCache,
-                             AutomatizationConfiguration configuration,
+                             IRuleScheduler ruleScheduler,
                              IServicesWebsocketClient websocketClient,
                              IMeterFactory meterFactory,
                              ILogger<AutomatizationService> logger) : IAutomatizationService
 {
-
-    private System.Timers.Timer Timer { get; set; } = new System.Timers.Timer(new TimeSpan(0, 0, 1));
-
     public void StartServiceAsync()
     {
-        logger.LogInformation("AutomatizationService starting, refresh interval={IntervalSeconds}s", configuration.RefreshIntervalSeconds);
+        logger.LogInformation("AutomatizationService starting");
         websocketClient.OnIncomingEvent += WebsocketClient_OnIncomingEvent;
         websocketClient.ConnectAsync();
 
-        Timer = new System.Timers.Timer(new TimeSpan(0, 0, configuration.RefreshIntervalSeconds));
+        // Time based rules are driven by the scheduler, which sleeps until the closest occurrence is
+        // due instead of re-evaluating every rule on a fixed tick.
+        ruleScheduler.Start();
 
-        Timer.Elapsed += OnTimerElapsed;
-        Timer.AutoReset = true;
-        Timer.Enabled = true;
         logger.LogInformation("AutomatizationService started");
-    }
-
-    private async void OnTimerElapsed(object? sender, ElapsedEventArgs e)
-    {
-        foreach (var rule in await automatizationCache.GetAllRulesAsync())
-        {
-            rule.Clock(TimeSpan.FromMilliseconds(Timer.Interval));
-        }
     }
 
     private async void WebsocketClient_OnIncomingEvent(Event evnt)

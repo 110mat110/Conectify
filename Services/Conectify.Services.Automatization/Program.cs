@@ -20,7 +20,9 @@ builder.Services.AddDbContext<AutomatizationDb>(options =>
 builder.Services.AddAutoMapper(typeof(RuleProfile).Assembly);
 builder.Logging.AddRemoteLogging();
 builder.Services.UseConectifyWebsocket<AutomatizationConfiguration, DeviceData>();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IAutomatizationCache, AutomatizationCache>();
+builder.Services.AddSingleton<IRuleScheduler, RuleScheduler>();
 builder.Services.AddSingleton<IAutomatizationService, AutomatizationService>();
 builder.Services.AddTransient<RuleService>();
 

@@ -74,11 +74,7 @@ public class AndRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavior
         await rule.SetAllOutputs(outputValue, false);
         return;
     }
-
-    public void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
-    {
-    }
-
+
     public Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
         rule.Name = "AND";

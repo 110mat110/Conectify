@@ -67,11 +67,7 @@ public class SetValueRuleBehaviour(IServiceProvider serviceProvider) : IRuleBeha
         }
         return;
     }
-
-    public void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
-    {
-    }
-
+
     public Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
         var value = JsonConvert.DeserializeObject<SetValueOptions>(rule.ParametersJson);

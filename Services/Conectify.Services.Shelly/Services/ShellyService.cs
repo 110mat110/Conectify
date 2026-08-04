@@ -330,16 +330,22 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
 
     private async Task SendMessage(string deviceId, string method, object? parameters)
     {
-        if (cache.Cache.TryGetValue(deviceId, out ShellyDeviceCacheItem? cacheItem))
+        // Both of these used to return silently, so a command that got this far simply vanished.
+        if (!cache.Cache.TryGetValue(deviceId, out ShellyDeviceCacheItem? cacheItem))
         {
-            if (cacheItem.WebSocket?.State is not WebSocketState.Open)
-            {
-                cache.Cache.TryRemove(deviceId, out _);
-                return;
-            }
-
-            await SendMessage(cacheItem.WebSocket, method, parameters);
+            logger.LogWarning("Cannot send {method}: shelly {deviceId} is not in the cache", method, deviceId);
+            return;
         }
+
+        if (cacheItem.WebSocket?.State is not WebSocketState.Open)
+        {
+            logger.LogWarning("Cannot send {method}: socket for shelly {deviceId} is {state}, dropping it from the cache",
+                method, deviceId, cacheItem.WebSocket?.State.ToString() ?? "missing");
+            cache.Cache.TryRemove(deviceId, out _);
+            return;
+        }
+
+        await SendMessage(cacheItem.WebSocket, method, parameters);
     }
 
     private async Task SendMessage(WebSocket ws, string method, object? parameters)
@@ -362,7 +368,15 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         var shelly = cache.Cache.Values.FirstOrDefault(x => x.Shelly.Switches.Any(x => x.ActuatorId == evnt.DestinationId));
         if (shelly is null)
         {
-            logger.LogWarning("Target actuator not found. ID: {id}", evnt.DestinationId);
+            // Spell out what the service actually holds - the answer to "is it initialized" is the
+            // difference between an empty list here and a list that just does not contain the id.
+            var known = cache.Cache.Values
+                .SelectMany(device => device.Shelly.Switches
+                    .Select(sw => $"{device.ShellyId}/SW-{sw.ShellyId}={sw.ActuatorId}"))
+                .ToList();
+
+            logger.LogWarning("Target actuator not found. ID: {id}. Cached devices: {deviceCount}, known actuators: {known}",
+                evnt.DestinationId, cache.Cache.Count, known.Count == 0 ? "(none)" : string.Join(", ", known));
             return;
         }
 

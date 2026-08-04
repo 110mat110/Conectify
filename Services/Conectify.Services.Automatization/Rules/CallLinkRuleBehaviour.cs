@@ -18,11 +18,7 @@ public class CallLinkRuleBehavior(IServiceProvider serviceProvider) : IRuleBehav
             new(InputTypeEnum.Value, new(1,1,1)),
             new(InputTypeEnum.Trigger, new(0,1,1)),
             new(InputTypeEnum.Parameter, new(0,0,0))
-        ];
-    public void Clock(RuleDTO masterRule, TimeSpan interval, CancellationToken ct = default)
-    {
-    }
-
+        ];
     public string DisplayName() => "Call HTTP";
 
     public async Task Execute(RuleDTO masterRule, AutomatisationEvent triggerValue, CancellationToken ct = default)

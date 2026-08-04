@@ -1,84 +1,46 @@
-using Conectify.Database.Models.Values;
 using Conectify.Services.Automatization.Services;
 using Conectify.Services.Library;
-using Conectify.Shared.Library;
-using Microsoft.Extensions.Configuration;
 using System.Diagnostics.Metrics;
 
 namespace Conectify.Services.Automatization.Test.Services;
 
 public class AutomatizationServiceTests
 {
-    [Fact]
-    public void StartServiceAsync_ShouldInitializeWebsocketAndTimer()
+    private static AutomatizationService CreateService(IServicesWebsocketClient websocketClient, IRuleScheduler scheduler)
     {
-        var cache = A.Fake<IAutomatizationCache>();
-        var configuration = A.Fake<IConfiguration>();
-        var config = new AutomatizationConfiguration(configuration);
+        return new AutomatizationService(
+            A.Fake<IAutomatizationCache>(),
+            scheduler,
+            websocketClient,
+            A.Fake<IMeterFactory>(),
+            A.Fake<ILogger<AutomatizationService>>());
+    }
+
+    [Fact]
+    public void StartServiceAsync_ShouldConnectWebsocket()
+    {
         var websocketClient = A.Fake<IServicesWebsocketClient>();
-        var meterFactory = A.Fake<IMeterFactory>();
 
-        var service = new AutomatizationService(cache, config, websocketClient, meterFactory, A.Fake<ILogger<AutomatizationService>>());
-
-        service.StartServiceAsync();
+        CreateService(websocketClient, A.Fake<IRuleScheduler>()).StartServiceAsync();
 
         A.CallTo(() => websocketClient.ConnectAsync()).MustHaveHappened();
     }
 
     [Fact]
-    public void StartServiceAsync_ShouldSubscribeToIncomingEvents()
+    public void StartServiceAsync_ShouldStartTheRuleScheduler()
     {
-        var cache = A.Fake<IAutomatizationCache>();
-        var configuration = A.Fake<IConfiguration>();
-        var config = new AutomatizationConfiguration(configuration);
-        var websocketClient = A.Fake<IServicesWebsocketClient>();
-        var meterFactory = A.Fake<IMeterFactory>();
+        var scheduler = A.Fake<IRuleScheduler>();
 
-        var service = new AutomatizationService(cache, config, websocketClient, meterFactory, A.Fake<ILogger<AutomatizationService>>());
+        CreateService(A.Fake<IServicesWebsocketClient>(), scheduler).StartServiceAsync();
 
-        service.StartServiceAsync();
-
-        A.CallTo(() => websocketClient.ConnectAsync()).MustHaveHappened();
+        A.CallTo(() => scheduler.Start()).MustHaveHappened();
     }
 
     [Fact]
     public void Constructor_ShouldAcceptAllParameters()
     {
-        var cache = A.Fake<IAutomatizationCache>();
-        var configuration = A.Fake<IConfiguration>();
-        var config = new AutomatizationConfiguration(configuration);
-        var websocketClient = A.Fake<IServicesWebsocketClient>();
-        var meterFactory = A.Fake<IMeterFactory>();
-
-        var service = new AutomatizationService(cache, config, websocketClient, meterFactory, A.Fake<ILogger<AutomatizationService>>());
+        var service = CreateService(A.Fake<IServicesWebsocketClient>(), A.Fake<IRuleScheduler>());
 
         Assert.NotNull(service);
-    }
-
-    [Fact]
-    public void StartServiceAsync_WithDifferentRefreshIntervals_ShouldWork()
-    {
-        var cache = A.Fake<IAutomatizationCache>();
-        var websocketClient = A.Fake<IServicesWebsocketClient>();
-        var meterFactory = A.Fake<IMeterFactory>();
-
-        var configuration1 = A.Fake<IConfiguration>();
-        var configuration2 = A.Fake<IConfiguration>();
-        var configuration3 = A.Fake<IConfiguration>();
-
-        var configs = new[]
-        {
-            new AutomatizationConfiguration(configuration1) { RefreshIntervalSeconds = 1 },
-            new AutomatizationConfiguration(configuration2) { RefreshIntervalSeconds = 5 },
-            new AutomatizationConfiguration(configuration3) { RefreshIntervalSeconds = 10 }
-        };
-
-        foreach (var config in configs)
-        {
-            var service = new AutomatizationService(cache, config, websocketClient, meterFactory, A.Fake<ILogger<AutomatizationService>>());
-            service.StartServiceAsync();
-
-            A.CallTo(() => websocketClient.ConnectAsync()).MustHaveHappened();
-        }
     }
 }
