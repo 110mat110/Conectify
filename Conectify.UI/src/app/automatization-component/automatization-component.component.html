@@ -1,37 +1,48 @@
-<div class="componentCube">
+<div class="componentCube" [class.armed]="hasArmedOutput">
+
     <!-- Left Side Buttons -->
     <div class="left-buttons">
-      <button 
+      <button
         class="input-button"
-        *ngFor="let input of Rule?.inputs" 
-        (click)="DestinationClick(input.id)" 
-        mat-raised-button 
+        *ngFor="let input of Rule?.inputs"
+        [attr.data-type]="input.type"
+        [matTooltip]="TypeName(input.type) + ' input'"
+        matTooltipPosition="left"
+        (click)="DestinationClick(input.id)"
+        mat-raised-button
         #buttonRef
         color="primary">
         {{ inputMapping[input.type]}}{{input.index}}
       </button>
     </div>
-  
+
     <!-- Center Content -->
     <div class="center-content">
-      <div class="component-text">{{Rule?.description}}</div>
+      <span class="component-kind">{{Kind}}</span>
+      <div class="component-text" [matTooltip]="Rule?.description ?? ''">{{Rule?.description}}</div>
     </div>
-  
+
     <!-- Right Side Buttons -->
     <div class="right-buttons">
-      <button 
+      <button
         class="output-button"
-        *ngFor="let output of Rule?.outputs" 
-        (click)="SourceClick(output.id)" 
-        mat-raised-button 
+        *ngFor="let output of Rule?.outputs"
+        [class.armed]="IsArmed(output.id)"
+        matTooltip="Output - click it, then click an input"
+        matTooltipPosition="right"
+        (click)="SourceClick(output.id)"
+        mat-raised-button
         #outputRef
         color="primary">
-        {{output.index}}
+        O{{output.index}}
       </button>
     </div>
-  
+
     <!-- Bottom Buttons -->
     <div class="bottom-buttons">
-      <button class="saveButton" mat-raised-button (click)="editClick()">Edit</button>
+      <button class="saveButton" mat-raised-button (click)="editClick()">
+        <mat-icon>tune</mat-icon>
+        <span>Edit</span>
+      </button>
     </div>
   </div>

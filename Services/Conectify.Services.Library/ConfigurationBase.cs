@@ -15,6 +15,9 @@ public class ConfigurationBase
 
     public Guid DeviceId { get; set; } = Guid.NewGuid();
 
+    /// <summary>Settings of the connection watchdog, bound from the "Watchdog" section.</summary>
+    public WatchdogConfiguration Watchdog { get; set; } = new();
+
     private string? externalAddress;
 
     /// <summary>

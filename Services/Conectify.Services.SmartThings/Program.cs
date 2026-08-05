@@ -42,6 +42,5 @@ var service = scope.ServiceProvider.GetRequiredService<SmartThingsService>();
 await service.RegisterAllDevices(default);
 
 Timer_ElapsedAsync(null, null!);
-app.UseHealthChecks("/health");
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.Run();

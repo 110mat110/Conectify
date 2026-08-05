@@ -20,6 +20,9 @@ internal class InternalCommandService(ConfigurationBase configuration, IServiceP
         switch (command.Name)
         {
             case Constants.Commands.ActivityCheck: await SendActivityResponse(command, ct); return true;
+            // Our own probe echoed back by the server. Receiving it is the whole point, the watchdog
+            // has already been told about it - it just has no business in the service itself.
+            case Constants.Commands.ConnectionCheck: return true;
             default: return false;
         }
     }

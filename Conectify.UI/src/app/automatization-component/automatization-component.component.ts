@@ -26,10 +26,34 @@ export class AutomatizationComponentComponent implements OnInit, AfterViewInit {
     1: 'T',
     2: 'V'
   };
+  typeNames: { [key: number]: string } = {
+    0: 'Parameter',
+    1: 'Trigger',
+    2: 'Value'
+  };
+
   constructor(public messenger: MessagesService, public be: BefetchAutomatizationService, private dialog: MatDialog) { }
 
   ngOnInit(): void {
 
+  }
+
+  /** Name of the behaviour, taken from the list the page already loaded. */
+  get Kind(): string {
+    return this.Cage?.supportedRules.find(x => x.id == this.Rule?.behaviorId)?.name ?? '';
+  }
+
+  /** True while one of the outputs of this rule waits for a target input. */
+  get hasArmedOutput(): boolean {
+    return this.Rule?.outputs.some(output => output.id == this.Cage?.source) ?? false;
+  }
+
+  IsArmed(outputId: string): boolean {
+    return this.Cage?.source == outputId;
+  }
+
+  TypeName(type: number): string {
+    return this.typeNames[type] ?? 'Input';
   }
 
   ngAfterViewInit(): void {

@@ -1,99 +1,154 @@
 /* Automation rule component */
 .componentCube {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  width: 150px;
-  height: 150px;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  transition: box-shadow var(--transition-normal);
 }
 
-/* Connection buttons */
-.SourceButton {
-  position: absolute;
-  right: -20px;
-  top: 45%;
-  border-radius: 50%;
-  background-color: var(--color-bg-primary);
-  border-color: var(--color-border);
-  color: var(--color-text-primary);
+/* The whole box lights up while its output waits for a target input. */
+.componentCube.armed {
+  box-shadow: 0 0 0 2px var(--color-accent-hover);
 }
 
-.Dest {
-  position: absolute;
-  left: -20px;
-  top: 45%;
-  border-radius: 50%;
-  background-color: var(--color-bg-primary);
-  border-color: var(--color-border);
-  color: var(--color-text-primary);
-}
-
-.Parameter {
-  position: absolute;
-  left: 50%;
-  top: -20px;
-  border-radius: 50%;
-  background-color: var(--color-bg-primary);
-  border-color: var(--color-border);
-  color: var(--color-text-primary);
-}
-
-.output-button, .input-button {
-  min-width: 10px !important;
-  width: 10px;
-  height: 20px;
+/* Connection pins. Material sizes its buttons from its own theme, so the geometry is forced. */
+.output-button,
+.input-button {
+  min-width: 0 !important;
+  width: 26px !important;
+  height: 20px !important;
+  padding: 0 !important;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 20px !important;
+  letter-spacing: 0.04em;
   border-radius: 5px;
-  background-color: var(--color-bg-primary);
+  background-color: var(--color-bg-input);
   border: 1px solid var(--color-accent-border);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-fast);
 }
 
-.left-buttons, .right-buttons {
+.output-button:hover,
+.input-button:hover {
+  transform: scale(1.12);
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+/* Parameter */
+.input-button[data-type='0'] {
+  border-color: rgba(56, 176, 0, 0.5);
+  color: var(--color-success);
+}
+
+/* Trigger */
+.input-button[data-type='1'] {
+  border-color: rgba(255, 190, 11, 0.5);
+  color: var(--color-warning);
+}
+
+/* Value */
+.input-button[data-type='2'] {
+  border-color: rgba(79, 195, 247, 0.5);
+  color: var(--color-info);
+}
+
+.output-button {
+  border-color: var(--color-accent-border);
+  color: var(--color-accent);
+}
+
+.output-button.armed {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #ffffff;
+  transform: scale(1.12);
+}
+
+.left-buttons,
+.right-buttons {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  z-index: 2;
 }
 
+/* Pins straddle the edge of the box, so the lines meet the card itself. */
 .left-buttons {
-  position: absolute;
-  left: 4px;
-  top: 8px;
+  left: -13px;
 }
 
 .right-buttons {
-  position: absolute;
-  right: 4px;
-  top: 8px;
+  right: -13px;
 }
 
 .center-content {
   flex-grow: 1;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 6px;
   text-align: center;
-  margin-left: 40px;
+  /* Keeps the text clear of the pins that reach into the card. */
+  padding: 4px 16px 0 16px;
+  min-width: 0;
+}
+
+.component-kind {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .component-text {
   font-size: 12px;
   font-weight: 600;
+  line-height: 1.35;
   color: var(--color-text-primary);
+  /* Long descriptions fade out instead of pushing the pins around. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .bottom-buttons {
-  display: block;
+  display: flex;
   justify-content: center;
-  gap: 4px;
-  position: relative;
-  bottom: 4px;
+  padding-bottom: 2px;
 }
 
 .saveButton {
-  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
   font-size: 10px;
-  height: 28px;
+  line-height: 24px;
+  height: 24px;
+  min-width: 0;
   background-color: var(--color-bg-elevated);
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -103,4 +158,12 @@
 .saveButton:hover {
   background-color: var(--color-accent-hover);
   border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.saveButton mat-icon {
+  font-size: 13px;
+  width: 13px;
+  height: 13px;
+  line-height: 13px;
 }

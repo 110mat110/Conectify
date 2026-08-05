@@ -1,7 +1,9 @@
 ﻿using Conectify.Shared.Library.Services;
 using Conectify.Shared.Maps;
 using Conectify.Shared.Services;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Conectify.Services.Library;
 
@@ -17,8 +19,14 @@ public static class DependencyInjectionExtensions
         services.AddTransient<IDeviceData, TDeviceData>();
         services.AddTransient<IHttpFactory, HttpFactory>();
         services.AddTransient<IInternalCommandService, InternalCommandService>();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<IConnectionState, ConnectionState>();
+        services.AddSingleton<IServiceRestarter, ServiceRestarter>();
+        services.AddHostedService<ConnectionWatchdog>();
         services.AddTelemetry();
         services.AddHealthChecks().AddCheck<WebsocketHealthcheck>("websocket", Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy);
+        // The service does not have to (and should not) map /health itself.
+        services.AddTransient<IStartupFilter, HealthcheckStartupFilter>();
         return services;
     }
 

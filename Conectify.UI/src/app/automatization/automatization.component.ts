@@ -85,6 +85,13 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
     }, 50);
   }
 
+  /** Height that fits every box plus room to drag further down. */
+  get canvasHeight(): number {
+    const lowestBox = this.ruleService.Rules.reduce((max, rule) => Math.max(max, rule.drawingPos?.y ?? 0), 0);
+
+    return Math.max(700, lowestBox + this.lineHeight + 300);
+  }
+
   SourceClick(source: string) {
     this.source = source;
   }
@@ -94,11 +101,17 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
     this.SetConnection();
   }
 
+  CancelConnection() {
+    this.source = undefined;
+    this.destination = undefined;
+  }
+
   SetConnection() {
     this.messenger.addMessage("Set connection");
 
     if (this.source && this.destination) {
       this.be.setConnection(this.source, this.destination).subscribe(x => {
+        this.CancelConnection();
         this.be.GetAllConnections().subscribe(x => {
           this.connections = x;
           this.DrawConnections();
@@ -150,8 +163,8 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
       source,
       destination,
       {
-        color: '#cccccc',
-        size: 3,
+        color: '#3a86ff',
+        size: 2.5,
         startSocket: 'right',
         endSocket: 'left',
         path: 'fluid', // Options: 'straight', 'arc', 'fluid', 'magnet', 'grid'
@@ -159,9 +172,14 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
         endPlug: 'arrow3',
         startPlugSize: 1,
         endPlugSize: 1.5,
-        startPlugColor: '#d1b906',
-        endPlugColor: '#bf5102',
+        // Runs from the colour of an output pin to the colour of an input pin.
+        startPlugColor: '#4fc3f7',
+        endPlugColor: '#3a86ff',
         gradient: true,
+        outlineColor: '#0a0a0a',
+        outline: true,
+        outlineSize: 0.15,
+        dropShadow: { dx: 0, dy: 1, blur: 3, color: '#000000', opacity: 0.5 },
         dash: {animation: true} // Animated dashed line
       }
     );

@@ -1,44 +1,62 @@
-<h2>Automatization</h2>
-<p style="color: var(--color-text-muted); margin-bottom: 12px;">Create and manage automation rules</p>
+<div class="page-head">
+  <div class="page-title">
+    <h2>Automatization</h2>
+    <p class="subtitle">Create and manage automation rules</p>
+  </div>
 
-<mat-form-field appearance="fill">
-  <mat-label>Select new rule</mat-label>
-  <mat-select matNativeControl [(ngModel)]="selectedRuleId" name="rules">
-    <mat-option value="" selected></mat-option>
-    <mat-option *ngFor="let rule of supportedRules" [value]="rule.id">
-      {{rule.name}}
-    </mat-option>
-  </mat-select>
-</mat-form-field>
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="toolbar-field">
+        <mat-label>New rule</mat-label>
+        <mat-select [(ngModel)]="selectedRuleId" name="rules">
+          <mat-option value=""></mat-option>
+          <mat-option *ngFor="let rule of supportedRules" [value]="rule.id">
+            {{rule.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
 
-<button mat-mini-fab color="primary" (click)="createRule()" aria-label="Click to add rule">
-  <mat-icon>add</mat-icon>
-</button>
+      <button mat-mini-fab color="primary" (click)="createRule()" matTooltip="Add rule" aria-label="Add rule">
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
 
-<p>Add custom input</p>
-<mat-form-field>
-  <mat-label>Input name</mat-label>
-  <input matInput #inputName value="">
-</mat-form-field>
+    <span class="toolbar-divider"></span>
 
-<button mat-mini-fab color="primary" aria-label="Add custom input" (click)="AddCustomInput(inputName.value)">
-  <mat-icon>add</mat-icon>
-</button>
+    <div class="toolbar-group">
+      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="toolbar-field">
+        <mat-label>Custom input name</mat-label>
+        <input matInput #inputName value="">
+      </mat-form-field>
 
-<br />
+      <button mat-mini-fab color="primary" matTooltip="Add custom input" aria-label="Add custom input"
+              (click)="AddCustomInput(inputName.value); inputName.value = ''">
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>
 
-<div class="example-boundary">
-  <div *ngFor="let rule of ruleService.Rules; let i = index" 
+<div class="connect-hint" *ngIf="source">
+  <mat-icon>timeline</mat-icon>
+  <span>Output picked - now click an input of the block that should receive it</span>
+  <button class="link-button" (click)="CancelConnection()">Cancel</button>
+</div>
+
+<div class="example-boundary" [style.height.px]="canvasHeight">
+  <p class="canvas-empty" *ngIf="!ruleService.Rules.length">
+    Pick a rule above and add it to start building an automation
+  </p>
+
+  <div *ngFor="let rule of ruleService.Rules; let i = index"
        [id]="'rule-' + i"
-       [style.left.px]="rule.drawingPos?.x" 
+       [style.left.px]="rule.drawingPos?.x"
        [style.top.px]="rule.drawingPos?.y"
-       class="example-box" 
-       cdkDragBoundary=".example-boundary" 
-       cdkDrag 
+       class="example-box"
+       cdkDragBoundary=".example-boundary"
+       cdkDrag
        (cdkDragEnded)="dragEnd($event, rule)"
        (cdkDragMoved)="ReDrawConnections()">
        <app-automatization-component (buttonGenerated)="handleButtonGenerated($event)" [Rule]='rule' [Cage]='this'></app-automatization-component>
   </div>
 </div>
-
-<script src="leader-line.min.js"></script>

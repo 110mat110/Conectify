@@ -13,7 +13,6 @@ var app = builder.Build();
 await app.Services.ConnectToConectifyServer();
 
 app.UseHttpsRedirection();
-app.UseHealthChecks("/health");
 
 var configuration = app.Services.GetRequiredService<Configuration>();
 var timer = new System.Timers.Timer(configuration.RefreshIntervalMinutes * 60 * 1000);

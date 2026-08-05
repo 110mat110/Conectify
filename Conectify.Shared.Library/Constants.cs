@@ -9,6 +9,12 @@ public static class Constants
         public const string ActivityCheck = "activitycheck";
         public const string Active = "active";
         public const string UpdateAvaliable = "update";
+
+        /// <summary>
+        /// Probe a service sends to itself through the server to find out whether the websocket
+        /// really works. The server routes it back as an echo, see ConnectionWatchdog.
+        /// </summary>
+        public const string ConnectionCheck = "connectioncheck";
     }
 
     public static class Events

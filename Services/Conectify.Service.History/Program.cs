@@ -29,7 +29,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseHealthChecks("/health");
 app.UseAuthorization();
 await app.Services.ConnectToConectifyServer();
 var ws = app.Services.GetRequiredService<IServicesWebsocketClient>();

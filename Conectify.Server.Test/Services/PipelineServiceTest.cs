@@ -256,6 +256,57 @@ public class PipelineServiceTest
     }
 
     [Fact]
+    public async Task ItShallEchoEventBackToTheDeviceThatAddressedItself()
+    {
+        // What the services' ConnectionWatchdog relies on: it probes the connection by sending an
+        // event addressed to its own device, and the server has to route it straight back.
+        var websocketService = A.Fake<IWebSocketService>();
+        var subCache = A.Fake<ISubscribersCache>();
+        var deviceId = Guid.NewGuid();
+        A.CallTo(() => subCache.AllSubscribers())
+            .Returns([new() { DeviceId = deviceId, AllDependantIds = [deviceId] }]);
+
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, websocketService, mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
+
+        await service.ResendEventToSubscribers(new Event
+        {
+            Id = Guid.NewGuid(),
+            Type = Conectify.Shared.Library.Constants.Events.Command,
+            Name = Conectify.Shared.Library.Constants.Commands.ConnectionCheck,
+            SourceId = deviceId,
+            DestinationId = deviceId,
+        });
+
+        A.CallTo(() => websocketService.SendToDeviceAsync(deviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustHaveHappened();
+    }
+
+    [Fact]
+    public async Task ItShallEchoEventBackToTheDeviceThatAddressedItselfOnCacheMiss()
+    {
+        var db = new ConectifyDb(dbContextoptions);
+        var deviceId = Guid.NewGuid();
+        db.Add(new Device { Id = deviceId, IsKnown = true });
+        db.SaveChanges();
+
+        var websocketService = A.Fake<IWebSocketService>();
+        var subCache = A.Fake<ISubscribersCache>();
+        A.CallTo(() => subCache.AllSubscribers()).Returns([]);
+
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, websocketService, mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
+
+        await service.ResendEventToSubscribers(new Event
+        {
+            Id = Guid.NewGuid(),
+            Type = Conectify.Shared.Library.Constants.Events.Command,
+            Name = Conectify.Shared.Library.Constants.Commands.ConnectionCheck,
+            SourceId = deviceId,
+            DestinationId = deviceId,
+        });
+
+        A.CallTo(() => websocketService.SendToDeviceAsync(deviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustHaveHappened();
+    }
+
+    [Fact]
     public async Task ItShallNotResendWhenDestinationNotFoundAnywhere()
     {
         var websocketService = A.Fake<IWebSocketService>();
