@@ -12,8 +12,6 @@ var app = builder.Build();
 
 await app.Services.ConnectToConectifyServer();
 
-app.UseHttpsRedirection();
-
 var configuration = app.Services.GetRequiredService<Configuration>();
 var timer = new System.Timers.Timer(configuration.RefreshIntervalMinutes * 60 * 1000);
 timer.Elapsed += Timer_ElapsedAsync;
@@ -27,5 +25,6 @@ async void Timer_ElapsedAsync(object? sender, ElapsedEventArgs e)
 }
 
 Timer_ElapsedAsync(null, null!);
+app.UseHealthChecks("/health");
 
 app.Run();
