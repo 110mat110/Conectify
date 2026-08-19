@@ -20,6 +20,12 @@
     <div class="center-content">
       <span class="component-kind">{{Kind}}</span>
       <div class="component-text" [matTooltip]="Rule?.description ?? ''">{{Rule?.description}}</div>
+      <span class="external-badge"
+            *ngIf="ExternalConnections > 0"
+            matTooltip="Connections to blocks on another level, they are not drawn here">
+        <mat-icon>alt_route</mat-icon>
+        <span>{{ExternalConnections}} outside</span>
+      </span>
     </div>
 
     <!-- Right Side Buttons -->
@@ -40,9 +46,29 @@
 
     <!-- Bottom Buttons -->
     <div class="bottom-buttons">
-      <button class="saveButton" mat-raised-button (click)="editClick()">
+      <button class="saveButton" mat-raised-button (click)="editClick()" matTooltip="Rule settings">
         <mat-icon>tune</mat-icon>
         <span>Edit</span>
       </button>
+
+      <button class="saveButton" mat-raised-button [matMenuTriggerFor]="moveMenu" matTooltip="Move to a function">
+        <mat-icon>drive_file_move</mat-icon>
+      </button>
+
+      <mat-menu #moveMenu="matMenu">
+        <button mat-menu-item
+                *ngFor="let target of MoveTargets"
+                (click)="MoveTo(target.id)">
+          <mat-icon>folder</mat-icon>
+          <span>{{target.name}}</span>
+        </button>
+        <button mat-menu-item *ngIf="Cage?.ruleService?.currentFunctionId" (click)="MoveOut()">
+          <mat-icon>arrow_upward</mat-icon>
+          <span>{{ParentName}}</span>
+        </button>
+        <button mat-menu-item *ngIf="!MoveTargets.length && !Cage?.ruleService?.currentFunctionId" disabled>
+          <span>No function on this level</span>
+        </button>
+      </mat-menu>
     </div>
   </div>

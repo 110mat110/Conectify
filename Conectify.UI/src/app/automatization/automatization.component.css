@@ -45,6 +45,102 @@
   background: var(--color-border);
 }
 
+/* Where in the function tree the board currently is */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.crumb:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.crumb.current {
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent-border);
+}
+
+.crumb mat-icon,
+.crumb-separator {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  line-height: 15px;
+}
+
+.crumb-separator {
+  color: var(--color-text-muted);
+}
+
+/* Interface of the function that is open */
+.port-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 190, 11, 0.07);
+  border: 1px solid rgba(255, 190, 11, 0.3);
+  border-radius: var(--radius-sm);
+}
+
+.port-bar-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-warning);
+}
+
+.port-field {
+  width: 150px;
+}
+
+.port-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.port-button:hover {
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+}
+
+.port-button mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+}
+
 /* Shown while an output waits for its target input */
 .connect-hint {
   display: flex;
@@ -106,7 +202,8 @@
   color: var(--color-text-muted);
 }
 
-app-automatization-component {
+app-automatization-component,
+app-automatization-function {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -140,6 +237,17 @@ app-automatization-component {
   border-color: var(--color-border-hover);
   box-shadow: var(--shadow-card-hover);
   z-index: 2;
+}
+
+/* A function reads as a container, so it carries the colour of its ports */
+.example-box.function-box {
+  border-color: rgba(255, 190, 11, 0.35);
+  border-style: dashed;
+  background: linear-gradient(180deg, var(--color-bg-elevated), rgba(255, 190, 11, 0.05));
+}
+
+.example-box.function-box:hover {
+  border-color: var(--color-warning);
 }
 
 .example-box:active,

@@ -14,6 +14,7 @@ import { BefetchAutomatizationService } from '../befetch-automatization.service'
 import { BehaviourMenuItem, MinMaxDef } from 'src/models/Automatization/BehaviourMenuItem';
 import { DelayRule } from 'src/models/Automatization/DelayRule';
 import { HttpCallRule } from 'src/models/Automatization/HttpCallRule';
+import { PortRule } from 'src/models/Automatization/PortRule';
 
 
 @Component({
@@ -33,6 +34,7 @@ export class AutomatizationEditComponent {
   AndRuleX?: AndRule;
   Behaviour?: BehaviourMenuItem;
   HttpRule?: HttpCallRule;
+  PortRuleX?: PortRule;
   readonly dialogRef = inject(MatDialogRef<AutomatizationEditComponent>);
 
   CanAddOutput: boolean = false;
@@ -80,6 +82,10 @@ export class AutomatizationEditComponent {
 
     if(this.rule instanceof HttpCallRule){
       this.HttpRule = this.rule;
+    }
+
+    if (this.rule instanceof PortRule) {
+      this.PortRuleX = this.rule;
     }
 
     if (this.data.rule.behaviorId) {

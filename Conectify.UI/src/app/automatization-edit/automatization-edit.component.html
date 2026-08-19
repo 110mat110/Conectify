@@ -10,6 +10,7 @@
     <app-aut-decision *ngIf="DecisionRule" [Rule]="DecisionRule"></app-aut-decision>
     <app-aut-delay *ngIf="DelayRule" [Rule]="DelayRule"></app-aut-delay>
     <app-aut-http-call *ngIf="HttpRule" [Rule]="HttpRule"></app-aut-http-call>
+    <app-aut-port *ngIf="PortRuleX" [Rule]="PortRuleX"></app-aut-port>
 </div>
 
 <button *ngIf="CanAddTrigger" (click)="AddTrigger()">Add Trigger</button>

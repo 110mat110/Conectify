@@ -89,12 +89,33 @@ public class AutomatizationCache : IAutomatizationCache
         await automatizationDb.Set<Rule>().AddAsync(rule, cancellationToken);
         await automatizationDb.SaveChangesAsync(cancellationToken);
 
-        var dto = mapper.Map<RuleDTO>(rule);
+        var dto = ToDto(rule);
         await dto.InitializeAsync(services, null);
 
         cache.TryAdd(dto.Id, dto);
         RulesChanged?.Invoke();
         return rule.Id;
+    }
+
+    /// <summary>
+    /// The mapper cannot build the output points, they need the service provider. Without this a rule
+    /// that was just created would have no outputs to connect to and its inputs would not know which
+    /// rule to run.
+    /// </summary>
+    private RuleDTO ToDto(Rule rule)
+    {
+        var dto = mapper.Map<RuleDTO>(rule);
+
+        dto.Outputs = (rule.OutputConnectors ?? [])
+            .Select(output => new OutputPointDTO(output.Id, services) { Index = output.Index })
+            .ToList();
+
+        foreach (var input in dto.Inputs)
+        {
+            input.Rule = dto;
+        }
+
+        return dto;
     }
 
     private async Task ReloadIfNeeded()
@@ -118,17 +139,7 @@ public class AutomatizationCache : IAutomatizationCache
             return;
         }
 
-        var dto = mapper.Map<RuleDTO>(rule);
-        var outputs = new List<OutputPointDTO>();
-        foreach (var output in rule.OutputConnectors)
-        {
-            outputs.Add(new OutputPointDTO(output.Id, services));
-        }
-        foreach (var input in dto.Inputs)
-        {
-            input.Rule = dto;
-        }
-        dto.Outputs = outputs;
+        var dto = ToDto(rule);
         cache.TryGetValue(id, out var oldDto);
         await dto.InitializeAsync(services, oldDto);
 
@@ -207,23 +218,7 @@ public class AutomatizationCache : IAutomatizationCache
         var automatizationDb = scope.ServiceProvider.GetRequiredService<AutomatizationDb>();
         var dbrules = await automatizationDb.Set<Rule>().AsNoTracking().Include(x => x.OutputConnectors).Include(x => x.InputConnectors).ToListAsync();
 
-        var dtos = mapper.Map<IEnumerable<RuleDTO>>(dbrules);
-        foreach (var dto in dtos)
-        {
-            var outputs = new List<OutputPointDTO>();
-            var rule = dbrules.First(x => x.Id == dto.Id);
-            foreach (var output in rule.OutputConnectors)
-            {
-                outputs.Add(new OutputPointDTO(output.Id, services));
-            }
-            foreach (var input in dto.Inputs)
-            {
-                input.Rule = dto;
-            }
-            dto.Outputs = outputs;
-        }
-
-        var tempcache = dtos.ToDictionary(x => x.Id);
+        var tempcache = dbrules.Select(ToDto).ToDictionary(x => x.Id);
 
         foreach (var d in tempcache.Values)
         {

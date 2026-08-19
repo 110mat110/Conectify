@@ -7,6 +7,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AutomatizationEditComponent } from '../automatization-edit/automatization-edit.component';
 import { EditRule } from 'src/models/Automatization/EditRule';
 import { MatButton } from '@angular/material/button';
+import { FunctionModel } from 'src/models/Automatization/FunctionModel';
 
 @Component({
   selector: 'app-automatization-component',
@@ -40,7 +41,7 @@ export class AutomatizationComponentComponent implements OnInit, AfterViewInit {
 
   /** Name of the behaviour, taken from the list the page already loaded. */
   get Kind(): string {
-    return this.Cage?.supportedRules.find(x => x.id == this.Rule?.behaviorId)?.name ?? '';
+    return this.Cage?.allBehaviours.find(x => x.id == this.Rule?.behaviorId)?.name ?? '';
   }
 
   /** True while one of the outputs of this rule waits for a target input. */
@@ -54,6 +55,35 @@ export class AutomatizationComponentComponent implements OnInit, AfterViewInit {
 
   TypeName(type: number): string {
     return this.typeNames[type] ?? 'Input';
+  }
+
+  /** Connections of this rule that lead to a block on another level and cannot be drawn here. */
+  get ExternalConnections(): number {
+    return this.Rule && this.Cage ? this.Cage.ExternalConnectionCount(this.Rule) : 0;
+  }
+
+  /** Functions standing on the same level, those are where the rule can be moved into. */
+  get MoveTargets(): FunctionModel[] {
+    return this.Cage?.ruleService.visibleFunctions ?? [];
+  }
+
+  get ParentName(): string {
+    const parentId = this.Cage?.ruleService.parentFunctionId;
+    const parent = this.Cage?.ruleService.Functions.find(x => x.id == parentId);
+
+    return parent ? `Move to ${parent.name}` : 'Move to the top level board';
+  }
+
+  MoveTo(functionId: string): void {
+    if (this.Rule) {
+      this.Cage?.ruleService.moveRuleToFunction(this.Rule.id, functionId);
+    }
+  }
+
+  MoveOut(): void {
+    if (this.Rule) {
+      this.Cage?.ruleService.moveRuleToFunction(this.Rule.id, this.Cage?.ruleService.parentFunctionId);
+    }
   }
 
   ngAfterViewInit(): void {

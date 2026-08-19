@@ -1,0 +1,197 @@
+/* A function drawn on the board of its parent */
+.functionCube {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  transition: box-shadow var(--transition-normal);
+}
+
+.functionCube.armed {
+  box-shadow: 0 0 0 2px var(--color-accent-hover);
+}
+
+/* Port pins. Material sizes its buttons from its own theme, so the geometry is forced. */
+.output-button,
+.input-button {
+  min-width: 0 !important;
+  max-width: 80px;
+  height: 20px !important;
+  padding: 0 6px !important;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 20px !important;
+  letter-spacing: 0.04em;
+  border-radius: 5px;
+  background-color: var(--color-bg-input);
+  border: 1px solid var(--color-accent-border);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.output-button:hover,
+.input-button:hover {
+  transform: scale(1.08);
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+/* Parameter */
+.input-button[data-type='0'] {
+  border-color: rgba(56, 176, 0, 0.5);
+  color: var(--color-success);
+}
+
+/* Trigger */
+.input-button[data-type='1'] {
+  border-color: rgba(255, 190, 11, 0.5);
+  color: var(--color-warning);
+}
+
+/* Value */
+.input-button[data-type='2'] {
+  border-color: rgba(79, 195, 247, 0.5);
+  color: var(--color-info);
+}
+
+.output-button {
+  border-color: var(--color-accent-border);
+  color: var(--color-accent);
+}
+
+.output-button.armed {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+.left-buttons,
+.right-buttons {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 2;
+}
+
+.left-buttons {
+  left: -37px;
+  align-items: flex-start;
+}
+
+.right-buttons {
+  right: -37px;
+  align-items: flex-end;
+}
+
+.center-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  padding: 4px 16px 0 16px;
+  min-width: 0;
+}
+
+.function-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-warning);
+  background: rgba(255, 190, 11, 0.12);
+  border: 1px solid rgba(255, 190, 11, 0.35);
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.function-kind mat-icon {
+  font-size: 11px;
+  width: 11px;
+  height: 11px;
+  line-height: 11px;
+}
+
+.function-name {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.function-note {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bottom-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding-bottom: 2px;
+}
+
+.cubeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0 !important;
+  padding: 0 8px !important;
+  font-size: 10px;
+  line-height: 24px !important;
+  height: 24px !important;
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.cubeButton:hover {
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.cubeButton.primary {
+  border-color: var(--color-accent-border);
+  color: var(--color-accent);
+}
+
+.cubeButton.danger:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.cubeButton mat-icon {
+  font-size: 13px;
+  width: 13px;
+  height: 13px;
+  line-height: 13px;
+}

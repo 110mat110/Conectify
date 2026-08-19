@@ -118,8 +118,34 @@ export class AdressesService {
     return this.serverURL + "metadata"
   }
 
-  createRule(behaviourId: string) : string{
-    return this.automatizationURL + "rule/create/" + behaviourId
+  createRule(behaviourId: string, functionId?: string) : string{
+    const rule = this.automatizationURL + "rule/create/" + behaviourId;
+
+    return functionId ? rule + "?functionId=" + functionId : rule;
+  }
+
+  allFunctions(): string {
+    return this.automatizationURL + "function/all";
+  }
+
+  function(): string {
+    return this.automatizationURL + "function";
+  }
+
+  functionById(functionId: string): string {
+    return this.automatizationURL + "function/" + functionId;
+  }
+
+  functionPort(functionId: string): string {
+    return this.automatizationURL + "function/" + functionId + "/port";
+  }
+
+  moveRuleToFunction(ruleId: string): string {
+    return this.automatizationURL + "function/rule/" + ruleId;
+  }
+
+  moveFunctionToParent(functionId: string): string {
+    return this.automatizationURL + "function/" + functionId + "/parent";
   }
   
   allRules() : string{

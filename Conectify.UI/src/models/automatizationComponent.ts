@@ -13,6 +13,9 @@ export class AutomatizationBase{
     public name: string = "";
     public description: string = "";
 
+    /** Function the rule belongs to, empty for the top level board. */
+    public functionId?: string;
+
     public getParametersJSon(): string {
         return "{}";
     };

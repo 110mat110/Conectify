@@ -14,10 +14,15 @@ namespace Conectify.Services.Automatization.Services;
 
 public class RuleService(IAutomatizationCache automatizationCache, IMapper mapper, AutomatizationDb database, IConnectorService connectorService, IDeviceData configuration, IServiceProvider services, ILogger<RuleService> logger)
 {
-    public async Task<GetRuleApiModel> AddNewRule(Guid behaviourId, CancellationToken cancellationToken)
+    public async Task<GetRuleApiModel> AddNewRule(Guid behaviourId, Guid? functionId, CancellationToken cancellationToken)
     {
-        logger.LogInformation("AddNewRule: behaviourId={BehaviourId}", behaviourId);
+        logger.LogInformation("AddNewRule: behaviourId={BehaviourId} functionId={FunctionId}", behaviourId, functionId);
         var behaviour = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, services) ?? throw new Exception($"Behaviour {behaviourId} does not exist");
+
+        if (functionId is not null && !await database.Functions.AnyAsync(x => x.Id == functionId, cancellationToken))
+        {
+            throw new ArgumentException("Function does not exist!");
+        }
 
         var inputs = new List<InputPoint>();
         int inputIndex = 0;
@@ -44,6 +49,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
             RuleType = behaviourId,
             X = 0,
             Y = 0,
+            FunctionId = functionId,
             InputConnectors = inputs,
             OutputConnectors = outputs
         };
@@ -207,6 +213,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
             ParametersJson = "{\"SourceSensorId\" : \"" + apiActuator.Id + "\"}",
             RuleType = new UserInputRuleBehaviour(services).GetId(),
             Description = "Automatically created from UI",
+            FunctionId = actuator.FunctionId,
         };
 
         await automatizationCache.AddNewRule(rule, cancellationToken);

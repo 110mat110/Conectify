@@ -1,0 +1,8 @@
+<p>Port of a function</p>
+
+<mat-form-field class="port-name" appearance="fill" subscriptSizing="dynamic">
+    <mat-label>Pin label</mat-label>
+    <input matInput placeholder="Temperature" [(ngModel)]="portName" (ngModelChange)="onChange()">
+</mat-form-field>
+
+<p class="hint">The signal it carries is chosen when the port is created. Delete the port and add a new one to change it.</p>

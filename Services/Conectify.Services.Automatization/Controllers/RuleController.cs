@@ -8,10 +8,11 @@ namespace Conectify.Services.Automatization.Controllers;
 [ApiController]
 public class RuleController(RuleService ruleService) : ControllerBase
 {
+    /// <summary><paramref name="functionId"/> places the new rule inside a function, otherwise it lands on the top level board.</summary>
     [HttpGet("create/{behaviourId}")]
-    public async Task<IActionResult> AddNewRule(Guid behaviourId)
+    public async Task<IActionResult> AddNewRule(Guid behaviourId, [FromQuery] Guid? functionId = null)
     {
-        var result = await ruleService.AddNewRule(behaviourId, default);
+        var result = await ruleService.AddNewRule(behaviourId, functionId, default);
 
         return Ok(result);
     }

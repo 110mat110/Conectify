@@ -25,6 +25,7 @@ builder.Services.AddSingleton<IAutomatizationCache, AutomatizationCache>();
 builder.Services.AddSingleton<IRuleScheduler, RuleScheduler>();
 builder.Services.AddSingleton<IAutomatizationService, AutomatizationService>();
 builder.Services.AddTransient<RuleService>();
+builder.Services.AddTransient<FunctionService>();
 
 var app = builder.Build();
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());

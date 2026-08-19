@@ -1,0 +1,8 @@
+.port-name {
+  width: 100%;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}

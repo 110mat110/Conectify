@@ -17,10 +17,40 @@ namespace Conectify.Services.Automatization.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.6")
+                .HasAnnotation("ProductVersion", "8.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Conectify.Services.Automatization.Models.Database.Function", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ParentFunctionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentFunctionId");
+
+                    b.ToTable("Functions");
+                });
 
             modelBuilder.Entity("Conectify.Services.Automatization.Models.Database.InputPoint", b =>
                 {
@@ -73,6 +103,9 @@ namespace Conectify.Services.Automatization.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("FunctionId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -92,6 +125,8 @@ namespace Conectify.Services.Automatization.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FunctionId");
+
                     b.ToTable("Rules");
                 });
 
@@ -108,6 +143,16 @@ namespace Conectify.Services.Automatization.Migrations
                     b.HasIndex("TargetRuleId");
 
                     b.ToTable("RuleConnector");
+                });
+
+            modelBuilder.Entity("Conectify.Services.Automatization.Models.Database.Function", b =>
+                {
+                    b.HasOne("Conectify.Services.Automatization.Models.Database.Function", "ParentFunction")
+                        .WithMany("Functions")
+                        .HasForeignKey("ParentFunctionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("ParentFunction");
                 });
 
             modelBuilder.Entity("Conectify.Services.Automatization.Models.Database.InputPoint", b =>
@@ -132,6 +177,16 @@ namespace Conectify.Services.Automatization.Migrations
                     b.Navigation("Rule");
                 });
 
+            modelBuilder.Entity("Conectify.Services.Automatization.Models.Database.Rule", b =>
+                {
+                    b.HasOne("Conectify.Services.Automatization.Models.Database.Function", "Function")
+                        .WithMany("Rules")
+                        .HasForeignKey("FunctionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Function");
+                });
+
             modelBuilder.Entity("Conectify.Services.Automatization.Models.Database.RuleConnector", b =>
                 {
                     b.HasOne("Conectify.Services.Automatization.Models.Database.OutputPoint", "SourceRule")
@@ -149,6 +204,13 @@ namespace Conectify.Services.Automatization.Migrations
                     b.Navigation("SourceRule");
 
                     b.Navigation("TargetRule");
+                });
+
+            modelBuilder.Entity("Conectify.Services.Automatization.Models.Database.Function", b =>
+                {
+                    b.Navigation("Functions");
+
+                    b.Navigation("Rules");
                 });
 
             modelBuilder.Entity("Conectify.Services.Automatization.Models.Database.InputPoint", b =>

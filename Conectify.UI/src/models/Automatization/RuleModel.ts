@@ -9,6 +9,8 @@ export interface RuleModel{
     behaviourId: string;
     name: string;
     description:string;
+    /** Function the rule lives in, empty for the top level board. */
+    functionId?: string;
     outputs: OutputApiModel[];
     inputs: InputApiModel[];
 }

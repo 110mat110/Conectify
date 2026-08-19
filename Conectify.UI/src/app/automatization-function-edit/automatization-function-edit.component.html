@@ -1,0 +1,18 @@
+<h4>Function</h4>
+
+<div class="edit-body">
+    <mat-form-field appearance="fill" subscriptSizing="dynamic" class="field">
+        <mat-label>Name</mat-label>
+        <input matInput [(ngModel)]="name" name="functionName">
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" subscriptSizing="dynamic" class="field">
+        <mat-label>Note</mat-label>
+        <input matInput [(ngModel)]="description" name="functionDescription">
+    </mat-form-field>
+</div>
+
+<div class="edit-actions">
+    <button (click)="Save()">Save and Close</button>
+    <button (click)="Close()">Close</button>
+</div>

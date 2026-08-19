@@ -16,6 +16,9 @@ public class GetRuleApiModel
 
     public Guid BehaviourId { get; set; }
 
+    /// <summary>Function the rule lives in, null for the top level board.</summary>
+    public Guid? FunctionId { get; set; }
+
     public IEnumerable<OutputApiModel> Outputs { get; set; } = [];
 
     public IEnumerable<InputApiModel> Inputs { get; set; } = [];

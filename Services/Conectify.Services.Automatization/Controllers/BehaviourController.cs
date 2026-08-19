@@ -14,7 +14,7 @@ public class BehaviourController(IServiceProvider serviceProvider) : ControllerB
     {
         var behaviours = BehaviorFactory.GetAllBehaviours(serviceProvider);
 
-        return behaviours.Select(x => new BehaviourMenuApiModel(x.GetId(), x.DisplayName(), x.Outputs, x.Inputs));
+        return behaviours.Select(x => new BehaviourMenuApiModel(x.GetId(), x.DisplayName(), x.Outputs, x.Inputs, x is IInternalRuleBehaviour));
     }
 
     [HttpGet("{id}")]
@@ -24,6 +24,6 @@ public class BehaviourController(IServiceProvider serviceProvider) : ControllerB
 
         if (x is null) return null;
 
-        return new BehaviourMenuApiModel(x!.GetId(), x.DisplayName(), x.Outputs, x.Inputs);
+        return new BehaviourMenuApiModel(x!.GetId(), x.DisplayName(), x.Outputs, x.Inputs, x is IInternalRuleBehaviour);
     }
 }

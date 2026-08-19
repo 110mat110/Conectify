@@ -1,0 +1,57 @@
+<div class="functionCube" [class.armed]="hasArmedOutput">
+
+  <!-- Input ports, fed from this board -->
+  <div class="left-buttons">
+    <button
+      class="input-button"
+      *ngFor="let port of Function?.inputPorts"
+      [attr.data-type]="port.type"
+      [matTooltip]="port.name + ' - ' + TypeName(port.type) + ' input of the function'"
+      matTooltipPosition="left"
+      (click)="DestinationClick(port.pointId)"
+      mat-raised-button
+      #inputPortRef
+      color="primary">
+      {{port.name || 'IN'}}
+    </button>
+  </div>
+
+  <div class="center-content">
+    <span class="function-kind">
+      <mat-icon>folder</mat-icon>
+      <span>FUNCTION</span>
+    </span>
+    <div class="function-name">{{Function?.name}}</div>
+    <div class="function-note" *ngIf="Function?.description">{{Function?.description}}</div>
+    <div class="function-note" *ngIf="!Function?.inputPorts?.length && !Function?.outputPorts?.length">No ports yet</div>
+  </div>
+
+  <!-- Output ports, read by this board -->
+  <div class="right-buttons">
+    <button
+      class="output-button"
+      *ngFor="let port of Function?.outputPorts"
+      [class.armed]="IsArmed(port.pointId)"
+      [matTooltip]="port.name + ' - output of the function'"
+      matTooltipPosition="right"
+      (click)="SourceClick(port.pointId)"
+      mat-raised-button
+      #outputPortRef
+      color="primary">
+      {{port.name || 'OUT'}}
+    </button>
+  </div>
+
+  <div class="bottom-buttons">
+    <button class="cubeButton primary" mat-raised-button (click)="Open()" matTooltip="Open the function">
+      <mat-icon>login</mat-icon>
+      <span>Open</span>
+    </button>
+    <button class="cubeButton" mat-raised-button (click)="Edit()" matTooltip="Rename">
+      <mat-icon>tune</mat-icon>
+    </button>
+    <button class="cubeButton danger" mat-raised-button (click)="Remove()" matTooltip="Delete the function">
+      <mat-icon>delete_outline</mat-icon>
+    </button>
+  </div>
+</div>

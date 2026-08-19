@@ -61,7 +61,7 @@ public class RuleServiceTests
         var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
         var behaviourId = new AndRuleBehaviour(default).GetId();
-        var result = await ruleService.AddNewRule(behaviourId, default);
+        var result = await ruleService.AddNewRule(behaviourId, null, default);
 
         Assert.NotNull(result);
         Assert.NotEqual(result.Id, Guid.Empty);
@@ -86,7 +86,7 @@ public class RuleServiceTests
 
         try
         {
-            var result = await ruleService.AddNewRule(IncorrectBehaviourId, default);
+            var result = await ruleService.AddNewRule(IncorrectBehaviourId, null, default);
 
         }
         catch (Exception ex)

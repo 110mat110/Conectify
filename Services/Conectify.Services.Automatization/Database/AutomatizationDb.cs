@@ -12,6 +12,8 @@ public class AutomatizationDb(DbContextOptions<AutomatizationDb> options) : DbCo
 
     public DbSet<InputPoint> InputConnectors { get; set; } = null!;
 
+    public DbSet<Function> Functions { get; set; } = null!;
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -21,6 +23,19 @@ public class AutomatizationDb(DbContextOptions<AutomatizationDb> options) : DbCo
             u.SourceRuleId,
             u.TargetRuleId,
         });
+
+        // A function is deleted with everything it holds - nested functions and rules alike.
+        modelBuilder.Entity<Function>()
+            .HasOne(x => x.ParentFunction)
+            .WithMany(x => x.Functions)
+            .HasForeignKey(x => x.ParentFunctionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Function>()
+            .HasMany(x => x.Rules)
+            .WithOne(x => x.Function)
+            .HasForeignKey(x => x.FunctionId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<RuleConnector>()
             .HasOne(bc => bc.SourceRule)

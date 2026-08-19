@@ -25,6 +25,20 @@
 
     <div class="toolbar-group">
       <mat-form-field appearance="fill" subscriptSizing="dynamic" class="toolbar-field">
+        <mat-label>New function</mat-label>
+        <input matInput #functionName value="">
+      </mat-form-field>
+
+      <button mat-mini-fab color="primary" matTooltip="Group rules into a function" aria-label="Add function"
+              (click)="createFunction(functionName.value); functionName.value = ''">
+        <mat-icon>create_new_folder</mat-icon>
+      </button>
+    </div>
+
+    <span class="toolbar-divider"></span>
+
+    <div class="toolbar-group">
+      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="toolbar-field">
         <mat-label>Custom input name</mat-label>
         <input matInput #inputName value="">
       </mat-form-field>
@@ -37,6 +51,49 @@
   </div>
 </div>
 
+<!-- Where in the function tree the board currently is -->
+<div class="breadcrumb">
+  <button class="crumb" [class.current]="!ruleService.currentFunctionId" (click)="OpenFunction()">
+    <mat-icon>home</mat-icon>
+    <span>Board</span>
+  </button>
+  <ng-container *ngFor="let crumb of ruleService.breadcrumb">
+    <mat-icon class="crumb-separator">chevron_right</mat-icon>
+    <button class="crumb" [class.current]="crumb.id == ruleService.currentFunctionId" (click)="OpenFunction(crumb.id)">
+      <mat-icon>folder</mat-icon>
+      <span>{{crumb.name}}</span>
+    </button>
+  </ng-container>
+</div>
+
+<!-- Ports are the interface of the function, so they are only offered inside one -->
+<div class="port-bar" *ngIf="ruleService.currentFunctionId">
+  <span class="port-bar-label">Ports of {{ruleService.currentFunction?.name}}</span>
+
+  <mat-form-field appearance="fill" subscriptSizing="dynamic" class="port-field">
+    <mat-label>Signal</mat-label>
+    <mat-select [(ngModel)]="newPortType" name="portType">
+      <mat-option [value]="2">Value</mat-option>
+      <mat-option [value]="1">Trigger</mat-option>
+      <mat-option [value]="0">Parameter</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill" subscriptSizing="dynamic" class="port-field">
+    <mat-label>Port name</mat-label>
+    <input matInput #portName value="">
+  </mat-form-field>
+
+  <button class="port-button" (click)="addPort(portDirections.Input, portName.value); portName.value = ''">
+    <mat-icon>login</mat-icon>
+    <span>Add input</span>
+  </button>
+  <button class="port-button" (click)="addPort(portDirections.Output, portName.value); portName.value = ''">
+    <mat-icon>logout</mat-icon>
+    <span>Add output</span>
+  </button>
+</div>
+
 <div class="connect-hint" *ngIf="source">
   <mat-icon>timeline</mat-icon>
   <span>Output picked - now click an input of the block that should receive it</span>
@@ -44,11 +101,11 @@
 </div>
 
 <div class="example-boundary" [style.height.px]="canvasHeight">
-  <p class="canvas-empty" *ngIf="!ruleService.Rules.length">
-    Pick a rule above and add it to start building an automation
+  <p class="canvas-empty" *ngIf="!ruleService.visibleRules.length && !ruleService.visibleFunctions.length">
+    {{ ruleService.currentFunctionId ? 'This function is empty - add rules and ports, or move rules in from the board' : 'Pick a rule above and add it to start building an automation' }}
   </p>
 
-  <div *ngFor="let rule of ruleService.Rules; let i = index"
+  <div *ngFor="let rule of ruleService.visibleRules; let i = index"
        [id]="'rule-' + i"
        [style.left.px]="rule.drawingPos?.x"
        [style.top.px]="rule.drawingPos?.y"
@@ -58,5 +115,16 @@
        (cdkDragEnded)="dragEnd($event, rule)"
        (cdkDragMoved)="ReDrawConnections()">
        <app-automatization-component (buttonGenerated)="handleButtonGenerated($event)" [Rule]='rule' [Cage]='this'></app-automatization-component>
+  </div>
+
+  <div *ngFor="let fn of ruleService.visibleFunctions"
+       [style.left.px]="functionDrawingPos(fn).x"
+       [style.top.px]="functionDrawingPos(fn).y"
+       class="example-box function-box"
+       cdkDragBoundary=".example-boundary"
+       cdkDrag
+       (cdkDragEnded)="functionDragEnd($event, fn)"
+       (cdkDragMoved)="ReDrawConnections()">
+       <app-automatization-function (buttonGenerated)="handleButtonGenerated($event)" [Function]='fn' [Cage]='this'></app-automatization-function>
   </div>
 </div>

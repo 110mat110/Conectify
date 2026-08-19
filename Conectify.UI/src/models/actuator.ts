@@ -10,4 +10,6 @@ export interface Actuator {
 
 export interface CreateActuatorApi{
     actuatorName: string;
+    /** Function the created input rule should land in, empty for the top level board. */
+    functionId?: string;
 }

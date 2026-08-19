@@ -23,6 +23,8 @@ import { MetadataIconsComponent } from './metadata-icons/metadata-icons.componen
 import { AutomatizationComponent } from './automatization/automatization.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AutomatizationComponentComponent } from './automatization-component/automatization-component.component';
+import { AutomatizationFunctionComponent } from './automatization-function/automatization-function.component';
+import { AutomatizationFunctionEditComponent } from './automatization-function-edit/automatization-function-edit.component';
 import { SelectInputSensorOverlayComponent } from './select-input-sensor-overlay/select-input-sensor-overlay.component';
 import {DragDropModule} from '@angular/cdk/drag-drop';
 import { AutChangeDestinationComponent } from './aut-change-destination/aut-change-destination.component';
@@ -57,6 +59,7 @@ import { AutValueInputComponent } from './aut-inner-components/aut-value-input/a
 import { AutUserInputComponent } from './aut-inner-components/aut-user-input/aut-user-input.component';
 import { AutDelayComponent } from './aut-inner-components/aut-delay/aut-delay.component';
 import { AutHttpCallComponent } from './aut-inner-components/aut-http-call/aut-http-call.component';
+import { AutPortComponent } from './aut-inner-components/aut-port/aut-port.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
 @NgModule({ declarations: [
@@ -72,6 +75,8 @@ import { ServiceWorkerModule } from '@angular/service-worker';
         AutValueInputComponent,
         AutDelayComponent,
         AutomatizationComponentComponent,
+        AutomatizationFunctionComponent,
+        AutomatizationFunctionEditComponent,
         SelectInputSensorOverlayComponent,
         AutChangeDestinationComponent,
         SelectDestinationActuatorOverlayComponent,
@@ -83,6 +88,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
         AutSetValueComponent,
         AutDecisionComponent,
         AutHttpCallComponent,
+        AutPortComponent,
         AutAndComponent,
         DashboardComponent,
         DashboardcontentComponent,

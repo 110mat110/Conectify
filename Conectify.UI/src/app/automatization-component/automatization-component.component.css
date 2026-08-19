@@ -132,9 +132,31 @@
   overflow-wrap: anywhere;
 }
 
+/* Connections that leave the level, they cannot be drawn as a line here */
+.external-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: var(--color-warning);
+  background: rgba(255, 190, 11, 0.12);
+  border: 1px solid rgba(255, 190, 11, 0.35);
+  white-space: nowrap;
+}
+
+.external-badge mat-icon {
+  font-size: 11px;
+  width: 11px;
+  height: 11px;
+  line-height: 11px;
+}
+
 .bottom-buttons {
   display: flex;
   justify-content: center;
+  gap: 4px;
   padding-bottom: 2px;
 }
 
@@ -142,11 +164,11 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 0 10px;
+  padding: 0 8px !important;
   font-size: 10px;
-  line-height: 24px;
-  height: 24px;
-  min-width: 0;
+  line-height: 24px !important;
+  height: 24px !important;
+  min-width: 0 !important;
   background-color: var(--color-bg-elevated);
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
