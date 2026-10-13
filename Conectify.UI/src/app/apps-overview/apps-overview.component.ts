@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { LocalApp } from 'src/models/local-app.model';
+import { AdressesService } from '../adresses.service';
 
 @Component({
   selector: 'app-apps-overview',
@@ -13,18 +14,20 @@ import { LocalApp } from 'src/models/local-app.model';
 
 export class AppsOverviewComponent implements OnInit {
   private configUrl = '/assets/config.json';
-  apps: any[] = [];
+  apps: LocalApp[] = [];
   fallbackIcon = "https://cdn.jsdelivr.net/npm/@mdi/svg/svg/application.svg"
   constructor(private http: HttpClient) {
   }
 
   ngOnInit(): void {
-      console.log(this.apps); // should print 8 objects
     this.http.get(this.configUrl).subscribe({
-      next: (data) => {this.apps = (data as any).services as LocalApp[]
-       this.apps.forEach(element => {
-        element.icon = "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/"+element.icon+".svg";
-    }); 
+      next: (data) => {
+        const services = (data as any).services as LocalApp[];
+        services.forEach(element => {
+          element.icon = "https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/" + element.icon + ".svg";
+          element.url = AdressesService.replaceServerHost(element.url);
+        });
+        this.apps = services;
       },
       error: (err) => console.error('Failed to load config', err)
     });

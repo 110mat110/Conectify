@@ -222,11 +222,17 @@ export class AdressesService {
   static replaceServerHost(url: string): string {
   try {
     const currentHost = window.location.hostname;
-    if(currentHost == "localhost")
-    {
+    if (!currentHost || currentHost === 'localhost') {
       return url;
     }
-    return url.replace(environment.serverHome, currentHost);
+
+    const parsedUrl = new URL(url);
+    if (parsedUrl.hostname === environment.serverHome || parsedUrl.hostname === 'localhost') {
+      parsedUrl.hostname = currentHost;
+      return parsedUrl.toString();
+    }
+
+    return url;
   } catch {
     return url;
   }
