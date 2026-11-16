@@ -85,11 +85,12 @@ public class PipelineService(ConectifyDb conectifyDb, ISubscribersCache subscrib
 
             IEnumerable<Guid> targetingSubscribers = await GetTargetsForEvent(evnt);
 
-            foreach (var subscriber in targetingSubscribers.Distinct())
+            // All at once, so a subscriber that is slow to take the event does not hold it up for the others.
+            await Task.WhenAll(targetingSubscribers.Distinct().Select(subscriber =>
             {
                 logger.LogInformation("Sending from pipeline to {subscriber}", subscriber);
-                await webSocketService.SendToDeviceAsync(subscriber, apiModel);
-            }
+                return webSocketService.SendToDeviceAsync(subscriber, apiModel);
+            }));
         }, evnt.Id, "Resending to subscribers");
         sw.Stop();
         var meter = meterFactory.Create("CustomMeters");

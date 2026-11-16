@@ -15,7 +15,7 @@ void LoopMandatoryRoutines();
 bool IsWiFi();
 void SetSoftwareId(String id);
 bool IsUpdateIdSet();
-void SendViaWebSocket(String message);
+bool SendViaWebSocket(String message);
 
 void SetWatchDog(Value valuesArray[], int valuesLength);
 #endif

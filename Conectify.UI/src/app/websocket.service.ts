@@ -1,7 +1,5 @@
 import { Injectable, NgZone } from "@angular/core";
-import { Observable, Observer, Subject } from 'rxjs';
-import { AnonymousSubject } from 'rxjs/internal/Subject';
-import { map } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
 import { MessagesService } from "./messages.service";
 import { environment } from "src/environments/environment";
 import { AdressesService } from "./adresses.service";
@@ -15,41 +13,59 @@ export interface Message {
   providedIn: 'root'
 })
 export class WebsocketService {
-  private subject?: AnonymousSubject<MessageEvent>;
-  public messages?: Subject<any>;
-  public receivedMessages: Observable<any>;
+  private ws?: WebSocket;
+  private readonly received = new Subject<any>();
+  public receivedMessages: Observable<any> = this.received.asObservable();
   private id?: string;
+  // True only while the socket is really open.
   public status: boolean = false;
-  private subs: any[] = [];
   private reconnectDelay = 2000;
   private reconnectTimer?: any;
   private manualClose = false;
   private pendingMessages: any[] = [];
+  private hiddenAt?: number;
+  // A phone freezes a page in the background and the connection often dies without the browser noticing - it keeps
+  // saying OPEN and whatever is sent goes nowhere. After this long in the background the connection is not trusted.
+  private staleAfterHidden = 5000;
 
   constructor(private messageService: MessagesService, private zone: NgZone) {
-        this.receivedMessages = new Observable<any>((s) => {
-            this.subs.push(s)
-          })
-    // Auto reconnect when tab becomes visible again
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && !this.status && this.id) {
-        this.reconnect();
+      if (document.visibilityState === 'hidden') {
+        this.hiddenAt = Date.now();
+        return;
+      }
+
+      const hiddenFor = this.hiddenAt ? Date.now() - this.hiddenAt : 0;
+      this.hiddenAt = undefined;
+      if (hiddenFor >= this.staleAfterHidden) {
+        this.reopen();
+      } else {
+        this.Connect();
+      }
+    });
+
+    // Page restored from the back/forward cache (Safari) - its old connection is gone.
+    window.addEventListener('pageshow', (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        this.reopen();
       }
     });
   }
 
   public SendMessage(message: any) {
-    if (!this.status) {
-      this.pendingMessages.push(message);
-      this.Connect();
-    } else {
-      this.messages?.next(message);
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(message));
+      return;
     }
+
+    // Not open (yet) - keep it until the connection is up instead of dropping it.
+    this.pendingMessages.push(message);
+    this.Connect();
   }
 
   private flushPendingMessages() {
     const msgs = this.pendingMessages.splice(0);
-    msgs.forEach(msg => this.messages?.next(msg));
+    msgs.forEach(msg => this.SendMessage(msg));
   }
 
   public SetId(id: string) {
@@ -61,121 +77,86 @@ export class WebsocketService {
     return this.id;
   }
 
-  private trigger = (v: any) => {
-    this.subs.forEach((sub) => sub.next(v));
-  }
-
   public Connect() {
-    if (this.status || !this.id) return;
+    if (!this.id) return;
+    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) return;
     this.manualClose = false;
-    this.ConnectById(this.id);
+    this.open(this.id);
   }
 
-  private ConnectById(id: string) {
-    this.messages = <Subject<string>>this.connect(environment.websocketUrl + id).pipe(
-      map((response: MessageEvent): any => {
-        try {
-          const data = JSON.parse(response.data);
-          return data;
-        } catch {
-          return response.data;
-        }
-      })
-    );
-
-    this.messages.subscribe(x => {
-      this.trigger(x);
-    });
-  }
-
-  private connect(url: string): AnonymousSubject<MessageEvent> {
-    if (!this.status || !this.subject) {
-      url = AdressesService.replaceServerHost(url);
-      this.subject = this.create(url);
-      console.log("Connected to: " + url);
-      this.status = true;
-    }
-
-    this.subject.subscribe({
-      next: (x: any) => {this.trigger(x);},
-      error: (err: any) => {
-        console.warn("WebSocket error", err);
-        this.handleDisconnect();
-      },
-      complete: () => {
-        console.warn("WebSocket closed");
-        this.handleDisconnect();
-      }
-    });
-
-    return this.subject;
-  }
-
-  private create(url: string): AnonymousSubject<MessageEvent> {
+  private open(id: string) {
+    clearTimeout(this.reconnectTimer);
+    const url = AdressesService.replaceServerHost(environment.websocketUrl + id);
     const ws = new WebSocket(url);
+    this.ws = ws;
+    console.log("Connecting to: " + url);
 
-    const observable = new Observable((obs: Observer<MessageEvent>) => {
-      ws.onmessage = obs.next.bind(obs);
-      ws.onerror = obs.error.bind(obs);
-      ws.onclose = obs.complete.bind(obs);
-      return ws.close.bind(ws);
-    });
-
-    const observer = {
-      next: (data: Object) => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify(data));
-        } else {
-          console.warn("WebSocket not open, message skipped");
-        }
-      },
-      error: (err: any) => {
-        console.error("WebSocket observer error", err);
-      },
-      complete: () => {
-        console.log("WebSocket observer complete");
-      }
-    };
-
+    // Handlers are set once here; a socket that was already replaced by a newer one is ignored.
     ws.onopen = () => {
-      console.log("WebSocket open");
       this.zone.run(() => {
+        if (this.ws !== ws) return;
+        console.log("WebSocket open");
         this.status = true;
         this.flushPendingMessages();
       });
     };
 
-    ws.onclose = () => {
-      console.log("WebSocket closed");
-      this.zone.run(() => this.handleDisconnect());
+    ws.onmessage = (event: MessageEvent) => {
+      this.zone.run(() => this.received.next(this.parse(event.data)));
     };
 
+    // An error is always followed by close, reconnect is handled there.
     ws.onerror = (err) => {
-      console.error("WebSocket error", err);
-      this.zone.run(() => this.handleDisconnect());
+      console.warn("WebSocket error", err);
     };
 
-    return new AnonymousSubject<MessageEvent>(observer, observable);
+    ws.onclose = () => {
+      this.zone.run(() => this.handleDisconnect(ws));
+    };
   }
 
-  private handleDisconnect() {
+  private parse(data: any): any {
+    try {
+      return JSON.parse(data);
+    } catch {
+      return data;
+    }
+  }
+
+  private handleDisconnect(ws: WebSocket) {
+    if (this.ws !== ws) return;
+    console.warn("WebSocket closed");
+    this.ws = undefined;
+    this.status = false;
     if (this.manualClose) return;
-    if (this.status) this.status = false;
-    this.subject = undefined;
 
     clearTimeout(this.reconnectTimer);
     this.reconnectTimer = setTimeout(() => this.reconnect(), this.reconnectDelay);
   }
 
   private reconnect() {
-    if (!this.id) return;
     console.log("Reconnecting WebSocket...");
-    this.ConnectById(this.id);
+    this.Connect();
+  }
+
+  /** Drops the current connection, even one that says it is open, and connects again. */
+  private reopen() {
+    if (this.manualClose) return;
+    console.log("Reopening WebSocket...");
+    const old = this.ws;
+    // Cleared first, so the close of the old socket is ignored and does not schedule another reconnect.
+    this.ws = undefined;
+    this.status = false;
+    old?.close();
+    this.Connect();
   }
 
   public Close() {
     this.manualClose = true;
-    this.subject = undefined;
+    clearTimeout(this.reconnectTimer);
+    const ws = this.ws;
+    this.ws = undefined;
     this.status = false;
+    ws?.close();
   }
 }

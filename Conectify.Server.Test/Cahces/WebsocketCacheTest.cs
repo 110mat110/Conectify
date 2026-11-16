@@ -53,8 +53,9 @@ public class WebsocketCacheTest
     {
         var cache = new WebsocketCache(serviceProvider, loggerMock);
         var deviceId = Guid.NewGuid();
-        cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
-        await cache.Remove(deviceId, default);
+        var ws = A.Fake<WebSocket>();
+        cache.AddNewWebsocket(deviceId, ws);
+        await cache.Remove(deviceId, ws, default);
 
         Assert.Equal(0, cache.GetNoOfActiveSockets(deviceId));
     }
@@ -64,9 +65,10 @@ public class WebsocketCacheTest
     {
         var cache = new WebsocketCache(serviceProvider, loggerMock);
         var deviceId = Guid.NewGuid();
+        var ws = A.Fake<WebSocket>();
+        cache.AddNewWebsocket(deviceId, ws);
         cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
-        cache.AddNewWebsocket(deviceId, A.Fake<WebSocket>());
-        await cache.Remove(deviceId, default);
+        await cache.Remove(deviceId, ws, default);
 
         Assert.Equal(1, cache.GetNoOfActiveSockets(deviceId));
     }
@@ -76,7 +78,42 @@ public class WebsocketCacheTest
     {
         var cache = new WebsocketCache(serviceProvider, loggerMock);
 
-        await cache.Remove(Guid.NewGuid(), default);
+        await cache.Remove(Guid.NewGuid(), A.Fake<WebSocket>(), default);
+    }
+
+    [Fact]
+    public async Task ItShallKeepNewerWebsocketWhenOlderIsRemoved()
+    {
+        var cache = new WebsocketCache(serviceProvider, loggerMock);
+        var deviceId = Guid.NewGuid();
+        var older = A.Fake<WebSocket>();
+        var newer = A.Fake<WebSocket>();
+        A.CallTo(() => older.State).Returns(WebSocketState.Open);
+        A.CallTo(() => newer.State).Returns(WebSocketState.Open);
+        cache.AddNewWebsocket(deviceId, older);
+        cache.AddNewWebsocket(deviceId, newer);
+
+        await cache.Remove(deviceId, older, default);
+
+        Assert.Same(newer, cache.GetActiveSocket(deviceId));
+        A.CallTo(() => older.CloseOutputAsync(A<WebSocketCloseStatus>._, A<string?>._, A<CancellationToken>._)).MustHaveHappened();
+        A.CallTo(newer).Where(call => call.Method.Name != "get_State").MustNotHaveHappened();
+    }
+
+    [Fact]
+    public void ItShallFallBackToOlderWebsocketWhenNewerIsNotOpen()
+    {
+        var cache = new WebsocketCache(serviceProvider, loggerMock);
+        var deviceId = Guid.NewGuid();
+        var older = A.Fake<WebSocket>();
+        var newer = A.Fake<WebSocket>();
+        A.CallTo(() => older.State).Returns(WebSocketState.Open);
+        A.CallTo(() => newer.State).Returns(WebSocketState.Aborted);
+        cache.AddNewWebsocket(deviceId, older);
+        cache.AddNewWebsocket(deviceId, newer);
+
+        Assert.Same(older, cache.GetActiveSocket(deviceId));
+        Assert.True(cache.IsActiveSocket(deviceId));
     }
 
     [Fact]

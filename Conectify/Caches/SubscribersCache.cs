@@ -1,5 +1,6 @@
 ﻿namespace Conectify.Server.Caches;
 
+using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using AutoMapper;
 using Conectify.Database;
@@ -18,10 +19,10 @@ public interface ISubscribersCache
 
 public class SubscribersCache(IServiceProvider serviceProvider, IMapper mapper) : ISubscribersCache
 {
-    private static readonly Dictionary<Guid, Subscriber> subscribers = [];
-    private readonly object locker = new();
+    // Every connection reads and changes this from its own thread.
+    private readonly ConcurrentDictionary<Guid, Subscriber> subscribers = new();
 
-    public IEnumerable<Subscriber> AllSubscribers() => subscribers.Select(x => x.Value);
+    public IEnumerable<Subscriber> AllSubscribers() => subscribers.Values;
 
     public Subscriber? GetSubscriber(Guid deviceId)
     {
@@ -31,8 +32,7 @@ public class SubscribersCache(IServiceProvider serviceProvider, IMapper mapper) 
 
     public bool RemoveSubscriber(Guid deviceId)
     {
-
-        var result = subscribers.Remove(deviceId);
+        var result = subscribers.TryRemove(deviceId, out _);
 
         if (result)
         {
@@ -65,24 +65,21 @@ public class SubscribersCache(IServiceProvider serviceProvider, IMapper mapper) 
                 return null;
             }
 
-            lock (locker)
+            if (!subscribers.TryAdd(deviceId, sub))
             {
-                if (!subscribers.TryAdd(deviceId, sub))
+                subscribers[deviceId] = sub;
+            }
+            else
+            {
+                var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
+                if (meterFactory is not null)
                 {
-                    subscribers[deviceId] = sub;
-                }
-                else
-                {
-                    var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
-                    if (meterFactory is not null)
-                    {
-                        var meter = meterFactory.Create("CustomMeters");
-                        var counter = meter.CreateCounter<int>("subs_count");
-                        counter.Add(1);
-                    }
+                    var meter = meterFactory.Create("CustomMeters");
+                    var counter = meter.CreateCounter<int>("subs_count");
+                    counter.Add(1);
                 }
             }
-            return subscribers[deviceId];
+            return sub;
         }
 
         return null;

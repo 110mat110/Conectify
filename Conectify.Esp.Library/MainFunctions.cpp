@@ -28,6 +28,8 @@
 #include "Int64String.h"
 #include "WebServer.h"
 #include "Updater.h"
+#include "WebsocketTcpClient.h"
+#include <memory>
 
 using namespace websockets;
 
@@ -237,7 +239,7 @@ void InitializeAP()
 void ConnectWebsocket()
 {
   DebugMessage("Starting web socket");
-  websocketClient = {};
+  websocketClient = WebsocketsClient(std::make_shared<WebsocketTcpClient>());
   websocketClient.onMessage(onMessageCallback);
   websocketClient.onEvent(onEventsCallback);
   DebugMessage("url: " + String(GetGlobalVariables()->baseDevice.serverUrl));
@@ -249,18 +251,19 @@ void ConnectWebsocket()
   websocketClient.ping();
 }
 
-void SendViaWebSocket(String message)
+bool SendViaWebSocket(String message)
 {
-  if (websocketClient.available())
+  if (!websocketClient.available())
   {
-    DebugMessage("Sending via websocket: " + message);
-    websocketClient.send(message);
+    // the main loop connects again
+    DebugMessage("Cannot send message, websocket is not active");
+    return false;
   }
-  else
-  {
-    DebugMessage("Cannot send message, websocket is not active. Trying to reconnect");
-    ConnectWebsocket();
-  }
+
+  DebugMessage("Sending via websocket: " + message);
+  websocketClient.send(message);
+  // send() reports success either way, a frame that could not be written closes the connection
+  return websocketClient.available();
 }
 
 void ReceiveSerialConnection()
@@ -287,7 +290,11 @@ void SendAllSensorsToServerIfNeeded()
     if (GetGlobalVariables()->actuatorsArr[i].HasChanged())
     {
       DebugMessage("--------- Actuator response ------------------------");
-      SendViaWebSocket(GetGlobalVariables()->actuatorsArr[i].SerializeResponse(GetGlobalVariables()->dateTime));
+      if (!SendViaWebSocket(GetGlobalVariables()->actuatorsArr[i].SerializeResponse(GetGlobalVariables()->dateTime)))
+      {
+        // stays changed, so it goes out once the connection is back
+        return;
+      }
       GetGlobalVariables()->actuatorsArr[i].MarkAsRead();
     }
   }
@@ -298,7 +305,10 @@ void SendAllSensorsToServerIfNeeded()
       if (GetGlobalVariables()->sensorsArr[i].isInitialized)
       {
         DebugMessage("--------- Sensor Value ------------------------");
-        SendViaWebSocket(GetGlobalVariables()->sensorsArr[i].SerializeValue(GetGlobalVariables()->dateTime));
+        if (!SendViaWebSocket(GetGlobalVariables()->sensorsArr[i].SerializeValue(GetGlobalVariables()->dateTime)))
+        {
+          return;
+        }
       }
       GetGlobalVariables()->sensorsArr[i].MarkAsRead();
     }

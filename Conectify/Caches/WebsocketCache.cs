@@ -8,7 +8,12 @@ public interface IWebsocketCache
 {
     bool AddNewWebsocket(Guid deviceId, WebSocket webSocket);
     WebSocket? GetActiveSocket(Guid deviceId);
-    Task Remove(Guid deviceId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Closes this one connection of the device and forgets it. Other connections of the same device are left alone -
+    /// a device that reconnected before its old connection was noticed as dead must keep the new one.
+    /// </summary>
+    Task Remove(Guid deviceId, WebSocket webSocket, CancellationToken cancellationToken);
 
     int GetNoOfActiveSockets(Guid deviceId);
 
@@ -19,95 +24,112 @@ public interface IWebsocketCache
 
 public class WebsocketCache(IServiceProvider serviceProvider, ILogger<WebsocketCache> logger) : IWebsocketCache
 {
-    private static readonly Dictionary<Guid, WSCahceItem> sockets = [];
+    private static readonly TimeSpan CloseTimeout = TimeSpan.FromSeconds(5);
+
+    // A device can be connected more than once: a reconnect arrives before the old connection is noticed as dead,
+    // and the UI connects as the same user from every tab. Newest connection is last and gets the traffic.
+    private readonly Dictionary<Guid, List<WebSocket>> sockets = [];
     private readonly object locker = new();
 
-    public int ActiveSocketCount => sockets.Count;
-
-    public bool AddNewWebsocket(Guid deviceId, WebSocket webSocket)
+    public int ActiveSocketCount
     {
-        if (sockets.ContainsKey(deviceId))
+        get
         {
             lock (locker)
             {
-
-                sockets[deviceId].WebSocket = webSocket;
-                sockets[deviceId].Count++;
-                return false;
-            }
-        }
-        else
-        {
-            using var scope = serviceProvider.CreateScope();
-            var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
-            if (meterFactory is not null)
-            {
-                var meter = meterFactory.Create("CustomMeters");
-                var counter = meter.CreateCounter<int>("connections_count");
-                counter.Add(1);
-            }
-            lock (locker)
-            {
-                sockets.Add(deviceId, new WSCahceItem(webSocket));
-                return true;
+                return sockets.Count;
             }
         }
     }
 
-    public async Task Remove(Guid deviceId, CancellationToken cancellationToken)
+    public bool AddNewWebsocket(Guid deviceId, WebSocket webSocket)
     {
-        if (sockets.TryGetValue(deviceId, out WSCahceItem? value))
+        lock (locker)
         {
-            var websocket = value.WebSocket;
-            try
+            if (sockets.TryGetValue(deviceId, out var deviceSockets))
             {
-                await websocket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "", cancellationToken);
-                websocket.Dispose();
+                deviceSockets.Add(webSocket);
+                return false;
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Exception when removing websocket");
-            }
-            if (value.Count <= 1)
-            {
-                using var scope = serviceProvider.CreateScope();
-                var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
-                if (meterFactory is not null)
-                {
-                    var meter = meterFactory.Create("CustomMeters");
-                    var counter = meter.CreateCounter<int>("connections_count");
-                    counter.Add(-1);
-                }
 
-                lock (locker)
-                {
-                    sockets.Remove(deviceId);
-                }
-            }
-            else
+            sockets.Add(deviceId, [webSocket]);
+        }
+
+        CountConnection(1);
+        return true;
+    }
+
+    public async Task Remove(Guid deviceId, WebSocket webSocket, CancellationToken cancellationToken)
+    {
+        var lastConnection = false;
+        lock (locker)
+        {
+            if (sockets.TryGetValue(deviceId, out var deviceSockets) && deviceSockets.Remove(webSocket) && deviceSockets.Count == 0)
             {
-                lock (locker)
-                {
-                    sockets[deviceId].Count--;
-                }
+                sockets.Remove(deviceId);
+                lastConnection = true;
             }
+        }
+
+        if (lastConnection)
+        {
+            CountConnection(-1);
+        }
+
+        try
+        {
+            if (webSocket.State is WebSocketState.Open or WebSocketState.CloseReceived)
+            {
+                // Only our half of the closing handshake - a connection that is already dead would never answer.
+                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeout.CancelAfter(CloseTimeout);
+                await webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", timeout.Token);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception when removing websocket");
+            webSocket.Abort();
+        }
+        finally
+        {
+            webSocket.Dispose();
         }
     }
 
     public WebSocket? GetActiveSocket(Guid deviceId)
     {
-        return (sockets.TryGetValue(deviceId, out WSCahceItem? value) && value.WebSocket.State == WebSocketState.Open) ? value.WebSocket : null;
+        lock (locker)
+        {
+            return sockets.TryGetValue(deviceId, out var deviceSockets) ? deviceSockets.LastOrDefault(x => x.State == WebSocketState.Open) : null;
+        }
     }
-
-
 
     public int GetNoOfActiveSockets(Guid deviceId)
     {
-        return sockets.TryGetValue(deviceId, out WSCahceItem? value) ? value.Count : 0;
+        lock (locker)
+        {
+            return sockets.TryGetValue(deviceId, out var deviceSockets) ? deviceSockets.Count : 0;
+        }
     }
 
     public bool IsActiveSocket(Guid deviceId)
     {
-        return (sockets.ContainsKey(deviceId) && sockets[deviceId].WebSocket.State == WebSocketState.Open);
+        lock (locker)
+        {
+            return sockets.TryGetValue(deviceId, out var deviceSockets) && deviceSockets.Exists(x => x.State == WebSocketState.Open);
+        }
+    }
+
+    private void CountConnection(int change)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var meterFactory = scope.ServiceProvider.GetService<IMeterFactory>();
+        if (meterFactory is not null)
+        {
+            var meter = meterFactory.Create("CustomMeters");
+            var counter = meter.CreateCounter<int>("connections_count");
+            counter.Add(change);
+        }
     }
 }

@@ -74,6 +74,28 @@ public class PipelineServiceTest
         A.CallTo(() => websocketService.SendToDeviceAsync(targetDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustHaveHappened();
     }
 
+    [Fact]
+    public async Task ItShallNotLetSlowSubscriberHoldUpTheOthers()
+    {
+        var websocketService = A.Fake<IWebSocketService>();
+        var subCache = A.Fake<ISubscribersCache>();
+        var slowDeviceId = Guid.NewGuid();
+        var otherDeviceId = Guid.NewGuid();
+        var slowDeviceTakesIt = new TaskCompletionSource<bool>();
+        A.CallTo(() => subCache.AllSubscribers()).Returns([
+            new() { DeviceId = slowDeviceId, IsSubedToAll = true },
+            new() { DeviceId = otherDeviceId, IsSubedToAll = true }]);
+        A.CallTo(() => websocketService.SendToDeviceAsync(slowDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).Returns(slowDeviceTakesIt.Task);
+        var service = new PipelineService(new ConectifyDb(dbContextoptions), subCache, websocketService, mapper, A.Fake<ILogger<PipelineService>>(), A.Fake<IMeterFactory>());
+
+        var resend = service.ResendEventToSubscribers(new Event { Id = Guid.NewGuid(), SourceId = sourceDeviceId });
+
+        A.CallTo(() => websocketService.SendToDeviceAsync(otherDeviceId, A<IWebsocketModel>.Ignored, A<CancellationToken>.Ignored)).MustHaveHappened();
+        Assert.False(resend.IsCompleted);
+        slowDeviceTakesIt.SetResult(true);
+        await resend;
+    }
+
     [Theory]
     [ClassData(typeof(ValueClassData))]
     [ClassData(typeof(ActionClassData))]
