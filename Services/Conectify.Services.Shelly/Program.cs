@@ -41,9 +41,17 @@ if (!app.Environment.IsDevelopment())
 app.Services.GetRequiredService<IServicesWebsocketClient>().OnIncomingEvent += OnEvent;
 async void OnEvent(Conectify.Database.Models.Values.Event action)
 {
-    using var scope = app.Services.CreateScope();
-    var shellyService = scope.ServiceProvider.GetRequiredService<IShellyService>();
-    await shellyService.SendValueToShelly(action);
+    // An exception escaping an async void handler takes the whole process down, with every connected Shelly.
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var shellyService = scope.ServiceProvider.GetRequiredService<IShellyService>();
+        await shellyService.SendValueToShelly(action);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Could not send event {id} to shelly", action.Id);
+    }
 }
 
 app.UseHttpsRedirection();

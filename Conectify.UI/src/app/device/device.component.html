@@ -24,22 +24,16 @@
     <mat-tab-group>
 
         <mat-tab label="Sensors">
-            <mat-grid-list cols="{{columnNum}}" rowHeight="250px" gutterSize="6px">
-                <div *ngFor="let sensor of sensorCubes">
-                    <mat-grid-tile>
-                        <app-sensor-cube [sensorInput]="sensor"></app-sensor-cube>
-                    </mat-grid-tile>
-                </div>
-            </mat-grid-list>
+            <div class="cube-grid">
+                <app-sensor-cube *ngFor="let sensor of sensorCubes" [sensorInput]="sensor"></app-sensor-cube>
+            </div>
         </mat-tab>
         <mat-tab *ngIf="actuatorCubes.length >0" label="Actuators">
-            <mat-grid-list cols="{{columnNum}}" rowHeight="250px" gutterSize="6px">
-                <div *ngFor="let actuator of actuatorCubes" width="100%" style="flex: 1 1 auto;">
-                    <mat-grid-tile *ngIf="actuator.visible">
-                        <app-actuator-cube [actuatorId]="actuator"></app-actuator-cube>
-                    </mat-grid-tile>
-                </div>
-            </mat-grid-list>
+            <div class="cube-grid">
+                <ng-container *ngFor="let actuator of actuatorCubes">
+                    <app-actuator-cube *ngIf="actuator.visible" [actuatorId]="actuator"></app-actuator-cube>
+                </ng-container>
+            </div>
         </mat-tab>
         <mat-tab label="Panel" >
             <iframe #deviceWebsite src="" style="border:none;" allowfullscreen height="800px" width="100%"></iframe>

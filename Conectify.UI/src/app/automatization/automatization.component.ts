@@ -1,7 +1,7 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MessagesService } from '../messages.service';
 import { AutomatizationBase } from 'src/models/automatizationComponent';
-import { CdkDragEnd } from '@angular/cdk/drag-drop';
+import { CdkDragEnd, CdkDragMove } from '@angular/cdk/drag-drop';
 import { BefetchAutomatizationService } from '../befetch-automatization.service';
 import { RuleProviderService } from '../rule-provider.service';
 import { BehaviourMenuItem } from 'src/models/Automatization/BehaviourMenuItem';
@@ -28,8 +28,29 @@ export class ButtonReferences { elementRef: MatButton; id: string; constructor(e
 
 export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit {
 
+  /** Stored position of a box is its middle, drawn position its top left corner. */
+  private static readonly boxCentre = { x: 110, y: 75 };
+  private static readonly boxSize = { width: 200, height: 150 };
+  /** Free room kept right of and below the furthest box, so there is always somewhere to drag to. */
+  private static readonly canvasMargin = 400;
+  /** How close to the edge of the window a dragged box starts scrolling the page. */
+  private static readonly scrollEdge = 60;
+  /** Side padding of the page, keep in sync with :host in the css. */
+  private static readonly pagePadding = 16;
+
   selectedRuleId: string = "";
+  newFunctionName: string = "";
+  newInputName: string = "";
+  newPortName: string = "";
   newPortType: number = 2;
+  @ViewChild('canvas') canvas?: ElementRef<HTMLElement>;
+  /** How far the box being dragged has reached, the canvas grows to it while dragging. */
+  private dragReach = { x: 0, y: 0 };
+  private lastPointer?: { x: number, y: number };
+  private autoScrollSpeed = { x: 0, y: 0 };
+  private autoScrollFrame?: number;
+  private panFrom?: { x: number, y: number };
+  private readonly onResize = () => this.ReDrawConnections();
   constructor(public messenger: MessagesService, public ruleService: RuleProviderService, public be: BefetchAutomatizationService) { }
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -70,9 +91,7 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
     this.ruleService.levelChanged = () => this.OnLevelChanged();
     this.OnLevelChanged();
 
-    window.addEventListener('resize', () => {
-      this.ReDrawConnections();
-    });
+    window.addEventListener('resize', this.onResize);
   }
 
   createRule() {
@@ -81,17 +100,21 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
     }
   }
 
-  createFunction(name: string) {
-    if (name.trim().length > 0) {
-      this.ruleService.createFunction(name.trim());
+  createFunction() {
+    const name = this.newFunctionName.trim();
+    if (name.length > 0) {
+      this.ruleService.createFunction(name);
+      this.newFunctionName = "";
     }
   }
 
-  addPort(direction: FunctionPortDirection, name: string) {
+  addPort(direction: FunctionPortDirection) {
     const functionId = this.ruleService.currentFunctionId;
+    const name = this.newPortName.trim();
 
-    if (functionId) {
-      this.ruleService.addFunctionPort(functionId, direction, this.newPortType, name.trim());
+    if (functionId && name.length > 0) {
+      this.ruleService.addFunctionPort(functionId, direction, this.newPortType, name);
+      this.newPortName = "";
     }
   }
 
@@ -104,15 +127,28 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
     this.ruleService.OpenFunction(functionId);
   }
 
-  /** Height that fits every box plus room to drag further down. */
-  get canvasHeight(): number {
-    const boxes = [
-      ...this.ruleService.visibleRules.map(rule => rule.drawingPos?.y ?? 0),
-      ...this.ruleService.visibleFunctions.map(fn => this.functionDrawingPos(fn).y),
-    ];
-    const lowestBox = boxes.reduce((max, y) => Math.max(max, y), 0);
+  /** The canvas has no fixed size - it is as big as it needs to be to hold every box, plus room to drag further. */
+  get canvasWidth(): number {
+    return Math.max(this.furthestBox(pos => pos.x) + AutomatizationComponent.boxSize.width + AutomatizationComponent.canvasMargin, this.dragReach.x);
+  }
 
-    return Math.max(700, lowestBox + this.lineHeight + 300);
+  /** The page is as wide as the canvas, so the header can stay in view when it is scrolled sideways. */
+  @HostBinding('style.width.px')
+  get pageWidth(): number {
+    return this.canvasWidth + AutomatizationComponent.pagePadding * 2;
+  }
+
+  get canvasHeight(): number {
+    return Math.max(700, this.furthestBox(pos => pos.y) + AutomatizationComponent.boxSize.height + AutomatizationComponent.canvasMargin, this.dragReach.y);
+  }
+
+  private furthestBox(coordinate: (pos: { x: number, y: number }) => number): number {
+    const boxes = [
+      ...this.ruleService.visibleRules.map(rule => rule.drawingPos ?? { x: 0, y: 0 }),
+      ...this.ruleService.visibleFunctions.map(fn => this.functionDrawingPos(fn)),
+    ];
+
+    return boxes.reduce((max, pos) => Math.max(max, coordinate(pos)), 0);
   }
 
   /** Functions are placed the same way as rules, the stored position is the middle of the box. */
@@ -120,7 +156,95 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
     const x = fn.x == 0 && fn.y == 0 ? 400 : fn.x;
     const y = fn.x == 0 && fn.y == 0 ? 150 : fn.y;
 
-    return { x: x - 110, y: y - 75 };
+    return { x: x - AutomatizationComponent.boxCentre.x, y: y - AutomatizationComponent.boxCentre.y };
+  }
+
+  /**
+   * Where the dragged box was dropped, as its top left corner within the canvas. Measured against the canvas, not the
+   * page, so the box stays exactly where it was dropped after a reload whatever is above the canvas.
+   */
+  private dropPosition(event: CdkDragEnd): { x: number, y: number } {
+    const box = event.source.element.nativeElement.getBoundingClientRect();
+    const canvas = this.canvas!.nativeElement;
+    const canvasRect = canvas.getBoundingClientRect();
+
+    // Nothing can be placed above or left of the canvas, everything else is free.
+    return {
+      x: Math.max(0, Math.round(box.left - canvasRect.left - canvas.clientLeft)),
+      y: Math.max(0, Math.round(box.top - canvasRect.top - canvas.clientTop)),
+    };
+  }
+
+  onDragMoved(event: CdkDragMove) {
+    this.lastPointer = event.pointerPosition;
+    this.growCanvasToPointer();
+
+    const edge = AutomatizationComponent.scrollEdge;
+    const speed = (position: number, size: number) =>
+      position < edge ? -Math.ceil((edge - position) / 3) :
+      position > size - edge ? Math.ceil((position - (size - edge)) / 3) : 0;
+    this.autoScrollSpeed = { x: speed(event.pointerPosition.x, window.innerWidth), y: speed(event.pointerPosition.y, window.innerHeight) };
+
+    if ((this.autoScrollSpeed.x || this.autoScrollSpeed.y) && this.autoScrollFrame === undefined) {
+      this.autoScrollFrame = requestAnimationFrame(() => this.autoScrollStep());
+    }
+
+    this.ReDrawConnections();
+  }
+
+  private growCanvasToPointer() {
+    if (!this.lastPointer || !this.canvas) return;
+
+    const canvasRect = this.canvas.nativeElement.getBoundingClientRect();
+    this.dragReach = {
+      x: Math.max(this.dragReach.x, this.lastPointer.x - canvasRect.left + AutomatizationComponent.canvasMargin),
+      y: Math.max(this.dragReach.y, this.lastPointer.y - canvasRect.top + AutomatizationComponent.canvasMargin),
+    };
+  }
+
+  /** Keeps scrolling while a dragged box is held at the edge of the window, even when the mouse does not move. */
+  private autoScrollStep() {
+    this.autoScrollFrame = undefined;
+    if (!this.autoScrollSpeed.x && !this.autoScrollSpeed.y) return;
+
+    window.scrollBy(this.autoScrollSpeed.x, this.autoScrollSpeed.y);
+    this.growCanvasToPointer();
+    this.ReDrawConnections();
+    this.autoScrollFrame = requestAnimationFrame(() => this.autoScrollStep());
+  }
+
+  private stopDragging() {
+    this.autoScrollSpeed = { x: 0, y: 0 };
+    if (this.autoScrollFrame !== undefined) {
+      cancelAnimationFrame(this.autoScrollFrame);
+      this.autoScrollFrame = undefined;
+    }
+    this.lastPointer = undefined;
+    this.dragReach = { x: 0, y: 0 };
+  }
+
+  /** Dragging the empty background with the mouse moves the view. Touch scrolls natively. */
+  onCanvasPointerDown(event: PointerEvent) {
+    if (event.pointerType !== 'mouse' || event.button !== 0 || event.target !== event.currentTarget) return;
+
+    this.panFrom = { x: event.clientX, y: event.clientY };
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+
+  onCanvasPointerMove(event: PointerEvent) {
+    if (!this.panFrom) return;
+
+    window.scrollBy(this.panFrom.x - event.clientX, this.panFrom.y - event.clientY);
+    this.panFrom = { x: event.clientX, y: event.clientY };
+  }
+
+  onCanvasPointerUp() {
+    this.panFrom = undefined;
+  }
+
+  get panning(): boolean {
+    return this.panFrom !== undefined;
   }
 
   handleButtonGenerated(event: { elementRef: MatButton; id: string }): void {
@@ -129,8 +253,12 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   dragEnd(event: CdkDragEnd, rule: AutomatizationBase) {
-    const { x, y } = event.source.element.nativeElement.getBoundingClientRect();
-    rule.dragPosition = { x: x + event.source.element.nativeElement.offsetWidth / 2 + window.scrollX, y: y + event.source.element.nativeElement.offsetHeight / 2 + window.scrollY };
+    const position = this.dropPosition(event);
+    this.stopDragging();
+    // The box is moved to the drop position itself instead of keeping the drag offset on top of the old one.
+    rule.drawingPos = position;
+    rule.dragPosition = { x: position.x + AutomatizationComponent.boxCentre.x, y: position.y + AutomatizationComponent.boxCentre.y };
+    event.source.reset();
     this.MoveComponent();
     let apiModel: EditRule = { id: rule.id, x: rule.dragPosition.x, y: rule.dragPosition.y, behaviourId: rule.behaviorId, parameters: rule.getParametersJSon() };
     this.be.saveRule(apiModel);
@@ -141,9 +269,11 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   functionDragEnd(event: CdkDragEnd, fn: FunctionModel) {
-    const { x, y } = event.source.element.nativeElement.getBoundingClientRect();
-    fn.x = x + event.source.element.nativeElement.offsetWidth / 2 + window.scrollX;
-    fn.y = y + event.source.element.nativeElement.offsetHeight / 2 + window.scrollY;
+    const position = this.dropPosition(event);
+    this.stopDragging();
+    fn.x = position.x + AutomatizationComponent.boxCentre.x;
+    fn.y = position.y + AutomatizationComponent.boxCentre.y;
+    event.source.reset();
     this.MoveComponent();
 
     this.be.saveFunction(fn.id, { name: fn.name, description: fn.description, x: fn.x, y: fn.y }).subscribe();
@@ -266,17 +396,20 @@ export class AutomatizationComponent implements OnInit, OnDestroy, AfterViewInit
     this.lines.push(line);
   };
 
-  AddCustomInput(inputName: string) {
-    this.be.createActuator({ actuatorName: inputName, functionId: this.ruleService.currentFunctionId });
+  AddCustomInput() {
+    const name = this.newInputName.trim();
+    if (name.length == 0) return;
 
-    this.ruleService.LoadAllRules();
+    // Only once it exists on the server is there something to load.
+    this.be.createActuator({ actuatorName: name, functionId: this.ruleService.currentFunctionId })
+      .subscribe(() => this.ruleService.LoadAllRules());
+    this.newInputName = "";
   }
 
   ngOnDestroy(): void {
+    this.stopDragging();
     this.lines.forEach(line => line.remove());
     this.ruleService.levelChanged = undefined;
-    window.removeEventListener('resize', () => {
-      this.ReDrawConnections();
-    });
+    window.removeEventListener('resize', this.onResize);
   }
 }

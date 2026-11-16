@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
 import { UiActuator } from 'src/models/UiActuator';
@@ -9,9 +9,6 @@ import { UiActuator } from 'src/models/UiActuator';
   styleUrls: ['./actuator-overview.component.css']
 })
 export class ActuatorOverviewComponent implements OnInit {
-  columnNum: number = 4;
-  tileSize: number = 400;
-  @ViewChild('theContainer') theContainer: any;
   public actuatorIds: {id: string, visible: boolean, preloaded?: UiActuator}[] = [];
 
   constructor(private be: BEFetcherService, private messanger: MessagesService) { }
@@ -20,22 +17,11 @@ export class ActuatorOverviewComponent implements OnInit {
     this.be.getUiActuators().subscribe({
       next: (actuators) => {
         actuators.forEach(a => this.actuatorIds.push({ id: a.id, visible: true, preloaded: a }));
-        this.setColNum();
       },
       error: (err) => {
         this.messanger.addMessage("Error!");
         this.messanger.addMessage(JSON.stringify(err));
       }
     });
-  }
-
-  setColNum(){
-    let width = this.theContainer.nativeElement.offsetWidth;
-    this.columnNum = Math.trunc(width/this.tileSize);
-  }
-
-  @HostListener('window:resize', ['$event'])
-  onResize(event: any) {
-    this.setColNum();
   }
 }

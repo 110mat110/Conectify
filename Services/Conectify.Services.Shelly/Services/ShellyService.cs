@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Conectify.Services.Shelly.Services;
@@ -25,13 +26,60 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         NullValueHandling = NullValueHandling.Ignore,
     };
 
+    private static readonly TimeSpan FirstIdentifyRetry = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan MaxIdentifyRetry = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan SendTimeout = TimeSpan.FromSeconds(10);
+
+    // The service is transient, the sockets outlive it - so the locks live with the socket.
+    private static readonly ConditionalWeakTable<WebSocket, SemaphoreSlim> SendLocks = new();
+
     public async Task ReceiveMessages(WebSocket webSocket, string? remoteIp = null, CancellationToken cancellationToken = default)
     {
-        // A device without a power meter reports nothing until its state changes. Waiting for it to
-        // speak first means that after a restart it only rejoins the system when somebody flips the
-        // switch by hand - so ask who it is the moment it connects.
-        await SendMessage(webSocket, "Shelly.GetDeviceInfo", null);
+        using var connection = new CancellationTokenSource();
+        var identifying = KeepAskingUntilIdentified(webSocket, connection.Token);
+        try
+        {
+            await ReceiveLoop(webSocket, remoteIp);
+        }
+        finally
+        {
+            connection.Cancel();
+            await identifying;
+        }
+    }
 
+    /// <summary>
+    /// A device without a power meter reports nothing until its state changes, so it is asked who it is the moment it
+    /// connects - and asked again until that answer has been processed. One answer is not enough: right after a restart
+    /// of the whole system the database or the server may not be up yet, the answer then fails to process, and the
+    /// device would stay unknown (and uncontrollable) until somebody flipped its switch by hand.
+    /// </summary>
+    private async Task KeepAskingUntilIdentified(WebSocket webSocket, CancellationToken ct)
+    {
+        var delay = FirstIdentifyRetry;
+        try
+        {
+            while (!ct.IsCancellationRequested && webSocket.State == WebSocketState.Open && !IsIdentified(webSocket))
+            {
+                await SendMessage(webSocket, "Shelly.GetDeviceInfo", null);
+                await Task.Delay(delay, ct);
+                delay = delay * 2 > MaxIdentifyRetry ? MaxIdentifyRetry : delay * 2;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // the connection has ended
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning("Could not ask shelly for its identity: {message}", ex.Message);
+        }
+    }
+
+    private bool IsIdentified(WebSocket webSocket) => cache.Cache.Values.Any(x => x.WebSocket == webSocket);
+
+    private async Task ReceiveLoop(WebSocket webSocket, string? remoteIp)
+    {
         var buffer = new byte[1024 * 4];
         using var payload = new MemoryStream();
         WebSocketReceiveResult result;
@@ -358,7 +406,20 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
         var rawString = JsonConvert.SerializeObject(outboundWs);
         var msg = Encoding.UTF8.GetBytes(rawString);
 
-        await ws.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, default);
+        // A websocket takes one send at a time, and commands, status requests and identity requests come from
+        // different threads - a second send while one is running throws and the command is lost. A send that does not
+        // finish in time aborts the socket, which ends its receive loop; the device then connects again.
+        var sendLock = SendLocks.GetValue(ws, _ => new SemaphoreSlim(1, 1));
+        using var timeout = new CancellationTokenSource(SendTimeout);
+        await sendLock.WaitAsync(timeout.Token);
+        try
+        {
+            await ws.SendAsync(new ArraySegment<byte>(msg, 0, msg.Length), WebSocketMessageType.Text, true, timeout.Token);
+        }
+        finally
+        {
+            sendLock.Release();
+        }
         logger.LogInformation("SENT TO SHELLY: {msg}", rawString);
     }
 

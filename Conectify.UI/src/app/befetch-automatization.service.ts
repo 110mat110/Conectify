@@ -80,8 +80,8 @@ export class BefetchAutomatizationService {
     this.http.put(this.adresses.editRule(rule.id), rule).subscribe();
   }
 
-  createActuator(actuator: CreateActuatorApi){
-    this.http.post(this.adresses.customInput(), actuator).subscribe();
+  createActuator(actuator: CreateActuatorApi): Observable<any> {
+    return this.http.post(this.adresses.customInput(), actuator);
   }
 
   addInputNode(input: AddInputApiModel): Observable<string> {

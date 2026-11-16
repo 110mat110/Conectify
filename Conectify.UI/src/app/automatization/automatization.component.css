@@ -1,48 +1,151 @@
-/* Automatization page */
-.page-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+/* Automatization page. Its width is bound to the canvas, so it can be wider than the window. */
+:host {
+  display: block;
+  min-width: 100%;
+  box-sizing: border-box;
+  padding: 0 16px 16px;
 }
 
-.page-title h2 {
-  margin: 0;
+/* Header with everything that adds to the board - stays in view however the board is scrolled */
+.board-header {
+  position: sticky;
+  top: 0;
+  left: 16px;
+  z-index: 20;
+  width: min(calc(100vw - 32px), 100%);
+  box-sizing: border-box;
+  padding: 12px 0 10px;
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.subtitle {
-  margin: 4px 0 0 0;
-  color: var(--color-text-muted);
-}
-
-/* Toolbar with the two "add" controls */
-.toolbar {
+.header-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 12px 24px;
   flex-wrap: wrap;
-  padding: 10px 14px;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
 }
 
-.toolbar-group {
+.title-block {
+  display: flex;
+  align-items: center;
+  gap: 4px 16px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.title-block h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* One group per thing that can be added: label, value, button */
+.actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-.toolbar-field {
-  width: 180px;
+.action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 10px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
-.toolbar-divider {
-  width: 1px;
-  align-self: stretch;
-  background: var(--color-border);
+.action-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.field {
+  height: 30px;
+  width: 160px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.field.small {
+  width: 110px;
+}
+
+.field:focus {
+  border-color: var(--color-accent);
+}
+
+.field::placeholder {
+  color: var(--color-text-muted);
+}
+
+select.field option {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+}
+
+.action-button,
+.port-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.action-button:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  border-color: var(--color-accent);
+  background: var(--color-accent-hover);
+}
+
+.action-button.primary {
+  color: #fff;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.action-button.primary:hover:not(:disabled) {
+  background: #5a9eff;
+  border-color: #5a9eff;
+}
+
+.action-button:disabled,
+.port-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.action-button mat-icon,
+.port-button mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
 }
 
 /* Where in the function tree the board currently is */
@@ -51,7 +154,6 @@
   align-items: center;
   gap: 2px;
   flex-wrap: wrap;
-  margin-top: 14px;
 }
 
 .crumb {
@@ -95,10 +197,10 @@
 .port-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   margin-top: 10px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: rgba(255, 190, 11, 0.07);
   border: 1px solid rgba(255, 190, 11, 0.3);
   border-radius: var(--radius-sm);
@@ -109,36 +211,12 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-warning);
+  margin-right: 4px;
 }
 
-.port-field {
-  width: 150px;
-}
-
-.port-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.port-button:hover {
+.port-button:hover:not(:disabled) {
   color: var(--color-warning);
   border-color: var(--color-warning);
-}
-
-.port-button mat-icon {
-  font-size: 16px;
-  width: 16px;
-  height: 16px;
-  line-height: 16px;
 }
 
 /* Shown while an output waits for its target input */
@@ -146,7 +224,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 10px;
   padding: 8px 12px;
   font-size: 13px;
   color: var(--color-text-primary);
@@ -180,10 +258,11 @@
   border-color: var(--color-accent);
 }
 
-/* Canvas the rule boxes live on */
+/* Canvas the rule boxes live on. Its size is set from the boxes, never smaller than the page. */
 .example-boundary {
   position: relative;
-  max-width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
   margin-top: 16px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -191,6 +270,12 @@
   background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   background-size: 24px 24px;
   background-position: -1px -1px;
+  cursor: grab;
+}
+
+.example-boundary.panning {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .canvas-empty {
@@ -200,6 +285,7 @@
   right: 0;
   text-align: center;
   color: var(--color-text-muted);
+  pointer-events: none;
 }
 
 app-automatization-component,
@@ -229,7 +315,8 @@ app-automatization-function {
   z-index: 1;
   box-sizing: border-box;
   padding: 10px;
-  transition: box-shadow var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal);
+  /* No transition on transform - the drag moves the box with it, and on drop it is swapped for left/top at once */
+  transition: box-shadow var(--transition-normal), border-color var(--transition-normal);
   box-shadow: var(--shadow-card);
 }
 
@@ -250,10 +337,22 @@ app-automatization-function {
   border-color: var(--color-warning);
 }
 
-.example-box:active,
 .example-box.cdk-drag-dragging {
   box-shadow: var(--shadow-elevated);
   border-color: var(--color-accent);
-  transform: scale(1.02);
   z-index: 3;
+}
+
+/* Phone: the actions take a row each and fill it */
+@media (max-width: 640px) {
+  .actions,
+  .action {
+    width: 100%;
+  }
+
+  .action .field {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
 }

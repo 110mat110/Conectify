@@ -1,106 +1,99 @@
-<div class="page-head">
-  <div class="page-title">
-    <h2>Automatization</h2>
-    <p class="subtitle">Create and manage automation rules</p>
+<!-- Stays in view while the board is scrolled in any direction -->
+<div class="board-header">
+  <div class="header-row">
+    <div class="title-block">
+      <h2>Automatization</h2>
+
+      <!-- Where in the function tree the board currently is -->
+      <nav class="breadcrumb" aria-label="Function path">
+        <button class="crumb" [class.current]="!ruleService.currentFunctionId" (click)="OpenFunction()">
+          <mat-icon>home</mat-icon>
+          <span>Board</span>
+        </button>
+        <ng-container *ngFor="let crumb of ruleService.breadcrumb">
+          <mat-icon class="crumb-separator">chevron_right</mat-icon>
+          <button class="crumb" [class.current]="crumb.id == ruleService.currentFunctionId" (click)="OpenFunction(crumb.id)">
+            <mat-icon>folder</mat-icon>
+            <span>{{crumb.name}}</span>
+          </button>
+        </ng-container>
+      </nav>
+    </div>
+
+    <div class="actions">
+      <div class="action">
+        <span class="action-label">Rule</span>
+        <select class="field" [(ngModel)]="selectedRuleId" aria-label="Rule to add">
+          <option value="" disabled>Choose a rule…</option>
+          <option *ngFor="let rule of supportedRules" [value]="rule.id">{{rule.name}}</option>
+        </select>
+        <button class="action-button primary" [disabled]="!selectedRuleId" (click)="createRule()">
+          <mat-icon>add</mat-icon>
+          <span>Add</span>
+        </button>
+      </div>
+
+      <div class="action">
+        <span class="action-label">Function</span>
+        <input class="field" placeholder="Name" [(ngModel)]="newFunctionName" (keyup.enter)="createFunction()"
+               aria-label="Name of the new function">
+        <button class="action-button" [disabled]="!newFunctionName.trim()" (click)="createFunction()"
+                matTooltip="Group rules into a function">
+          <mat-icon>create_new_folder</mat-icon>
+          <span>Create</span>
+        </button>
+      </div>
+
+      <div class="action">
+        <span class="action-label">Custom input</span>
+        <input class="field" placeholder="Name" [(ngModel)]="newInputName" (keyup.enter)="AddCustomInput()"
+               aria-label="Name of the new custom input">
+        <button class="action-button" [disabled]="!newInputName.trim()" (click)="AddCustomInput()">
+          <mat-icon>input</mat-icon>
+          <span>Create</span>
+        </button>
+      </div>
+    </div>
   </div>
 
-  <div class="toolbar">
-    <div class="toolbar-group">
-      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="toolbar-field">
-        <mat-label>New rule</mat-label>
-        <mat-select [(ngModel)]="selectedRuleId" name="rules">
-          <mat-option value=""></mat-option>
-          <mat-option *ngFor="let rule of supportedRules" [value]="rule.id">
-            {{rule.name}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+  <!-- Ports are the interface of the function, so they are only offered inside one -->
+  <div class="port-bar" *ngIf="ruleService.currentFunctionId">
+    <span class="port-bar-label">Ports of {{ruleService.currentFunction?.name}}</span>
 
-      <button mat-mini-fab color="primary" (click)="createRule()" matTooltip="Add rule" aria-label="Add rule">
-        <mat-icon>add</mat-icon>
-      </button>
-    </div>
+    <select class="field small" [(ngModel)]="newPortType" aria-label="Signal of the new port">
+      <option [ngValue]="2">Value</option>
+      <option [ngValue]="1">Trigger</option>
+      <option [ngValue]="0">Parameter</option>
+    </select>
 
-    <span class="toolbar-divider"></span>
+    <input class="field" placeholder="Port name" [(ngModel)]="newPortName" aria-label="Name of the new port">
 
-    <div class="toolbar-group">
-      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="toolbar-field">
-        <mat-label>New function</mat-label>
-        <input matInput #functionName value="">
-      </mat-form-field>
-
-      <button mat-mini-fab color="primary" matTooltip="Group rules into a function" aria-label="Add function"
-              (click)="createFunction(functionName.value); functionName.value = ''">
-        <mat-icon>create_new_folder</mat-icon>
-      </button>
-    </div>
-
-    <span class="toolbar-divider"></span>
-
-    <div class="toolbar-group">
-      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="toolbar-field">
-        <mat-label>Custom input name</mat-label>
-        <input matInput #inputName value="">
-      </mat-form-field>
-
-      <button mat-mini-fab color="primary" matTooltip="Add custom input" aria-label="Add custom input"
-              (click)="AddCustomInput(inputName.value); inputName.value = ''">
-        <mat-icon>add</mat-icon>
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Where in the function tree the board currently is -->
-<div class="breadcrumb">
-  <button class="crumb" [class.current]="!ruleService.currentFunctionId" (click)="OpenFunction()">
-    <mat-icon>home</mat-icon>
-    <span>Board</span>
-  </button>
-  <ng-container *ngFor="let crumb of ruleService.breadcrumb">
-    <mat-icon class="crumb-separator">chevron_right</mat-icon>
-    <button class="crumb" [class.current]="crumb.id == ruleService.currentFunctionId" (click)="OpenFunction(crumb.id)">
-      <mat-icon>folder</mat-icon>
-      <span>{{crumb.name}}</span>
+    <button class="port-button" [disabled]="!newPortName.trim()" (click)="addPort(portDirections.Input)">
+      <mat-icon>login</mat-icon>
+      <span>Add input</span>
     </button>
-  </ng-container>
+    <button class="port-button" [disabled]="!newPortName.trim()" (click)="addPort(portDirections.Output)">
+      <mat-icon>logout</mat-icon>
+      <span>Add output</span>
+    </button>
+  </div>
+
+  <div class="connect-hint" *ngIf="source">
+    <mat-icon>timeline</mat-icon>
+    <span>Output picked - now click an input of the block that should receive it</span>
+    <button class="link-button" (click)="CancelConnection()">Cancel</button>
+  </div>
 </div>
 
-<!-- Ports are the interface of the function, so they are only offered inside one -->
-<div class="port-bar" *ngIf="ruleService.currentFunctionId">
-  <span class="port-bar-label">Ports of {{ruleService.currentFunction?.name}}</span>
-
-  <mat-form-field appearance="fill" subscriptSizing="dynamic" class="port-field">
-    <mat-label>Signal</mat-label>
-    <mat-select [(ngModel)]="newPortType" name="portType">
-      <mat-option [value]="2">Value</mat-option>
-      <mat-option [value]="1">Trigger</mat-option>
-      <mat-option [value]="0">Parameter</mat-option>
-    </mat-select>
-  </mat-form-field>
-
-  <mat-form-field appearance="fill" subscriptSizing="dynamic" class="port-field">
-    <mat-label>Port name</mat-label>
-    <input matInput #portName value="">
-  </mat-form-field>
-
-  <button class="port-button" (click)="addPort(portDirections.Input, portName.value); portName.value = ''">
-    <mat-icon>login</mat-icon>
-    <span>Add input</span>
-  </button>
-  <button class="port-button" (click)="addPort(portDirections.Output, portName.value); portName.value = ''">
-    <mat-icon>logout</mat-icon>
-    <span>Add output</span>
-  </button>
-</div>
-
-<div class="connect-hint" *ngIf="source">
-  <mat-icon>timeline</mat-icon>
-  <span>Output picked - now click an input of the block that should receive it</span>
-  <button class="link-button" (click)="CancelConnection()">Cancel</button>
-</div>
-
-<div class="example-boundary" [style.height.px]="canvasHeight">
+<!-- No bounds: the canvas grows with its boxes, a box dragged to the edge of the window scrolls further -->
+<div #canvas class="example-boundary"
+     [class.panning]="panning"
+     [style.width.px]="canvasWidth"
+     [style.height.px]="canvasHeight"
+     (pointerdown)="onCanvasPointerDown($event)"
+     (pointermove)="onCanvasPointerMove($event)"
+     (pointerup)="onCanvasPointerUp()"
+     (pointercancel)="onCanvasPointerUp()">
   <p class="canvas-empty" *ngIf="!ruleService.visibleRules.length && !ruleService.visibleFunctions.length">
     {{ ruleService.currentFunctionId ? 'This function is empty - add rules and ports, or move rules in from the board' : 'Pick a rule above and add it to start building an automation' }}
   </p>
@@ -110,10 +103,9 @@
        [style.left.px]="rule.drawingPos?.x"
        [style.top.px]="rule.drawingPos?.y"
        class="example-box"
-       cdkDragBoundary=".example-boundary"
        cdkDrag
        (cdkDragEnded)="dragEnd($event, rule)"
-       (cdkDragMoved)="ReDrawConnections()">
+       (cdkDragMoved)="onDragMoved($event)">
        <app-automatization-component (buttonGenerated)="handleButtonGenerated($event)" [Rule]='rule' [Cage]='this'></app-automatization-component>
   </div>
 
@@ -121,10 +113,9 @@
        [style.left.px]="functionDrawingPos(fn).x"
        [style.top.px]="functionDrawingPos(fn).y"
        class="example-box function-box"
-       cdkDragBoundary=".example-boundary"
        cdkDrag
        (cdkDragEnded)="functionDragEnd($event, fn)"
-       (cdkDragMoved)="ReDrawConnections()">
+       (cdkDragMoved)="onDragMoved($event)">
        <app-automatization-function (buttonGenerated)="handleButtonGenerated($event)" [Function]='fn' [Cage]='this'></app-automatization-function>
   </div>
 </div>

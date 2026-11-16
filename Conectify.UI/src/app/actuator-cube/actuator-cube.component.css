@@ -1,8 +1,15 @@
+/* The cube fills whatever it is placed in - a grid cell or a dashboard box. */
+:host {
+  display: flex;
+  min-width: 0;
+}
+
 /* Actuator cube card - matches sensor-cube */
 .cube {
   background-color: var(--color-bg-card);
-  height: auto;
-  width: 90%;
+  flex: 1 1 auto;
+  width: 100%;
+  box-sizing: border-box;
   min-height: 200px;
   margin: 0;
   padding: 16px !important;
@@ -14,7 +21,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-width: unset;
+  min-width: 0;
 }
 
 .cube:hover {
@@ -27,6 +34,7 @@
 .cube-header {
   padding-right: 36px;
   flex-shrink: 0;
+  overflow-wrap: anywhere;
 }
 
 .cube-meta {
@@ -79,7 +87,6 @@
   flex-direction: column;
   justify-content: center;
   min-height: 0;
-  overflow: hidden;
 }
 
 .iotype-controls mat-form-field {
@@ -87,9 +94,12 @@
   margin-bottom: 2px;
 }
 
+/* Buttons share the width, so ON/OFF fit side by side however narrow the cube is */
 .iotype-buttons {
   flex-shrink: 0;
   display: flex;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 /* Form field styling */
@@ -143,9 +153,9 @@ mat-label {
   border: none !important;
   border-radius: var(--radius-sm) !important;
   height: 38px;
+  flex: 1 1 0;
+  min-width: 0;
   cursor: pointer;
-  margin-top: 10px;
-  margin-right: 8px;
   transition: all var(--transition-fast);
   font-weight: 500;
   font-size: 13px;
@@ -153,17 +163,14 @@ mat-label {
 }
 
 .onButton {
-  width: 45%;
   border-bottom: solid 3px var(--color-success) !important;
 }
 
 .offButton {
-  width: 45%;
   border-bottom: solid 3px var(--color-danger) !important;
 }
 
 .triggerButton, .basic-send {
-  width: 100%;
   border-bottom: solid 3px var(--color-accent) !important;
 }
 
@@ -188,7 +195,8 @@ mat-label {
 
 /* Slider styling */
 .linearActuator {
-  width: 90%;
+  width: 100%;
+  box-sizing: border-box;
   height: 6px;
   margin: 12px 0;
   -webkit-appearance: none;

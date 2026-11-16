@@ -1,8 +1,7 @@
-import { Component, HostListener, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { BEFetcherService } from '../befetcher.service';
 import { MessagesService } from '../messages.service';
-import { fromEvent, forkJoin } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
 import { UiSensor } from 'src/models/UiSensor';
 
 @Component({
@@ -12,19 +11,8 @@ import { UiSensor } from 'src/models/UiSensor';
 })
 export class SensorOverviewComponent implements OnInit {
   public sensors: {id: string[], visible: boolean, preloaded?: UiSensor[]}[] = [];
-  columnNum: number = 4;
-  tileSize: number = 400;
-  @ViewChild('theContainer') theContainer: any;
 
   constructor(private be: BEFetcherService, private messanger: MessagesService) {
-  }
-
-  ngAfterViewInit(): void {
-    this.calculateCols();
-
-    fromEvent(window, 'resize')
-      .pipe(debounceTime(100))
-      .subscribe(() => this.calculateCols());
   }
 
   ngOnInit(): void {
@@ -54,12 +42,9 @@ export class SensorOverviewComponent implements OnInit {
             uiSensors
               .filter(s => !comboSensorIds.has(s.id))
               .forEach(s => this.sensors.push({ id: [s.id], visible: true, preloaded: [s] }));
-
-            this.calculateCols();
           });
         } else {
           uiSensors.forEach(s => this.sensors.push({ id: [s.id], visible: true, preloaded: [s] }));
-          this.calculateCols();
         }
       },
       error: (err) => {
@@ -67,10 +52,5 @@ export class SensorOverviewComponent implements OnInit {
         this.messanger.addMessage(JSON.stringify(err));
       }
     });
-  }
-
-  calculateCols(){
-    let width = this.theContainer.nativeElement.offsetWidth;
-    this.columnNum = Math.trunc(width/this.tileSize);
   }
 }

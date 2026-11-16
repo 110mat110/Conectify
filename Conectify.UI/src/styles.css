@@ -202,3 +202,15 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+
+/* Grid of sensor / actuator cubes. A row is as tall as its tallest cube, so a cube with more
+   controls or a chart never spills over the one below it. One column on a phone. */
+.cube-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  grid-auto-rows: minmax(230px, auto);
+  gap: 12px;
+  padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}

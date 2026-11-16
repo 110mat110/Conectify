@@ -7,8 +7,6 @@ import { Sensor } from 'src/models/sensor';
 import { ApiMetadata, Metadata } from 'src/models/metadata';
 import { MatListOption, MatSelectionListChange } from '@angular/material/list';
 import { FormControl } from '@angular/forms';
-import { fromEvent } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-device',
@@ -31,9 +29,6 @@ export class DeviceComponent implements OnInit {
   selectedMetadata?: Metadata;
   avaliableMetadata: ApiMetadata[] = [];
   selectedSensors: string[] = [];
-  columnNum: number = 4;
-  tileSize: number = 400;
-  @ViewChild('theContainer') theContainer: any;
   @ViewChild('sensorMetadatas') sensorMetadatas: any;
   @ViewChild('actuatorMetadatas') actuatorMetadatas: any;
   @ViewChild('deviceWebsite', { static: true }) deviceWebsite: any;
@@ -102,18 +97,7 @@ export class DeviceComponent implements OnInit {
       this.formControlObj = new FormControl(this.avaliableMetadata);
       this.formControlObj?.setValue(this.avaliableMetadata[0].id);
     });
-
-    this.calculateCols();
-  
 })};
-
-ngAfterViewInit(): void {
-  this.calculateCols();
-
-  fromEvent(window, 'resize')
-    .pipe(debounceTime(100))
-    .subscribe(() => this.calculateCols());
-}
 
 getStatusColor(state: number): string {
   switch (state) {
@@ -122,11 +106,6 @@ getStatusColor(state: number): string {
     case 2: return 'green';
     default: return 'white';
   }
-}
-
-calculateCols(): void {
-  const containerWidth = this.theContainer.nativeElement.clientWidth;
-  this.columnNum = Math.floor(containerWidth / 400);
 }
 
   ngOnChanges(changes: SimpleChanges): void {

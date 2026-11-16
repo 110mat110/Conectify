@@ -1,10 +1,18 @@
+/* The cube fills whatever it is placed in - a grid cell or a dashboard box. */
+:host {
+  display: flex;
+  min-width: 0;
+}
+
 /* Sensor cube card */
 .cube {
   background-color: var(--color-bg-card);
-  width: 90%;
-  height: auto;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   min-height: 200px;
-  margin: 0 auto;
+  margin: 0;
   padding: 16px;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
@@ -86,6 +94,7 @@
 .cube-header {
   padding-right: 36px;
   flex-shrink: 0;
+  overflow-wrap: anywhere;
 }
 
 .cube-meta {
@@ -146,7 +155,8 @@
   gap: 2px;
   flex: 1;
   justify-content: center;
-  margin: 10px;
+  margin: 10px 0;
+  min-width: 0;
 }
 
 .sensor-row {
@@ -154,7 +164,7 @@
   align-items: center;
   font-size: 13px;
   padding: 4px 0;
-  height: 17px;
+  min-height: 17px;
   gap: 8px;
   border-bottom: 1px solid var(--color-border-subtle);
 }
