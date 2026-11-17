@@ -10,6 +10,15 @@ public class ShellyWS
     public string? Method { get; set; }
     public Params? Params { get; set; }
     public Result? Result { get; set; }
+
+    /// <summary>Set instead of <see cref="Result"/> when the device turned a request down.</summary>
+    public RpcError? Error { get; set; }
+}
+
+public class RpcError
+{
+    public int Code { get; set; }
+    public string? Message { get; set; }
 }
 
 /// <summary>

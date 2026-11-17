@@ -47,6 +47,8 @@ app-automatization-component {
 .grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  /* Same fixed row as the cube overviews - a bigger cube scrolls inside itself */
+  grid-auto-rows: 230px;
   gap: 8px;
   padding: 16px;
   width: 100%;

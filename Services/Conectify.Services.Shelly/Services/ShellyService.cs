@@ -140,6 +140,14 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             return;
         }
 
+        if (message.Error is not null)
+        {
+            // Without this a refused command (Switch.Set) vanished without a trace - the device just did nothing.
+            logger.LogWarning("Shelly {src} refused a request: {code} {message}{hint}", src, message.Error.Code, message.Error.Message,
+                message.Error.Code == 401 ? " - the device has authentication enabled, turn it off in its web UI" : "");
+            return;
+        }
+
         if (cache.Cache.TryGetValue(src, out ShellyDeviceCacheItem? shelly) && shelly.Shelly is not null)
         {
             // Keeps the dashboard's view current (address, firmware, relay and power state) and
@@ -349,6 +357,13 @@ public class ShellyService(ShellyFactory shellyFactory, WebsocketCache cache, IS
             var device = cache.Cache[src];
             device.Record(message, source, remoteIp);
             logger.LogInformation("Updating shelly info scr: {src}", src);
+
+            if (message.Result.AuthEn)
+            {
+                // Shelly.GetDeviceInfo and the device's own status notifications need no password, so such a device
+                // shows up and reports its state - but its commands (Switch.Set, GetStatus) can be refused.
+                logger.LogWarning("Shelly {src} has authentication enabled, it may refuse commands from this service", src);
+            }
 
             // Whatever the device announced before we knew what it was would otherwise be dropped,
             // and with it the relay state that makes the light appear in the system.
