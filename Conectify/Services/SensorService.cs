@@ -1,7 +1,6 @@
 ﻿namespace Conectify.Server.Services;
 
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Database.Models.Values;
@@ -50,7 +49,7 @@ public class SensorService(ConectifyDb database, IMapper mapper, IDeviceService 
 
     public async Task<IEnumerable<ApiSensor>> GetAllSensorsPerDevice(Guid deviceId, CancellationToken ct = default)
     {
-        return await database.Sensors.AsNoTracking().Where(x => x.SourceDeviceId == deviceId).ProjectTo<ApiSensor>(mapper.ConfigurationProvider).ToListAsync(ct);
+        return await database.Sensors.AsNoTracking().Where(x => x.SourceDeviceId == deviceId).ProjectTo<ApiSensor>(mapper).ToListAsync(ct);
     }
 
     public async Task<ApiSensor?> GetSensorByActuator(Guid id, CancellationToken ct = default)
@@ -71,9 +70,9 @@ public class SensorService(ConectifyDb database, IMapper mapper, IDeviceService 
         {
             return [];
         }
-        var sensorMetadatas = await database.Set<MetadataConnector<Sensor>>().Where(x => x.DeviceId == sensorId).AsNoTracking().ProjectTo<ApiMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
+        var sensorMetadatas = await database.Set<MetadataConnector<Sensor>>().Where(x => x.DeviceId == sensorId).AsNoTracking().ProjectTo<ApiMetadata>(mapper).ToListAsync(ct);
 
-        var deviceMetadata = await database.Set<MetadataConnector<Device>>().Where(x => x.DeviceId == sensor.SourceDeviceId).AsNoTracking().ProjectTo<ApiMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
+        var deviceMetadata = await database.Set<MetadataConnector<Device>>().Where(x => x.DeviceId == sensor.SourceDeviceId).AsNoTracking().ProjectTo<ApiMetadata>(mapper).ToListAsync(ct);
 
         return sensorMetadatas.Concat(deviceMetadata.Where(x => !sensorMetadatas.Select(x => x.Name).Contains(x.Name)));
     }
@@ -88,14 +87,14 @@ public class SensorService(ConectifyDb database, IMapper mapper, IDeviceService 
 
         if (!string.IsNullOrEmpty(filter.Name))
         {
-            return await database.Set<Sensor>().AsNoTracking().Where(x => x.Name.Contains(filter.Name) && !exclude.Contains(x.Id)).ProjectTo<ApiSensor>(mapper.ConfigurationProvider).ToListAsync(ct);
+            return await database.Set<Sensor>().AsNoTracking().Where(x => x.Name.Contains(filter.Name) && !exclude.Contains(x.Id)).ProjectTo<ApiSensor>(mapper).ToListAsync(ct);
         }
 
-        return await database.Set<Sensor>().AsNoTracking().Where(x => !exclude.Contains(x.Id)).ProjectTo<ApiSensor>(mapper.ConfigurationProvider).ToListAsync(ct);
+        return await database.Set<Sensor>().AsNoTracking().Where(x => !exclude.Contains(x.Id)).ProjectTo<ApiSensor>(mapper).ToListAsync(ct);
     }
 
     public async Task<ApiEvent?> GetLastValue(Guid sensorId, CancellationToken ct = default)
     {
-        return await database.Set<Event>().AsNoTracking().Where(x => x.SourceId == sensorId && x.Type == Constants.Events.Value).OrderByDescending(x => x.TimeCreated).ProjectTo<ApiEvent>(mapper.ConfigurationProvider).FirstOrDefaultAsync(ct);
+        return await database.Set<Event>().AsNoTracking().Where(x => x.SourceId == sensorId && x.Type == Constants.Events.Value).OrderByDescending(x => x.TimeCreated).ProjectTo<ApiEvent>(mapper).FirstOrDefaultAsync(ct);
     }
 }

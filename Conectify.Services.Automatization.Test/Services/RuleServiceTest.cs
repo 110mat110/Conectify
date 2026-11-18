@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Services.Automatization.Database;
 using Conectify.Services.Automatization.Mapper;
 using Conectify.Services.Automatization.Models.ApiModels;
@@ -60,7 +60,7 @@ public class RuleServiceTests
     {
         var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
 
-        var behaviourId = new AndRuleBehaviour(default).GetId();
+        var behaviourId = new AndRuleBehaviour(default!).GetId();
         var result = await ruleService.AddNewRule(behaviourId, null, default);
 
         Assert.NotNull(result);
@@ -102,7 +102,7 @@ public class RuleServiceTests
         await dbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = ruleId,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
         });
         await dbContext.SaveChangesAsync();
 
@@ -112,7 +112,7 @@ public class RuleServiceTests
         var input = await ruleService.AddInput(new Models.ApiModels.AddInputApiModel() { Index = 0, InputType = Models.Database.InputTypeEnum.Trigger, RuleId = ruleId });
 
         var dbRule = dbContext.Rules.FirstOrDefault(x => x.Id == ruleId);
-        Assert.NotEmpty(dbRule.InputConnectors);
+        Assert.NotEmpty(dbRule!.InputConnectors);
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class RuleServiceTests
         await dbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = ruleId,
-            RuleType = new RunAtRuleBehaviour(default).GetId(),
+            RuleType = new RunAtRuleBehaviour(default!).GetId(),
         });
         await dbContext.SaveChangesAsync();
 
@@ -169,7 +169,7 @@ public class RuleServiceTests
         await dbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = ruleId,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
         });
         await dbContext.SaveChangesAsync();
 
@@ -179,7 +179,7 @@ public class RuleServiceTests
         var input = await ruleService.AddOutput(new Models.ApiModels.AddOutputApiModel() { Index = 0, RuleId = ruleId });
 
         var dbRule = dbContext.Rules.FirstOrDefault(x => x.Id == ruleId);
-        Assert.NotEmpty(dbRule.OutputConnectors);
+        Assert.NotEmpty(dbRule!.OutputConnectors);
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public class RuleServiceTests
         await dbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = ruleId,
-            RuleType = new RunAtRuleBehaviour(default).GetId(),
+            RuleType = new RunAtRuleBehaviour(default!).GetId(),
         });
         await dbContext.SaveChangesAsync();
 
@@ -244,7 +244,7 @@ public class RuleServiceTests
         await dbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = ruleId2,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
         });
         await dbContext.SaveChangesAsync();
 
@@ -263,7 +263,7 @@ public class RuleServiceTests
         await dbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = ruleId,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
             ParametersJson = Guid.NewGuid().ToString()
         });
         await dbContext.SaveChangesAsync();
@@ -271,7 +271,7 @@ public class RuleServiceTests
         string newTestingJson = Guid.NewGuid().ToString();
 
         var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
-        var editResult = await ruleService.EditRule(ruleId, new EditRuleApiModel() { BehaviourId = new RunAtRuleBehaviour(default).GetId(), Parameters = newTestingJson, Id = ruleId});
+        var editResult = await ruleService.EditRule(ruleId, new EditRuleApiModel() { BehaviourId = new RunAtRuleBehaviour(default!).GetId(), Parameters = newTestingJson, Id = ruleId});
 
         Assert.True(editResult);
         var dbRule = dbContext.Rules.FirstOrDefault(x => x.Id == ruleId);
@@ -292,7 +292,7 @@ public class RuleServiceTests
         await dbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = ruleId,
-            RuleType = new InputRuleBehaviour(default).GetId(),
+            RuleType = new InputRuleBehaviour(default!).GetId(),
         });
         await dbContext.SaveChangesAsync();
 
@@ -301,7 +301,7 @@ public class RuleServiceTests
         var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         try
         {
-            var editResult = await ruleService.EditRule(ruleId, new EditRuleApiModel() { BehaviourId = new RunAtRuleBehaviour(default).GetId(), Parameters = invalidJson, Id = ruleId });
+            var editResult = await ruleService.EditRule(ruleId, new EditRuleApiModel() { BehaviourId = new RunAtRuleBehaviour(default!).GetId(), Parameters = invalidJson, Id = ruleId });
         }
         catch (Exception ex)
         {
@@ -346,14 +346,14 @@ public class RuleServiceTests
         await localDbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = Guid.NewGuid(),
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
             ParametersJson = Guid.NewGuid().ToString(),
             InputConnectors = [new() { Id = inputId }]
         });
         await localDbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = Guid.NewGuid(),
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
             ParametersJson = Guid.NewGuid().ToString(),
             OutputConnectors = [new() { Id = outputId }]
         });
@@ -454,7 +454,7 @@ public class RuleServiceTests
         await dbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = ruleId,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
         });
         await dbContext.SaveChangesAsync();
 
@@ -481,7 +481,7 @@ public class RuleServiceTests
         await dbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = ruleId,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
         });
         await dbContext.SaveChangesAsync();
 
@@ -535,7 +535,7 @@ public class RuleServiceTests
         await dbContext.Rules.AddAsync(new Models.Database.Rule()
         {
             Id = ruleId,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
             ParametersJson = "{}",
             X = 0,
             Y = 0
@@ -545,7 +545,7 @@ public class RuleServiceTests
         var ruleService = new RuleService(automatizationCache, mapper, dbContext, connectorService, new FakeConfig(), serviceProvider, A.Fake<ILogger<RuleService>>());
         var editResult = await ruleService.EditRule(ruleId, new EditRuleApiModel()
         {
-            BehaviourId = new AndRuleBehaviour(default).GetId(),
+            BehaviourId = new AndRuleBehaviour(default!).GetId(),
             Parameters = "{\"test\":\"value\"}",
             Id = ruleId,
             X = 100,
@@ -566,14 +566,14 @@ public class RuleServiceTests
 
         }
 
-        public ApiDevice Device { get; set; }
+        public ApiDevice Device { get; set; } = null!;
 
-        public IEnumerable<ApiSensor> Sensors { get; set; }
+        public IEnumerable<ApiSensor> Sensors { get; set; } = null!;
 
-        public IEnumerable<ApiActuator> Actuators { get; set; }
+        public IEnumerable<ApiActuator> Actuators { get; set; } = null!;
 
-        public IEnumerable<ApiPreference> Preferences { get; set; }
+        public IEnumerable<ApiPreference> Preferences { get; set; } = null!;
 
-        public IEnumerable<MetadataServiceConnector> MetadataConnectors { get; set; }
+        public IEnumerable<MetadataServiceConnector> MetadataConnectors { get; set; } = null!;
     }
 }

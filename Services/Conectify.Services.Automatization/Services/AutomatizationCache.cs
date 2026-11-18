@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Services.Automatization.Database;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;

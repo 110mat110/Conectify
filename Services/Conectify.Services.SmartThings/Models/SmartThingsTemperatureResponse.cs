@@ -2,12 +2,12 @@
 
 public class SmartThingsTemperatureResponse
 {
-    public Temperature temperature { get; set; }
+    public Temperature temperature { get; set; } = null!;
 }
 
 public class Temperature
 {
     public int value { get; set; }
-    public string unit { get; set; }
+    public string unit { get; set; } = null!;
     public DateTimeOffset timestamp { get; set; }
 }

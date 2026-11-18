@@ -1,4 +1,5 @@
-﻿using Conectify.Shared.Library.Services;
+﻿using Conectify.Shared.Library.Mapping;
+using Conectify.Shared.Library.Services;
 using Conectify.Shared.Maps;
 using Conectify.Shared.Services;
 using Microsoft.AspNetCore.Hosting;
@@ -11,7 +12,7 @@ public static class DependencyInjectionExtensions
 {
     public static IServiceCollection UseConectifyWebsocket<TConfiguration, TDeviceData>(this IServiceCollection services) where TConfiguration : ConfigurationBase where TDeviceData : class, IDeviceData
     {
-        services.AddAutoMapper(typeof(TDeviceData).Assembly, typeof(DeviceProfile).Assembly);
+        services.AddMapping(typeof(TDeviceData).Assembly, typeof(DeviceProfile).Assembly);
         services.AddSingleton<IServicesWebsocketClient, ServicesWebsocketClient>();
         services.AddTransient<TConfiguration>();
         services.AddTransient<ConfigurationBase, TConfiguration>();

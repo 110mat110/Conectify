@@ -1,20 +1,19 @@
-﻿
-using AutoMapper;
-using Conectify.Services.Automatization.Models.ApiModels;
+﻿using Conectify.Services.Automatization.Models.ApiModels;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Shared.Library.Models;
 
 namespace Conectify.Services.Automatization.Mapper;
 
-public class ActuatorProfile : Profile
+public class ActuatorProfile : IMappingProfile
 {
-    public ActuatorProfile()
+    public void Configure(MapperConfiguration configuration)
     {
-        this.CreateMap<AddActuatorApiModel, ApiActuator>()
-            .ForMember(x => x.Metadata, opt => opt.Ignore())
-            .ForMember(x => x.Name, opt => opt.MapFrom(x => x.ActuatorName))
-            .ForMember(x => x.Id, opt => opt.MapFrom(x => Guid.NewGuid()))
-            .ForMember(x => x.SourceDeviceId, opt => opt.Ignore())
-            .ForMember(x => x.SensorId, opt => opt.Ignore());
-
+        configuration.CreateMap<AddActuatorApiModel, ApiActuator>(
+            x => new ApiActuator
+            {
+                Id = Guid.NewGuid(),
+                Name = x.ActuatorName,
+            },
+            nameof(ApiActuator.Metadata), nameof(ApiActuator.SourceDeviceId), nameof(ApiActuator.SensorId));
     }
 }

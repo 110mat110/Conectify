@@ -2,7 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database;
 using Microsoft.EntityFrameworkCore;
 

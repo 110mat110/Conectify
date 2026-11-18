@@ -1,49 +1,101 @@
 ﻿namespace Conectify.Shared.Maps;
 
-using AutoMapper;
 using Conectify.Database.Models;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Shared.Library.Models;
 using Conectify.Shared.Library.Models.Services;
 
-public class MetadataProfile : Profile
+public class MetadataProfile : IMappingProfile
 {
-
-    public MetadataProfile()
+    public void Configure(MapperConfiguration configuration)
     {
-        CreateMap<ApiMetadataConnector, MetadataConnector<Device>>()
-            .ForMember(x => x.Metadata, opt => opt.Ignore())
-            .ForMember(x => x.Device, opt => opt.Ignore());
+        AddConnectorMaps<Device>(configuration);
+        AddConnectorMaps<Sensor>(configuration);
+        AddConnectorMaps<Actuator>(configuration);
 
-        CreateMap<ApiMetadataConnector, MetadataConnector<Actuator>>()
-            .ForMember(x => x.Metadata, opt => opt.Ignore())
-            .ForMember(x => x.Device, opt => opt.Ignore());
+        configuration.CreateMap<ApiMetadata, MetadataConnector<Actuator>>(
+            x => new MetadataConnector<Actuator>
+            {
+                Id = x.Id,
+                NumericValue = x.NumericValue,
+                StringValue = x.StringValue,
+                Unit = x.Unit,
+                MinVal = x.MinVal,
+                MaxVal = x.MaxVal,
+                MetadataId = x.MetadataId,
+            },
+            nameof(MetadataConnector<Actuator>.DeviceId), nameof(MetadataConnector<Actuator>.TypeValue), nameof(MetadataConnector<Actuator>.Metadata), nameof(MetadataConnector<Actuator>.Device));
 
-        CreateMap<ApiMetadata, MetadataConnector<Actuator>>()
-    .ForMember(x => x.DeviceId, opt => opt.Ignore())
-    .ForMember(x => x.TypeValue, opt => opt.Ignore())
-    .ForMember(x => x.Metadata, opt => opt.Ignore())
-    .ForMember(x => x.Device, opt => opt.Ignore());
+        configuration.CreateMap<MetadataServiceConnector, ApiMetadataConnector>(
+            x => new ApiMetadataConnector
+            {
+                Id = x.Id,
+                NumericValue = x.NumericValue,
+                StringValue = x.StringValue,
+                TypeValue = x.TypeValue,
+                Unit = x.Unit,
+                MinVal = x.MinVal,
+                MaxVal = x.MaxVal,
+            },
+            nameof(ApiMetadataConnector.MetadataId), nameof(ApiMetadataConnector.DeviceId));
 
+        configuration.CreateMap<ApiBasicMetadata, Metadata>(x => new Metadata
+        {
+            Id = x.Id,
+            Name = x.Name,
+            Code = x.Code,
+            Exclusive = x.Exclusive,
+        });
 
-        CreateMap<ApiMetadataConnector, MetadataConnector<Sensor>>()
-            .ForMember(x => x.Metadata, opt => opt.Ignore())
-            .ForMember(x => x.Device, opt => opt.Ignore());
+        configuration.CreateMap<Metadata, ApiBasicMetadata>(x => new ApiBasicMetadata
+        {
+            Id = x.Id,
+            Name = x.Name,
+            Code = x.Code,
+            Exclusive = x.Exclusive,
+        });
+    }
 
-        CreateMap<MetadataConnector<Device>, ApiMetadataConnector>();
-        CreateMap<MetadataConnector<Sensor>, ApiMetadataConnector>();
-        CreateMap<MetadataConnector<Actuator>, ApiMetadataConnector>();
-        CreateMap<MetadataServiceConnector, ApiMetadataConnector>()
-            .ForMember(x => x.MetadataId, opt => opt.Ignore())
-            .ForMember(x => x.DeviceId, opt => opt.Ignore());
+    private static void AddConnectorMaps<T>(MapperConfiguration configuration)
+    {
+        configuration.CreateMap<ApiMetadataConnector, MetadataConnector<T>>(
+            x => new MetadataConnector<T>
+            {
+                Id = x.Id,
+                NumericValue = x.NumericValue,
+                StringValue = x.StringValue,
+                TypeValue = x.TypeValue,
+                Unit = x.Unit,
+                MinVal = x.MinVal,
+                MaxVal = x.MaxVal,
+                MetadataId = x.MetadataId,
+                DeviceId = x.DeviceId,
+            },
+            nameof(MetadataConnector<T>.Metadata), nameof(MetadataConnector<T>.Device));
 
-        CreateMap<MetadataConnector<Actuator>, ApiMetadata>()
-            .ForMember(x => x.Name, opt => opt.MapFrom(x => x.Metadata.Name));
-        CreateMap<MetadataConnector<Sensor>, ApiMetadata>()
-            .ForMember(x => x.Name, opt => opt.MapFrom(x => x.Metadata.Name));
-        CreateMap<MetadataConnector<Device>, ApiMetadata>()
-            .ForMember(x => x.Name, opt => opt.MapFrom(x => x.Metadata.Name));
+        configuration.CreateMap<MetadataConnector<T>, ApiMetadataConnector>(x => new ApiMetadataConnector
+        {
+            Id = x.Id,
+            NumericValue = x.NumericValue,
+            StringValue = x.StringValue,
+            TypeValue = x.TypeValue,
+            Unit = x.Unit,
+            MinVal = x.MinVal,
+            MaxVal = x.MaxVal,
+            MetadataId = x.MetadataId,
+            DeviceId = x.DeviceId,
+        });
 
-        CreateMap<ApiBasicMetadata, Metadata>();
-        CreateMap<Metadata, ApiBasicMetadata>();
+        configuration.CreateMap<MetadataConnector<T>, ApiMetadata>(x => new ApiMetadata
+        {
+            Id = x.Id,
+            Name = x.Metadata.Name,
+            NumericValue = x.NumericValue,
+            StringValue = x.StringValue,
+            Unit = x.Unit,
+            MinVal = x.MinVal,
+            MaxVal = x.MaxVal,
+            MetadataId = x.MetadataId,
+        });
     }
 }

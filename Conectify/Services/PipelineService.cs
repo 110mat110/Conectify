@@ -2,7 +2,7 @@
 
 using System.Diagnostics.Metrics;
 using System.Linq;
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Database.Models.Values;

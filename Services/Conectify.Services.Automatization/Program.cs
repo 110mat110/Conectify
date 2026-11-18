@@ -1,3 +1,4 @@
+using Conectify.Shared.Library.Mapping;
 using Conectify.Services.Automatization;
 using Conectify.Services.Automatization.Database;
 using Conectify.Services.Automatization.Mapper;
@@ -17,7 +18,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AutomatizationDb>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DatabaseString")));
-builder.Services.AddAutoMapper(typeof(RuleProfile).Assembly);
+builder.Services.AddMapping(typeof(RuleProfile).Assembly);
 builder.Logging.AddRemoteLogging();
 builder.Services.UseConectifyWebsocket<AutomatizationConfiguration, DeviceData>();
 builder.Services.AddSingleton(TimeProvider.System);

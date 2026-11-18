@@ -1,27 +1,52 @@
-﻿using AutoMapper;
-using Conectify.Database.Models.Dashboard;
+﻿using Conectify.Database.Models.Dashboard;
 using Conectify.Services.Dashboard.Models;
+using Conectify.Shared.Library.Mapping;
 
 namespace Conectify.Services.Dashboard.Mapper;
 
-public class DashboardProfile : Profile
+public class DashboardProfile : IMappingProfile
 {
-    public DashboardProfile()
+    public void Configure(MapperConfiguration configuration)
     {
-        this.CreateMap<AddDashboardApi, Database.Models.Dashboard.Dashboard>()
-            .ForMember(x => x.Id, opt => opt.MapFrom(x => Guid.NewGuid()))
-            .ForMember(x => x.User, opt => opt.Ignore())
-            .ForMember(x => x.Background, opt => opt.MapFrom(x => string.Empty));
+        configuration.CreateMap<AddDashboardApi, Database.Models.Dashboard.Dashboard>(
+            x => new Database.Models.Dashboard.Dashboard
+            {
+                Id = Guid.NewGuid(),
+                UserId = x.UserId,
+                Position = x.Position,
+                Type = x.Type,
+                Background = string.Empty,
+            },
+            nameof(Database.Models.Dashboard.Dashboard.Name), nameof(Database.Models.Dashboard.Dashboard.User));
 
-        this.CreateMap<AddDeviceApi, DashboardDevice>()
-    .ForMember(x => x.Id, opt => opt.MapFrom(x => Guid.NewGuid()))
-    .ForMember(x => x.DashBoardId, opt => opt.Ignore());
+        configuration.CreateMap<AddDeviceApi, DashboardDevice>(
+            x => new DashboardDevice
+            {
+                Id = Guid.NewGuid(),
+                DeviceId = x.DeviceId,
+                PosX = x.PosX,
+                PosY = x.PosY,
+                SourceType = x.SourceType,
+            },
+            nameof(DashboardDevice.DashBoardId));
 
-        this.CreateMap<Database.Models.Dashboard.Dashboard, DashboardApi>()
-            .ForMember(x => x.DashboardDevices, opt => opt.Ignore())
-            .ForMember(x => x.Type, opt => opt.MapFrom(x => (int)x.Type));
+        configuration.CreateMap<Database.Models.Dashboard.Dashboard, DashboardApi>(
+            x => new DashboardApi
+            {
+                Id = x.Id,
+                Background = x.Background,
+                Name = x.Name,
+                Type = (int)x.Type,
+            },
+            nameof(DashboardApi.DashboardDevices));
 
-        this.CreateMap<DashboardDevice, DashboardDeviceApi>();
-
+        configuration.CreateMap<DashboardDevice, DashboardDeviceApi>(x => new DashboardDeviceApi
+        {
+            Id = x.Id,
+            DeviceId = x.DeviceId,
+            PosX = x.PosX,
+            PosY = x.PosY,
+            SourceType = x.SourceType,
+        });
     }
 }

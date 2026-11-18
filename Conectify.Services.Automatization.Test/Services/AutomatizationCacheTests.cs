@@ -1,4 +1,4 @@
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Services.Automatization.Database;
 using Conectify.Services.Automatization.Mapper;
 using Conectify.Services.Automatization.Models.Database;
@@ -43,7 +43,7 @@ public class AutomatizationCacheTests
             await context.Rules.AddAsync(new Rule
             {
                 Id = ruleId,
-                RuleType = new AndRuleBehaviour(default).GetId(),
+                RuleType = new AndRuleBehaviour(default!).GetId(),
                 ParametersJson = "{}"
             });
             await context.SaveChangesAsync();
@@ -90,7 +90,7 @@ public class AutomatizationCacheTests
         var rule = new Rule
         {
             Id = Guid.NewGuid(),
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
             ParametersJson = "{}"
         };
 
@@ -122,7 +122,7 @@ public class AutomatizationCacheTests
             await context.Rules.AddAsync(new Rule
             {
                 Id = ruleId,
-                RuleType = new AndRuleBehaviour(default).GetId(),
+                RuleType = new AndRuleBehaviour(default!).GetId(),
                 ParametersJson = "{}"
             });
             await context.SaveChangesAsync();
@@ -157,7 +157,7 @@ public class AutomatizationCacheTests
         services.AddScoped(services => new AutomatizationDb(contextOptions));
         var serviceProvider = services.BuildServiceProvider();
 
-        var ruleTypeId = new AndRuleBehaviour(default).GetId();
+        var ruleTypeId = new AndRuleBehaviour(default!).GetId();
         using (var context = new AutomatizationDb(contextOptions))
         {
             await context.Rules.AddAsync(new Rule
@@ -193,7 +193,7 @@ public class AutomatizationCacheTests
             await context.Rules.AddAsync(new Rule
             {
                 Id = Guid.NewGuid(),
-                RuleType = new AndRuleBehaviour(default).GetId(),
+                RuleType = new AndRuleBehaviour(default!).GetId(),
                 ParametersJson = "{}",
                 OutputConnectors = [new OutputPoint { Id = outputId }]
             });
@@ -225,7 +225,7 @@ public class AutomatizationCacheTests
             await context.Rules.AddAsync(new Rule
             {
                 Id = Guid.NewGuid(),
-                RuleType = new AndRuleBehaviour(default).GetId(),
+                RuleType = new AndRuleBehaviour(default!).GetId(),
                 ParametersJson = "{}",
                 InputConnectors = [new InputPoint { Id = inputId }]
             });
@@ -340,7 +340,7 @@ public class AutomatizationCacheTests
             await context.Rules.AddAsync(new Rule
             {
                 Id = Guid.NewGuid(),
-                RuleType = new AndRuleBehaviour(default).GetId(),
+                RuleType = new AndRuleBehaviour(default!).GetId(),
                 ParametersJson = "{}",
                 InputConnectors = [new InputPoint { Id = inputId }],
                 OutputConnectors = [new OutputPoint { Id = outputId }]

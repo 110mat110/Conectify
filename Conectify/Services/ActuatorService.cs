@@ -1,7 +1,6 @@
 ﻿namespace Conectify.Server.Services;
 
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Shared.Library;
@@ -45,7 +44,7 @@ public class ActuatorService(ConectifyDb database, IMapper mapper, IDeviceServic
 
     public async Task<IEnumerable<ApiActuator>> GetAllActuatorsPerDevice(Guid deviceId, CancellationToken ct = default)
     {
-        return await database.Actuators.AsNoTracking().Where(x => x.SourceDeviceId == deviceId).ProjectTo<ApiActuator>(mapper.ConfigurationProvider).ToListAsync(ct);
+        return await database.Actuators.AsNoTracking().Where(x => x.SourceDeviceId == deviceId).ProjectTo<ApiActuator>(mapper).ToListAsync(ct);
     }
 
     public override async Task<IEnumerable<ApiMetadata>> GetMetadata(Guid actuatorId, CancellationToken ct = default)
@@ -55,9 +54,9 @@ public class ActuatorService(ConectifyDb database, IMapper mapper, IDeviceServic
         {
             return [];
         }
-        var actuatorMetadatas = await database.Set<MetadataConnector<Actuator>>().Where(x => x.DeviceId == actuatorId).AsNoTracking().ProjectTo<ApiMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
+        var actuatorMetadatas = await database.Set<MetadataConnector<Actuator>>().Where(x => x.DeviceId == actuatorId).AsNoTracking().ProjectTo<ApiMetadata>(mapper).ToListAsync(ct);
 
-        var deviceMetadata = await database.Set<MetadataConnector<Device>>().Where(x => x.DeviceId == actuator.SourceDeviceId).AsNoTracking().ProjectTo<ApiMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
+        var deviceMetadata = await database.Set<MetadataConnector<Device>>().Where(x => x.DeviceId == actuator.SourceDeviceId).AsNoTracking().ProjectTo<ApiMetadata>(mapper).ToListAsync(ct);
 
         return actuatorMetadatas.Concat(deviceMetadata.Where(x => !actuatorMetadatas.Select(x => x.Name).Contains(x.Name)));
     }
@@ -72,9 +71,9 @@ public class ActuatorService(ConectifyDb database, IMapper mapper, IDeviceServic
 
         if (!string.IsNullOrEmpty(filter.Name))
         {
-            return await database.Set<Actuator>().AsNoTracking().Where(x => x.Name.Contains(filter.Name) && !exclude.Contains(x.Id)).ProjectTo<ApiActuator>(mapper.ConfigurationProvider).ToListAsync(ct);
+            return await database.Set<Actuator>().AsNoTracking().Where(x => x.Name.Contains(filter.Name) && !exclude.Contains(x.Id)).ProjectTo<ApiActuator>(mapper).ToListAsync(ct);
         }
 
-        return await database.Set<Actuator>().AsNoTracking().Where(x => !exclude.Contains(x.Id)).ProjectTo<ApiActuator>(mapper.ConfigurationProvider).ToListAsync(ct);
+        return await database.Set<Actuator>().AsNoTracking().Where(x => !exclude.Contains(x.Id)).ProjectTo<ApiActuator>(mapper).ToListAsync(ct);
     }
 }

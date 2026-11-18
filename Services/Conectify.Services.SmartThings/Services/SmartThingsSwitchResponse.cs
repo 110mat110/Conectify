@@ -2,11 +2,11 @@
 
 public class SmartThingsSwitchResponse
 {
-    public SwitchState @switch { get; set; }
+    public SwitchState @switch { get; set; } = null!;
 }
 
 public class SwitchState
 {
-    public string value { get; set; }
+    public string value { get; set; } = null!;
     public DateTimeOffset timestamp { get; set; }
 }

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
@@ -24,6 +23,7 @@
     <ProjectReference Include="..\Conectify.Shared.Maps\Conectify.Shared.Maps.csproj" />
     <ProjectReference Include="..\Conectify\Conectify.Server.csproj" />
     <ProjectReference Include="..\Services\Conectify.Services.Automatization\Conectify.Services.Automatization.csproj" />
+    <ProjectReference Include="..\Services\Conectify.Services.Dashboard\Conectify.Services.Dashboard.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Services.Automatization.Database;
 using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
@@ -109,14 +108,14 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 
     public async Task<IEnumerable<GetRuleApiModel>> GetAllRules()
     {
-        var result = await database.Set<Rule>().AsNoTracking().Include(i => i.InputConnectors).Include(i => i.OutputConnectors).ProjectTo<GetRuleApiModel>(mapper.ConfigurationProvider).ToListAsync();
+        var result = await database.Set<Rule>().AsNoTracking().Include(i => i.InputConnectors).Include(i => i.OutputConnectors).ProjectTo<GetRuleApiModel>(mapper).ToListAsync();
 
         return result;
     }
 
     public async Task<IEnumerable<ConnectionApiModel>> GetAllConnections()
     {
-        return await database.Set<RuleConnector>().ProjectTo<ConnectionApiModel>(mapper.ConfigurationProvider).ToListAsync();
+        return await database.Set<RuleConnector>().ProjectTo<ConnectionApiModel>(mapper).ToListAsync();
     }
 
     public async Task<bool> EditRule(Guid ruleId, EditRuleApiModel apiRule, CancellationToken cancellationToken = default)
@@ -253,7 +252,7 @@ public class RuleService(IAutomatizationCache automatizationCache, IMapper mappe
 
     public async Task<GetRuleApiModel?> GetRule(Guid ruleId)
     {
-        var result = await database.Set<Rule>().AsNoTracking().Include(i => i.InputConnectors).Include(i => i.OutputConnectors).ProjectTo<GetRuleApiModel>(mapper.ConfigurationProvider).FirstOrDefaultAsync(x => x.Id == ruleId);
+        var result = await database.Set<Rule>().AsNoTracking().Include(i => i.InputConnectors).Include(i => i.OutputConnectors).ProjectTo<GetRuleApiModel>(mapper).FirstOrDefaultAsync(x => x.Id == ruleId);
 
         return result;
     }

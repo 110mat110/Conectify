@@ -1,4 +1,4 @@
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Services.Automatization.Controllers;
 using Conectify.Services.Automatization.Database;
 using Conectify.Services.Automatization.Mapper;
@@ -60,7 +60,7 @@ public class RuleControllerTests
     [Fact]
     public async Task AddNewRule_ReturnsOkWithRule()
     {
-        var behaviourId = new AndRuleBehaviour(default).GetId();
+        var behaviourId = new AndRuleBehaviour(default!).GetId();
         var result = await controller.AddNewRule(behaviourId);
 
         var okResult = Assert.IsType<OkObjectResult>(result);
@@ -75,7 +75,7 @@ public class RuleControllerTests
         await dbContext.Rules.AddAsync(new Rule
         {
             Id = Guid.NewGuid(),
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
             ParametersJson = "{}"
         });
         await dbContext.SaveChangesAsync();
@@ -112,7 +112,7 @@ public class RuleControllerTests
         await dbContext.Rules.AddAsync(new Rule
         {
             Id = ruleId,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
             ParametersJson = "{}"
         });
         await dbContext.SaveChangesAsync();
@@ -120,7 +120,7 @@ public class RuleControllerTests
         var editModel = new EditRuleApiModel
         {
             Id = ruleId,
-            BehaviourId = new AndRuleBehaviour(default).GetId(),
+            BehaviourId = new AndRuleBehaviour(default!).GetId(),
             Parameters = "{\"updated\":true}",
             X = 50,
             Y = 100
@@ -138,7 +138,7 @@ public class RuleControllerTests
         var editModel = new EditRuleApiModel
         {
             Id = Guid.NewGuid(),
-            BehaviourId = new AndRuleBehaviour(default).GetId(),
+            BehaviourId = new AndRuleBehaviour(default!).GetId(),
             Parameters = "{}"
         };
 
@@ -192,7 +192,7 @@ public class RuleControllerTests
         await dbContext.Rules.AddAsync(new Rule
         {
             Id = ruleId,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
             ParametersJson = "{}"
         });
         await dbContext.SaveChangesAsync();
@@ -218,7 +218,7 @@ public class RuleControllerTests
         await dbContext.Rules.AddAsync(new Rule
         {
             Id = ruleId,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
             ParametersJson = "{}"
         });
         await dbContext.SaveChangesAsync();
@@ -243,7 +243,7 @@ public class RuleControllerTests
         await dbContext.Rules.AddAsync(new Rule
         {
             Id = ruleId,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
             ParametersJson = "{}"
         });
         await dbContext.SaveChangesAsync();
@@ -270,7 +270,7 @@ public class RuleControllerTests
         await dbContext.Rules.AddAsync(new Rule
         {
             Id = ruleId,
-            RuleType = new AndRuleBehaviour(default).GetId(),
+            RuleType = new AndRuleBehaviour(default!).GetId(),
             ParametersJson = "{}"
         });
         await dbContext.SaveChangesAsync();
@@ -297,10 +297,10 @@ public class RuleControllerTests
         {
         }
 
-        public ApiDevice Device { get; set; }
-        public IEnumerable<ApiSensor> Sensors { get; set; }
-        public IEnumerable<ApiActuator> Actuators { get; set; }
-        public IEnumerable<ApiPreference> Preferences { get; set; }
-        public IEnumerable<MetadataServiceConnector> MetadataConnectors { get; set; }
+        public ApiDevice Device { get; set; } = null!;
+        public IEnumerable<ApiSensor> Sensors { get; set; } = null!;
+        public IEnumerable<ApiActuator> Actuators { get; set; } = null!;
+        public IEnumerable<ApiPreference> Preferences { get; set; } = null!;
+        public IEnumerable<MetadataServiceConnector> MetadataConnectors { get; set; } = null!;
     }
 }

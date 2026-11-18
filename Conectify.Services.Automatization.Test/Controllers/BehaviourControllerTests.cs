@@ -35,16 +35,16 @@ public class BehaviourControllerTests
     {
         var result = controller.GetAllBehaviours().ToList();
 
-        Assert.Contains(result, b => b.Id == new AndRuleBehaviour(default).GetId());
-        Assert.Contains(result, b => b.Id == new InputRuleBehaviour(default).GetId());
-        Assert.Contains(result, b => b.Id == new OutputRuleBehaviour(default).GetId());
-        Assert.Contains(result, b => b.Id == new RunAtRuleBehaviour(default).GetId());
+        Assert.Contains(result, b => b.Id == new AndRuleBehaviour(default!).GetId());
+        Assert.Contains(result, b => b.Id == new InputRuleBehaviour(default!).GetId());
+        Assert.Contains(result, b => b.Id == new OutputRuleBehaviour(default!).GetId());
+        Assert.Contains(result, b => b.Id == new RunAtRuleBehaviour(default!).GetId());
     }
 
     [Fact]
     public void GetBehaviour_ValidId_ReturnsBehaviour()
     {
-        var andBehaviourId = new AndRuleBehaviour(default).GetId();
+        var andBehaviourId = new AndRuleBehaviour(default!).GetId();
 
         var result = controller.GetBehaviour(andBehaviourId);
 
@@ -64,7 +64,7 @@ public class BehaviourControllerTests
     [Fact]
     public void GetBehaviour_AndBehaviour_HasCorrectInputsAndOutputs()
     {
-        var andBehaviourId = new AndRuleBehaviour(default).GetId();
+        var andBehaviourId = new AndRuleBehaviour(default!).GetId();
 
         var result = controller.GetBehaviour(andBehaviourId);
 
@@ -78,7 +78,7 @@ public class BehaviourControllerTests
     [Fact]
     public void GetBehaviour_RunAtBehaviour_HasCorrectConfiguration()
     {
-        var runAtBehaviourId = new RunAtRuleBehaviour(default).GetId();
+        var runAtBehaviourId = new RunAtRuleBehaviour(default!).GetId();
 
         var result = controller.GetBehaviour(runAtBehaviourId);
 
@@ -91,7 +91,7 @@ public class BehaviourControllerTests
     [Fact]
     public void GetBehaviour_InputBehaviour_HasCorrectConfiguration()
     {
-        var inputBehaviourId = new InputRuleBehaviour(default).GetId();
+        var inputBehaviourId = new InputRuleBehaviour(default!).GetId();
 
         var result = controller.GetBehaviour(inputBehaviourId);
 
@@ -102,7 +102,7 @@ public class BehaviourControllerTests
     [Fact]
     public void GetBehaviour_OutputBehaviour_HasCorrectConfiguration()
     {
-        var outputBehaviourId = new OutputRuleBehaviour(default).GetId();
+        var outputBehaviourId = new OutputRuleBehaviour(default!).GetId();
 
         var result = controller.GetBehaviour(outputBehaviourId);
 
@@ -139,7 +139,7 @@ public class BehaviourControllerTests
     [Fact]
     public void GetBehaviour_DecisionBehaviour_HasCorrectConfiguration()
     {
-        var decisionBehaviourId = new DecisionRuleBehaviour(default).GetId();
+        var decisionBehaviourId = new DecisionRuleBehaviour(default!).GetId();
 
         var result = controller.GetBehaviour(decisionBehaviourId);
 
@@ -150,7 +150,7 @@ public class BehaviourControllerTests
     [Fact]
     public void GetBehaviour_SetValueBehaviour_HasCorrectConfiguration()
     {
-        var setValueBehaviourId = new SetValueRuleBehaviour(default).GetId();
+        var setValueBehaviourId = new SetValueRuleBehaviour(default!).GetId();
 
         var result = controller.GetBehaviour(setValueBehaviourId);
 
@@ -161,7 +161,7 @@ public class BehaviourControllerTests
     [Fact]
     public void GetBehaviour_UserInputBehaviour_HasCorrectConfiguration()
     {
-        var userInputBehaviourId = new UserInputRuleBehaviour(default).GetId();
+        var userInputBehaviourId = new UserInputRuleBehaviour(default!).GetId();
 
         var result = controller.GetBehaviour(userInputBehaviourId);
 
@@ -172,7 +172,7 @@ public class BehaviourControllerTests
     [Fact]
     public void GetBehaviour_SetDelayBehaviour_HasCorrectConfiguration()
     {
-        var setDelayBehaviourId = new SetDelayBehaviour(default).GetId();
+        var setDelayBehaviourId = new SetDelayBehaviour(default!).GetId();
 
         var result = controller.GetBehaviour(setDelayBehaviourId);
 
@@ -183,7 +183,7 @@ public class BehaviourControllerTests
     [Fact]
     public void GetBehaviour_CallLinkBehaviour_HasCorrectConfiguration()
     {
-        var callLinkBehaviourId = new CallLinkRuleBehavior(default).GetId();
+        var callLinkBehaviourId = new CallLinkRuleBehavior(default!).GetId();
 
         var result = controller.GetBehaviour(callLinkBehaviourId);
 

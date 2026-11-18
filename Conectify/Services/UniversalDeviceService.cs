@@ -2,8 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database;
 using Conectify.Database.Interfaces;
 using Conectify.Database.Models;
@@ -54,7 +53,7 @@ public abstract class UniversalDeviceService<TDbs, TApi>(ConectifyDb database, I
 
     public virtual async Task<IEnumerable<TApi>> GetAllDevices(CancellationToken ct = default)
     {
-        return await database.Set<TDbs>().AsNoTracking().ProjectTo<TApi>(mapper.ConfigurationProvider).ToListAsync(ct);
+        return await database.Set<TDbs>().AsNoTracking().ProjectTo<TApi>(mapper).ToListAsync(ct);
     }
 
     public async Task<bool> AddMetadata(ApiMetadataConnector apiModel, CancellationToken ct = default)
@@ -104,7 +103,7 @@ public abstract class UniversalDeviceService<TDbs, TApi>(ConectifyDb database, I
 
     public virtual async Task<IEnumerable<ApiMetadata>> GetMetadata(Guid deviceId, CancellationToken ct = default)
     {
-        return await database.Set<MetadataConnector<TDbs>>().Where(x => x.DeviceId == deviceId).AsNoTracking().ProjectTo<ApiMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
+        return await database.Set<MetadataConnector<TDbs>>().Where(x => x.DeviceId == deviceId).AsNoTracking().ProjectTo<ApiMetadata>(mapper).ToListAsync(ct);
     }
 
     public abstract Task<IEnumerable<TApi>> Filter(ApiFilter filter, CancellationToken ct = default);

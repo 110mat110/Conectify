@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
+﻿using Conectify.Shared.Library.Mapping;
 using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Shared.Library.Models;
@@ -47,7 +46,7 @@ public class MetadataService : IMetadataService
 
     public async Task<IEnumerable<ApiBasicMetadata>> GetAllMetadata(CancellationToken ct = default)
     {
-        return await database.Set<Metadata>().ProjectTo<ApiBasicMetadata>(mapper.ConfigurationProvider).ToListAsync(ct);
+        return await database.Set<Metadata>().ProjectTo<ApiBasicMetadata>(mapper).ToListAsync(ct);
     }
 
     public async Task<ApiBasicMetadata?> GetMetadataByCode(string code, CancellationToken ct = default)

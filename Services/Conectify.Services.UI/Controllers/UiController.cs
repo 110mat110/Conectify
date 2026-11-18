@@ -9,8 +9,7 @@ namespace Conectify.Services.UI.Controllers;
 [Route("api/[controller]")]
 public class UiController(
     IDeviceMetadataCachingService metadataCache,
-    IHistoryHttpClient historyClient,
-    ILogger<UiController> logger) : ControllerBase
+    IHistoryHttpClient historyClient) : ControllerBase
 {
     [HttpGet("sensors")]
     public async Task<IEnumerable<UiSensorResponse>> GetSensors(CancellationToken ct)

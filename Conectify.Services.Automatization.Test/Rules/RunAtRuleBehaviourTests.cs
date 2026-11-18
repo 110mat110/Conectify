@@ -105,7 +105,7 @@ public class RunAtRuleBehaviourTests
         var behaviour = new RunAtRuleBehaviour(new ServiceCollection().BuildServiceProvider());
         var rule = new Rule
         {
-            ParametersJson = null
+            ParametersJson = null!
         };
 
         await behaviour.SetParameters(rule, CancellationToken.None);

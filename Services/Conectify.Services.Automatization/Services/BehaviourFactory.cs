@@ -22,7 +22,7 @@ public static class BehaviorFactory
 
     // Only scan the assembly that defines the rule behaviours. Scanning the whole
     // AppDomain used to throw ReflectionTypeLoadException intermittently under parallel
-    // tests, because FakeItEasy/AutoMapper emit dynamic proxy assemblies whose types
+    // tests, because FakeItEasy emits dynamic proxy assemblies whose types
     // cannot always be enumerated while they are being generated on another thread.
     private static IEnumerable<Type> GetBehaviourTypes()
     {

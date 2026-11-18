@@ -141,7 +141,7 @@ public class MqttService : BackgroundService
             foreach (var device in devicesObj.EnumerateObject())
             {
                 var id = GetGuidFromID(device.Name);
-                string name = device.Value.GetProperty("friendly_name").GetString();
+                string? name = device.Value.GetProperty("friendly_name").GetString();
                 if (name is null) continue;
                 sensors.Add(new ApiSensor()
                 {

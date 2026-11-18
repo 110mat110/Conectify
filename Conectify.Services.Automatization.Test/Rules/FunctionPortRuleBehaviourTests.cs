@@ -122,12 +122,12 @@ public class FunctionPortRuleBehaviourTests
     }
 
     [Fact]
-    public void SetParameters_NamesThePortAfterItsOptions()
+    public async Task SetParameters_NamesThePortAfterItsOptions()
     {
         var behaviour = new FunctionInputRuleBehaviour(serviceProvider);
         var rule = new Rule { Id = Guid.NewGuid(), ParametersJson = "{\"Name\":\"Temperature\"}" };
 
-        behaviour.SetParameters(rule, CancellationToken.None).Wait();
+        await behaviour.SetParameters(rule, CancellationToken.None);
 
         Assert.Equal("Temperature", rule.Name);
         Assert.Equal("Function input: Temperature", rule.Description);

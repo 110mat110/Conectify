@@ -1,17 +1,19 @@
-﻿using AutoMapper;
-using Conectify.Database.Models;
+﻿using Conectify.Database.Models;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Shared.Library.Models;
 
 namespace Conectify.Shared.Maps;
 
-public class PreferenceProfile : Profile
+public class PreferenceProfile : IMappingProfile
 {
-    public PreferenceProfile()
+    public void Configure(MapperConfiguration configuration)
     {
-        CreateMap<ApiPreference, Preference>()
-            .ForMember(x => x.Id, opt => opt.Ignore())
-            .ForMember(x => x.Subscriber, opt => opt.Ignore())
-            .ForMember(x => x.SubscriberId, opt => opt.Ignore())
-            .ForMember(x => x.Subscriber, opt => opt.Ignore());
+        configuration.CreateMap<ApiPreference, Preference>(
+            x => new Preference
+            {
+                SubscibeeId = x.SubscibeeId,
+                EventType = x.EventType,
+            },
+            nameof(Preference.Id), nameof(Preference.SubscriberId), nameof(Preference.Subscriber));
     }
 }

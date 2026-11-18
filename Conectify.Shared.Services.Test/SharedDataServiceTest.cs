@@ -1,4 +1,4 @@
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database.Models.Values;
 using Conectify.Shared.Library.ErrorHandling;
 using Conectify.Shared.Library.Models.Websocket;
@@ -66,7 +66,7 @@ public class SharedDataServiceTest
         {
             SharedDataService.DeserializeJson(websocketValue);
         }
-        catch (AutoMapperMappingException)
+        catch (InvalidOperationException)
         {
             Assert.True(true);
         }

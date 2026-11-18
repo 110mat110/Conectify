@@ -1,3 +1,4 @@
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database;
 using Conectify.Services.Dashboard.Mapper;
 using Conectify.Services.Dashboard.Services;
@@ -20,7 +21,7 @@ builder.Logging.AddRemoteLogging();
 builder.Services.AddDbContext<ConectifyDb>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DatabaseString")));
-builder.Services.AddAutoMapper(typeof(DashboardProfile).Assembly);
+builder.Services.AddMapping(typeof(DashboardProfile).Assembly);
 var app = builder.Build();
 
 //await app.Services.ConnectToConectifyServer();

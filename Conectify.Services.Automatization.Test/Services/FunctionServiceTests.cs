@@ -1,4 +1,4 @@
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Services.Automatization.Database;
 using Conectify.Services.Automatization.Mapper;
 using Conectify.Services.Automatization.Models.ApiModels;

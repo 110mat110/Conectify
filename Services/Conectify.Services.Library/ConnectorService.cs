@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database.Models;
 using Conectify.Shared.Library.Interfaces;
 using Conectify.Shared.Library.Models;

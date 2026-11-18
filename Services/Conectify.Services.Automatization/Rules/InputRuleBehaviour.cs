@@ -4,7 +4,6 @@ using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
 using Conectify.Services.Library;
 using Conectify.Shared.Library;
-using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 
 namespace Conectify.Services.Automatization.Rules;
@@ -62,7 +61,7 @@ public class InputRuleBehaviour(IServiceProvider serviceProvider) : IRuleBehavio
             await rule.SetAllOutputs(evnt, false);
         }
     }
-
+
     public async Task SetParameters(Rule rule, CancellationToken cancellationToken)
     {
         var behaviour = JsonConvert.DeserializeAnonymousType(rule.ParametersJson, new { SourceSensorId = Guid.Empty, Name = string.Empty, Event = string.Empty });

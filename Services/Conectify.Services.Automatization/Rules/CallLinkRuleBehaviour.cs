@@ -25,8 +25,10 @@ public class CallLinkRuleBehavior(IServiceProvider serviceProvider) : IRuleBehav
     {
         var options = JsonConvert.DeserializeObject<CallLinkRuleOptions>(masterRule.ParametersJson);
         var address = options?.Http ?? throw new Exception("Invalid URL");
-        address = address.Replace("{numericValue}", (await masterRule.Inputs.FirstOrDefault(x => x.Type == InputTypeEnum.Value)?.GetEvent(serviceProvider))?.NumericValue.ToString() ?? string.Empty);
-        address = address.Replace("{stringValue}",(await masterRule.Inputs.FirstOrDefault(x => x.Type == InputTypeEnum.Value)?.GetEvent(serviceProvider))?.StringValue.ToString() ?? string.Empty);
+        var valueInput = masterRule.Inputs.FirstOrDefault(x => x.Type == InputTypeEnum.Value);
+        var valueEvent = valueInput is null ? null : await valueInput.GetEvent(serviceProvider);
+        address = address.Replace("{numericValue}", valueEvent?.NumericValue.ToString() ?? string.Empty);
+        address = address.Replace("{stringValue}", valueEvent?.StringValue.ToString() ?? string.Empty);
 
 
         HttpClient client = new HttpClient();

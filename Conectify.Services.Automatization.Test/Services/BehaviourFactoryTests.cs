@@ -17,7 +17,7 @@ public class BehaviourFactoryTests
     [Fact]
     public void GetRuleBehaviorByTypeId_AndBehaviour_ReturnsCorrectBehaviour()
     {
-        var behaviourId = new AndRuleBehaviour(default).GetId();
+        var behaviourId = new AndRuleBehaviour(default!).GetId();
 
         var result = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, serviceProvider);
 
@@ -29,7 +29,7 @@ public class BehaviourFactoryTests
     [Fact]
     public void GetRuleBehaviorByTypeId_InputBehaviour_ReturnsCorrectBehaviour()
     {
-        var behaviourId = new InputRuleBehaviour(default).GetId();
+        var behaviourId = new InputRuleBehaviour(default!).GetId();
 
         var result = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, serviceProvider);
 
@@ -41,7 +41,7 @@ public class BehaviourFactoryTests
     [Fact]
     public void GetRuleBehaviorByTypeId_OutputBehaviour_ReturnsCorrectBehaviour()
     {
-        var behaviourId = new OutputRuleBehaviour(default).GetId();
+        var behaviourId = new OutputRuleBehaviour(default!).GetId();
 
         var result = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, serviceProvider);
 
@@ -53,7 +53,7 @@ public class BehaviourFactoryTests
     [Fact]
     public void GetRuleBehaviorByTypeId_RunAtBehaviour_ReturnsCorrectBehaviour()
     {
-        var behaviourId = new RunAtRuleBehaviour(default).GetId();
+        var behaviourId = new RunAtRuleBehaviour(default!).GetId();
 
         var result = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, serviceProvider);
 
@@ -65,7 +65,7 @@ public class BehaviourFactoryTests
     [Fact]
     public void GetRuleBehaviorByTypeId_DecisionBehaviour_ReturnsCorrectBehaviour()
     {
-        var behaviourId = new DecisionRuleBehaviour(default).GetId();
+        var behaviourId = new DecisionRuleBehaviour(default!).GetId();
 
         var result = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, serviceProvider);
 
@@ -77,7 +77,7 @@ public class BehaviourFactoryTests
     [Fact]
     public void GetRuleBehaviorByTypeId_SetValueBehaviour_ReturnsCorrectBehaviour()
     {
-        var behaviourId = new SetValueRuleBehaviour(default).GetId();
+        var behaviourId = new SetValueRuleBehaviour(default!).GetId();
 
         var result = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, serviceProvider);
 
@@ -89,7 +89,7 @@ public class BehaviourFactoryTests
     [Fact]
     public void GetRuleBehaviorByTypeId_UserInputBehaviour_ReturnsCorrectBehaviour()
     {
-        var behaviourId = new UserInputRuleBehaviour(default).GetId();
+        var behaviourId = new UserInputRuleBehaviour(default!).GetId();
 
         var result = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, serviceProvider);
 
@@ -101,7 +101,7 @@ public class BehaviourFactoryTests
     [Fact]
     public void GetRuleBehaviorByTypeId_SetDelayBehaviour_ReturnsCorrectBehaviour()
     {
-        var behaviourId = new SetDelayBehaviour(default).GetId();
+        var behaviourId = new SetDelayBehaviour(default!).GetId();
 
         var result = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, serviceProvider);
 
@@ -113,7 +113,7 @@ public class BehaviourFactoryTests
     [Fact]
     public void GetRuleBehaviorByTypeId_CallLinkBehaviour_ReturnsCorrectBehaviour()
     {
-        var behaviourId = new CallLinkRuleBehavior(default).GetId();
+        var behaviourId = new CallLinkRuleBehavior(default!).GetId();
 
         var result = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, serviceProvider);
 
@@ -169,7 +169,7 @@ public class BehaviourFactoryTests
     [Fact]
     public void GetRuleBehaviorByTypeId_ReturnsNewInstanceEachTime()
     {
-        var behaviourId = new AndRuleBehaviour(default).GetId();
+        var behaviourId = new AndRuleBehaviour(default!).GetId();
 
         var result1 = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, serviceProvider);
         var result2 = BehaviorFactory.GetRuleBehaviorByTypeId(behaviourId, serviceProvider);

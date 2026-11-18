@@ -25,8 +25,8 @@ async void OnEvent(Conectify.Database.Models.Values.Event evnt)
 {
 }
 
-var mqttSevice = app.Services.GetService<MqttService>();
-mqttSevice.StartAsync(default);
+var mqttSevice = app.Services.GetRequiredService<MqttService>();
+_ = mqttSevice.StartAsync(default); // runs in the background, startup does not wait for it
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

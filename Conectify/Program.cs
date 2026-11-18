@@ -1,3 +1,4 @@
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database;
 using Conectify.Server;
 using Conectify.Server.Mapper;
@@ -19,7 +20,7 @@ builder.Services.AddConectifyServices();
 builder.Services.AddDbContext<ConectifyDb>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DatabaseString")));
-builder.Services.AddAutoMapper(typeof(DeviceProfile).Assembly, typeof(SubscriberProfile).Assembly);
+builder.Services.AddMapping(typeof(DeviceProfile).Assembly, typeof(SubscriberProfile).Assembly);
 builder.Services.AddTelemetry();
 var app = builder.Build();
 // Configure the HTTP request pipeline.

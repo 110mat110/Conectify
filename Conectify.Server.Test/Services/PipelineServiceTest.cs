@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics.Metrics;
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Database.Models.Values;

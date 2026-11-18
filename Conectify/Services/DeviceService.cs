@@ -3,8 +3,7 @@ interface. */
 namespace Conectify.Server.Services;
 
 using System.Collections.Generic;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database;
 using Conectify.Database.Models;
 using Conectify.Server.Caches;
@@ -42,10 +41,10 @@ public class DeviceService(ConectifyDb database, IMapper mapper, ILogger<DeviceS
 
         if (!string.IsNullOrEmpty(filter.Name))
         {
-            return await set.Where(x => x.Name.Contains(filter.Name)).ProjectTo<ApiDevice>(mapper.ConfigurationProvider).ToListAsync(ct);
+            return await set.Where(x => x.Name.Contains(filter.Name)).ProjectTo<ApiDevice>(mapper).ToListAsync(ct);
         }
 
-        return await set.ProjectTo<ApiDevice>(mapper.ConfigurationProvider).ToListAsync(ct);
+        return await set.ProjectTo<ApiDevice>(mapper).ToListAsync(ct);
     }
 
     public override async Task<bool> TryAddUnknownDevice(Guid deviceId, Guid parentId = default, CancellationToken ct = default)

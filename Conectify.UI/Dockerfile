@@ -1,5 +1,5 @@
 #stage 1
-FROM node:20.15.0 as node
+FROM node:22 AS node
 WORKDIR /app
 COPY Conectify.UI/. .
 RUN npm install --loglevel=error

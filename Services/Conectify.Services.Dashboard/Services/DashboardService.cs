@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
+﻿using Conectify.Shared.Library.Mapping;
 using Conectify.Database;
 using Conectify.Database.Models.Dashboard;
 using Conectify.Services.Dashboard.Models;
@@ -31,7 +30,7 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper, ILogger<D
 
         foreach (var dashboard in dashboards)
         {
-            var devices = await conectifyDb.DashboardsDevice.Where(x => x.DashBoardId == dashboard.Id).ProjectTo<DashboardDeviceApi>(mapper.ConfigurationProvider).ToListAsync(cancellationToken);
+            var devices = await conectifyDb.DashboardsDevice.Where(x => x.DashBoardId == dashboard.Id).ProjectTo<DashboardDeviceApi>(mapper).ToListAsync(cancellationToken);
             dashboard.DashboardDevices = devices;
         }
 
@@ -43,7 +42,7 @@ public class DashboardService(ConectifyDb conectifyDb, IMapper mapper, ILogger<D
         var dbModel = await conectifyDb.Dashboards.FirstOrDefaultAsync(x => x.Id == dashboardId, cancellationToken) ?? throw new ArgumentException("Selected dashboard does not exist");
         var dashboard = mapper.Map<DashboardApi>(dbModel);
 
-        var devices = await conectifyDb.DashboardsDevice.Where(x => x.DashBoardId == dashboardId).ProjectTo<DashboardDeviceApi>(mapper.ConfigurationProvider).ToListAsync(cancellationToken);
+        var devices = await conectifyDb.DashboardsDevice.Where(x => x.DashBoardId == dashboardId).ProjectTo<DashboardDeviceApi>(mapper).ToListAsync(cancellationToken);
         dashboard.DashboardDevices = devices;
 
         return dashboard;

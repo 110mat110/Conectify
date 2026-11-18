@@ -1,6 +1,6 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Database.Models.Values;
 using Conectify.Shared.Library;
 using Conectify.Shared.Library.Interfaces;

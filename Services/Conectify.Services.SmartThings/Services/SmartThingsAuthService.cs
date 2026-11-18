@@ -42,8 +42,8 @@ namespace Conectify.Services.SmartThings.Services
             var json = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
 
-            token.AccessToken = doc.RootElement.GetProperty("access_token").GetString();
-            token.RefreshToken = doc.RootElement.GetProperty("refresh_token").GetString();
+            token.AccessToken = doc.RootElement.GetProperty("access_token").GetString() ?? string.Empty;
+            token.RefreshToken = doc.RootElement.GetProperty("refresh_token").GetString() ?? string.Empty;
             var expiresIn = doc.RootElement.GetProperty("expires_in").GetInt32();
             token.ExpiresAt = DateTime.UtcNow.AddSeconds(expiresIn);
 

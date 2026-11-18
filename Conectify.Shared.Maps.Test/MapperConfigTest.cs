@@ -1,5 +1,5 @@
 using System.Reflection;
-using AutoMapper;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Server.Mapper;
 using Conectify.Services.Automatization.Mapper;
 
@@ -13,9 +13,10 @@ public class Tests
     {
         var config = new MapperConfiguration(configuration =>
         {
-            configuration.AddMaps(typeof(EventProfile).GetTypeInfo().Assembly);
-            configuration.AddMaps(typeof(SubscriberProfile).GetTypeInfo().Assembly);
-            configuration.AddMaps(typeof(RuleProfile).GetTypeInfo().Assembly);
+            configuration.AddProfiles(typeof(EventProfile).GetTypeInfo().Assembly);
+            configuration.AddProfiles(typeof(SubscriberProfile).GetTypeInfo().Assembly);
+            configuration.AddProfiles(typeof(RuleProfile).GetTypeInfo().Assembly);
+            configuration.AddProfiles(typeof(Conectify.Services.Dashboard.Mapper.DashboardProfile).GetTypeInfo().Assembly);
         });
 
         // Assert

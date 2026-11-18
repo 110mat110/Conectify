@@ -3,7 +3,7 @@
 #Depending on the operating system of the host machines(s) that will build or run the containers, the image specified in the FROM statement may need to be changed.
 #For more information, please see https://aka.ms/containercompat
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
@@ -12,7 +12,7 @@ EXPOSE 443
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY ["Services/Conectify.Services.Dashboard/Conectify.Services.Dashboard.csproj", "Services/Conectify.Services.Dashboard/"]
 RUN dotnet restore "Services/Conectify.Services.Dashboard/Conectify.Services.Dashboard.csproj"

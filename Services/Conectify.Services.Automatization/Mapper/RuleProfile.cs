@@ -1,68 +1,129 @@
-﻿using AutoMapper;
-using Conectify.Services.Automatization.Models.ApiModels;
+﻿using Conectify.Services.Automatization.Models.ApiModels;
 using Conectify.Services.Automatization.Models.Database;
 using Conectify.Services.Automatization.Models.DTO;
+using Conectify.Shared.Library.Mapping;
 using Conectify.Shared.Services.Data;
 
 namespace Conectify.Services.Automatization.Mapper;
 
-public class RuleProfile : Profile
+public class RuleProfile : IMappingProfile
 {
-    public RuleProfile()
+    public void Configure(MapperConfiguration configuration)
     {
-        this.CreateMap<AddInputApiModel, InputPoint>()
-            .ForMember(x => x.Type, opt => opt.MapFrom(src => src.InputType))
-            .ForMember(x => x.Id, opt => opt.MapFrom(x => Guid.NewGuid()))
-            .ForMember(x => x.PreviousRules, opt => opt.Ignore())
-            .ForMember(x => x.Rule, opt => opt.Ignore());
+        configuration.CreateMap<AddInputApiModel, InputPoint>(
+            x => new InputPoint
+            {
+                Id = Guid.NewGuid(),
+                RuleId = x.RuleId,
+                Type = x.InputType,
+                Index = x.Index,
+            },
+            nameof(InputPoint.PreviousRules), nameof(InputPoint.Rule));
 
-        this.CreateMap<AddOutputApiModel, OutputPoint>()
-    .ForMember(x => x.Id, opt => opt.MapFrom(x => Guid.NewGuid()))
-    .ForMember(x => x.ContinousRules, opt => opt.Ignore())
-    .ForMember(x => x.Rule, opt => opt.Ignore());
+        configuration.CreateMap<AddOutputApiModel, OutputPoint>(
+            x => new OutputPoint
+            {
+                Id = Guid.NewGuid(),
+                RuleId = x.RuleId,
+                Index = x.Index,
+            },
+            nameof(OutputPoint.ContinousRules), nameof(OutputPoint.Rule));
 
-        this.CreateMap<InputPoint, InputPointDTO>()
-            .ForMember(x => x.Rule, opt => opt.Ignore());
+        configuration.CreateMap<InputPoint, InputPointDTO>(
+            x => new InputPointDTO
+            {
+                Id = x.Id,
+                Index = x.Index,
+                Type = x.Type,
+            },
+            nameof(InputPointDTO.Rule));
 
-        this.CreateMap<InputPoint, InputApiModel>();
-        this.CreateMap<OutputPoint, OutputApiModel>();
+        configuration.CreateMap<InputPoint, InputApiModel>(x => new InputApiModel
+        {
+            Id = x.Id,
+            Index = x.Index,
+            Type = x.Type,
+        });
 
-        this.CreateMap<Rule, RuleDTO>()
-            .ForMember(x => x.RuleTypeId, opt => opt.MapFrom(x => x.RuleType))
-            .ForMember(x => x.OutputValue, opt => opt.Ignore())
-            .ForMember(x => x.SourceSensorId, opt => opt.MapFrom(x => SharedDataService.ExtractSourceId(x.ParametersJson)))
-            .ForMember(x => x.Inputs, opt => opt.MapFrom(x => x.InputConnectors))
-                        .ForMember(x => x.Outputs, opt => opt.Ignore())
-                                                .ForMember(x => x.TriggerOnValue, opt => opt.Ignore())
-                        .ForMember(x => x.RuleBehaviour, opt => opt.Ignore());
+        configuration.CreateMap<OutputPoint, OutputApiModel>(x => new OutputApiModel
+        {
+            Id = x.Id,
+            Index = x.Index,
+        });
 
+        configuration.CreateMap<Rule, RuleDTO>(
+            x => new RuleDTO
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Description = x.Description,
+                ParametersJson = x.ParametersJson,
+                RuleTypeId = x.RuleType,
+                SourceSensorId = SharedDataService.ExtractSourceId(x.ParametersJson),
+                Inputs = (x.InputConnectors ?? new List<InputPoint>()).Select(i => new InputPointDTO
+                {
+                    Id = i.Id,
+                    Index = i.Index,
+                    Type = i.Type,
+                }).ToList(),
+            },
+            nameof(RuleDTO.Outputs), nameof(RuleDTO.RuleBehaviour), nameof(RuleDTO.OutputValue), nameof(RuleDTO.TriggerOnValue));
 
-        this.CreateMap<RuleDTO, Rule>()
-            .ForMember(x => x.X, opt => opt.Ignore())
-            .ForMember(x => x.Y, opt => opt.Ignore())
-            .ForMember(x => x.OutputConnectors, opt => opt.Ignore())
-            .ForMember(x => x.RuleType, opt => opt.Ignore())
-            .ForMember(x => x.InputConnectors, opt => opt.Ignore());
+        configuration.CreateMap<RuleDTO, Rule>(
+            x => new Rule
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Description = x.Description,
+                ParametersJson = x.ParametersJson,
+            },
+            nameof(Rule.RuleType), nameof(Rule.X), nameof(Rule.Y), nameof(Rule.FunctionId), nameof(Rule.Function), nameof(Rule.OutputConnectors), nameof(Rule.InputConnectors));
 
-        this.CreateMap<CreateRuleApiModel, Rule>()
-            .ForMember(x => x.ParametersJson, opt => opt.MapFrom(x => x.Parameters))
-            .ForMember(x => x.RuleType, opt => opt.MapFrom(x => x.BehaviourId))
-            .ForMember(x => x.Id, opt => opt.Ignore())
-            .ForMember(x => x.InputConnectors, opt => opt.Ignore())
-            .ForMember(x => x.Name, opt => opt.Ignore())
-            .ForMember(x => x.OutputConnectors, opt => opt.Ignore())
-            .ForMember(x => x.Description, opt => opt.Ignore());
+        configuration.CreateMap<CreateRuleApiModel, Rule>(
+            x => new Rule
+            {
+                ParametersJson = x.Parameters,
+                RuleType = x.BehaviourId,
+                X = x.X,
+                Y = x.Y,
+            },
+            nameof(Rule.Id), nameof(Rule.Name), nameof(Rule.Description), nameof(Rule.FunctionId), nameof(Rule.Function), nameof(Rule.OutputConnectors), nameof(Rule.InputConnectors));
 
-        this.CreateMap<Rule, GetRuleApiModel>()
-            .ForMember(x => x.PropertyJson, opt => opt.MapFrom(x => x.ParametersJson))
-            .ForMember(x => x.BehaviourId, opt => opt.MapFrom(x => x.RuleType))
-            .ForMember(x => x.Inputs, opt => opt.MapFrom(x => x.InputConnectors))
-            .ForMember(x => x.Outputs, opt => opt.MapFrom(x => x.OutputConnectors));
+        configuration.CreateMap<Rule, GetRuleApiModel>(x => new GetRuleApiModel
+        {
+            Id = x.Id,
+            X = x.X,
+            Y = x.Y,
+            PropertyJson = x.ParametersJson,
+            Name = x.Name,
+            Description = x.Description,
+            BehaviourId = x.RuleType,
+            FunctionId = x.FunctionId,
+            Inputs = x.InputConnectors.Select(i => new InputApiModel
+            {
+                Id = i.Id,
+                Index = i.Index,
+                Type = i.Type,
+            }),
+            Outputs = x.OutputConnectors.Select(o => new OutputApiModel
+            {
+                Id = o.Id,
+                Index = o.Index,
+            }),
+        });
 
+        configuration.CreateMap<RuleConnector, ConnectionApiModel>(x => new ConnectionApiModel
+        {
+            SourceId = x.SourceRuleId,
+            DestinationId = x.TargetRuleId,
+        });
 
-        this.CreateMap<RuleConnector, ConnectionApiModel>()
-            .ForMember(x => x.SourceId, opt => opt.MapFrom(x => x.SourceRuleId))
-            .ForMember(x => x.DestinationId, opt => opt.MapFrom(x => x.TargetRuleId))
-            .ReverseMap();
+        configuration.CreateMap<ConnectionApiModel, RuleConnector>(
+            x => new RuleConnector
+            {
+                SourceRuleId = x.SourceId,
+                TargetRuleId = x.DestinationId,
+            },
+            nameof(RuleConnector.SourceRule), nameof(RuleConnector.TargetRule));
     }
 }
